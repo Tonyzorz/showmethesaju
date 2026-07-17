@@ -2,6 +2,7 @@
 // Root: client-side language detection → /{lang}/, fallback /en/.
 import { LOCALES, DEFAULT_LOCALE } from '../i18n/locales';
 const codes = LOCALES.map((l) => l.code);
+const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // '' or '/showmethesaju'
 ---
 <!doctype html>
 <html lang="en">
@@ -9,16 +10,16 @@ const codes = LOCALES.map((l) => l.code);
     <meta charset="utf-8" />
     <title>Show Me the Saju</title>
     <meta name="robots" content="noindex" />
-    <script define:vars={{ codes, DEFAULT_LOCALE }}>
+    <script define:vars={{ codes, DEFAULT_LOCALE, base }}>
       const prefs = navigator.languages.map((l) => l.toLowerCase());
       let target = DEFAULT_LOCALE;
       for (const p of prefs) {
         const hit = codes.find((c) => p === c || p.startsWith(c + '-') || c.startsWith(p));
         if (hit) { target = hit; break; }
       }
-      location.replace('/' + target + '/');
+      location.replace(base + '/' + target + '/');
     </script>
-    <noscript><meta http-equiv="refresh" content="0; url=/en/" /></noscript>
+    <noscript><meta http-equiv="refresh" content={`0; url=${base}/en/`} /></noscript>
   </head>
   <body></body>
 </html>

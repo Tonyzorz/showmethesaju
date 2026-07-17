@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import GlossaryTooltip from '../../components/GlossaryTooltip.astro';
 import { LOCALES } from '../../i18n/locales';
 import { t, ns } from '../../i18n/t';
+import { withBase } from '../../lib/paths';
 
 export function getStaticPaths() {
   return LOCALES.map((l) => ({ params: { lang: l.code } }));
@@ -37,14 +38,14 @@ const strings = { ...ns(lang, 'reading'), cta: t(lang, 'hero.cta'), siteName: t(
     <div class="actions">
       <button id="share-url" class="btn-secondary" type="button">{t(lang, 'reading.share')}</button>
       <button id="share-png" class="btn-primary" type="button">{t(lang, 'reading.sharePng')}</button>
-      <a class="btn-secondary" href={`/${lang}/learn/`}>{t(lang, 'reading.learnMore')}</a>
+      <a class="btn-secondary" href={withBase(`/${lang}/learn/`)}>{t(lang, 'reading.learnMore')}</a>
     </div>
     <p class="disclaimer">{t(lang, 'reading.disclaimer')}</p>
   </section>
 
   <section id="no-query" hidden>
     <h1>{t(lang, 'reading.yourPillars')}</h1>
-    <p><a class="btn-primary" href={`/${lang}/`}>{t(lang, 'hero.cta')}</a></p>
+    <p><a class="btn-primary" href={withBase(`/${lang}/`)}>{t(lang, 'hero.cta')}</a></p>
   </section>
 
   <GlossaryTooltip lang={lang} />

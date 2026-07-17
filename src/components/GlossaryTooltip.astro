@@ -8,6 +8,7 @@
  */
 import { TERMS } from '../lib/glossary';
 import { t } from '../i18n/t';
+import { withBase } from '../lib/paths';
 
 interface Props { lang: string; }
 const { lang } = Astro.props;
@@ -16,7 +17,7 @@ const data = Object.fromEntries(
   TERMS.map((tm) => [tm.key, { name: tm.name[L], def: tm.def[L], hanja: tm.hanja, roman: tm.roman }]),
 );
 const moreLabel = t(lang, 'glossary.moreLink');
-const glossaryBase = `/${lang}/glossary/`;
+const glossaryBase = withBase(`/${lang}/glossary/`);
 ---
 <script type="application/json" id="gloss-data" set:html={JSON.stringify(data)} />
 <div id="gloss-pop" class="gloss-pop" role="tooltip" hidden data-base={glossaryBase}>

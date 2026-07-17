@@ -1,6 +1,7 @@
 ---
 import { LOCALES, DEFAULT_LOCALE } from '../i18n/locales';
 import { t } from '../i18n/t';
+import { withBase } from '../lib/paths';
 import '../styles/tokens.css';
 
 interface Props {
@@ -19,11 +20,11 @@ const htmlLang = LOCALES.find((l) => l.code === lang)?.htmlLang ?? lang;
 const year = new Date().getFullYear();
 
 const nav = [
-  { href: `/${lang}/reading/`, label: t(lang, 'nav.reading') },
-  { href: `/${lang}/compatibility/`, label: t(lang, 'nav.compatibility') },
-  { href: `/${lang}/learn/`, label: t(lang, 'nav.learn') },
-  { href: `/${lang}/glossary/`, label: t(lang, 'nav.glossary') },
-  { href: `/${lang}/about/`, label: t(lang, 'nav.about') },
+  { href: withBase(`/${lang}/reading/`), label: t(lang, 'nav.reading') },
+  { href: withBase(`/${lang}/compatibility/`), label: t(lang, 'nav.compatibility') },
+  { href: withBase(`/${lang}/learn/`), label: t(lang, 'nav.learn') },
+  { href: withBase(`/${lang}/glossary/`), label: t(lang, 'nav.glossary') },
+  { href: withBase(`/${lang}/about/`), label: t(lang, 'nav.about') },
 ];
 ---
 <!doctype html>
@@ -52,7 +53,7 @@ const nav = [
   <body>
     <header class="site-header">
       <div class="header-inner">
-        <a class="logo" href={`/${lang}/`}>
+        <a class="logo" href={withBase(`/${lang}/`)}>
           <span class="seal seal--logo" aria-hidden="true">쇼미</span>
           <span class="logo-text">{t(lang, 'meta.siteName')}</span>
         </a>
@@ -78,7 +79,7 @@ const nav = [
         <div class="footer-links">
           <a href="https://smartstore.naver.com/" rel="noopener" target="_blank">{t(lang, 'footer.shop')}</a>
           <a href="https://pf.kakao.com/" rel="noopener" target="_blank">{t(lang, 'footer.booking')}</a>
-          <a href={`/${lang}/privacy/`}>{t(lang, 'footer.privacy')}</a>
+          <a href={withBase(`/${lang}/privacy/`)}>{t(lang, 'footer.privacy')}</a>
         </div>
         <p class="footer-rights">{t(lang, 'footer.rights', { year })}</p>
       </div>
@@ -87,13 +88,16 @@ const nav = [
     <script>
       // Language switcher: preserve the current sub-path across locales.
       const sel = document.getElementById('lang-select') as HTMLSelectElement | null;
+      const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // '' or '/showmethesaju'
       sel?.addEventListener('change', () => {
         const current = sel.dataset.current!;
         const next = sel.value;
         const url = new URL(location.href);
-        const parts = url.pathname.split('/');
+        let path = url.pathname;
+        if (base && path.startsWith(base)) path = path.slice(base.length); // strip base before swapping locale
+        const parts = path.split('/');
         if (parts[1] === current) parts[1] = next; else parts.splice(1, 0, next);
-        url.pathname = parts.join('/');
+        url.pathname = base + parts.join('/');
         location.href = url.toString();
       });
       // Mobile nav toggle.

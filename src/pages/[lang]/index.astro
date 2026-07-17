@@ -87,6 +87,7 @@ const { lang } = Astro.params;
   <script>
     import KoreanLunarCalendar from 'korean-lunar-calendar';
     import { tzOffsetMinutes } from '../../lib/cities';
+    import { withBase } from '../../lib/paths';
 
     const form = document.getElementById('birth-form') as HTMLFormElement;
     const lunarOnly = form.querySelector('.lunar-only') as HTMLElement;
@@ -132,7 +133,7 @@ const { lang } = Astro.params;
         ts: f.get('trueSolar') === 'on' ? '1' : '0',
         g: String(f.get('gender')),
       });
-      location.href = `/${form.dataset.lang}/reading/?${q}`;
+      location.href = withBase(`/${form.dataset.lang}/reading/`) + `?${q}`;
     });
   </script>
 
