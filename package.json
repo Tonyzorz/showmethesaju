@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "test:engine": "node scripts/test-engine.mjs",
     "preview": "astro preview",
     "validate": "node --experimental-strip-types scripts/validate.mjs",
     "smoke": "node scripts/smoke-dist.mjs",

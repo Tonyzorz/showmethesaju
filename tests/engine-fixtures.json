@@ -1,0 +1,53 @@
+{
+  "comment": "Engine regression fixtures. status 'anchor' = verified expectation, runner asserts. status 'pending' = awaiting KASI verification (see KASI-CHECKLIST.md) — runner lists but does not assert. Pillar expectations are hanja strings; omit a pillar to skip checking it.",
+  "cases": [
+    {
+      "name": "CLAUDE.md anchor: 2000-01-07 noon KST = 甲子 day",
+      "status": "anchor",
+      "input": { "year": 2000, "month": 1, "day": 7, "hour": 12, "minute": 0, "tzOffsetMinutes": 540 },
+      "expect": { "year": "己卯", "month": "丁丑", "day": "甲子", "hour": "庚午" }
+    },
+    {
+      "name": "day-pillar continuity: 2000-01-08 = 乙丑 day",
+      "status": "anchor",
+      "input": { "year": 2000, "month": 1, "day": 8, "hour": 12, "minute": 0, "tzOffsetMinutes": 540 },
+      "expect": { "day": "乙丑" }
+    },
+    {
+      "name": "CLAUDE.md anchor: 1984 = 甲子 year",
+      "status": "anchor",
+      "input": { "year": 1984, "month": 6, "day": 1, "hour": 12, "minute": 0, "tzOffsetMinutes": 540 },
+      "expect": { "year": "甲子" }
+    },
+    {
+      "name": "ipchun 2024 (≈Feb 4 17:2x KST): 18:00 birth is the new year 甲辰",
+      "status": "anchor",
+      "input": { "year": 2024, "month": 2, "day": 4, "hour": 18, "minute": 0, "tzOffsetMinutes": 540 },
+      "expect": { "year": "甲辰", "month": "丙寅" }
+    },
+    {
+      "name": "ipchun 2024: 16:00 birth still belongs to 癸卯 year",
+      "status": "anchor",
+      "input": { "year": 2024, "month": 2, "day": 4, "hour": 16, "minute": 0, "tzOffsetMinutes": 540 },
+      "expect": { "year": "癸卯", "month": "乙丑" }
+    },
+    {
+      "name": "자시 boundary: 23:30 birth flips the day pillar (default 23:00 convention)",
+      "status": "anchor",
+      "input": { "year": 2000, "month": 1, "day": 7, "hour": 23, "minute": 30, "tzOffsetMinutes": 540 },
+      "expect": { "day": "乙丑" }
+    },
+    {
+      "name": "PENDING KASI: 절기-boundary case (fill from checklist row B1)",
+      "status": "pending",
+      "input": { "year": 1995, "month": 2, "day": 4, "hour": 12, "minute": 0, "tzOffsetMinutes": 540 },
+      "expect": {}
+    },
+    {
+      "name": "PENDING KASI: foreign birthplace New York (fill from checklist row F1)",
+      "status": "pending",
+      "input": { "year": 1990, "month": 6, "day": 15, "hour": 14, "minute": 30, "tzOffsetMinutes": -240 },
+      "expect": {}
+    }
+  ]
+}
