@@ -22,4 +22,6 @@ export const TERMS: Term[] = [
   { key: 'myeonggung', hanja: '命宮', roman: 'myeonggung' },
   { key: 'singang', hanja: '身强·身弱', roman: 'singang · sinyak' },
   { key: 'yongsin', hanja: '用神', roman: 'yongsin' },
+  { key: 'gyeokguk', hanja: '格局', roman: 'gyeokguk' },
+  { key: 'samjae', hanja: '三災', roman: 'samjae' },
 ];

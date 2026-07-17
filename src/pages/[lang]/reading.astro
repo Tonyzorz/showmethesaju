@@ -195,10 +195,29 @@ const READING_FOCUSES = [
     </div>
 
     <div class="analysis-grid">
+      <section id="gyeokguk-analysis" class="card panel gyeokguk-panel">
+        <div class="panel-heading">
+          <h2><button class="gloss" data-gloss="gyeokguk" type="button">{t(lang, 'reading.gyeokguk')}</button></h2>
+          <span class="panel-index" aria-hidden="true">08</span>
+        </div>
+        <div id="gyeokguk-result" class="gyeokguk-result"></div>
+        <p class="soft context-note">{t(lang, 'reading.gyeokgukContext')}</p>
+      </section>
+      <section id="samjae-analysis" class="card panel samjae-panel">
+        <div class="panel-heading">
+          <h2><button class="gloss" data-gloss="samjae" type="button">{t(lang, 'reading.samjae')}</button></h2>
+          <span class="panel-index" aria-hidden="true">09</span>
+        </div>
+        <div id="samjae-result" class="samjae-result"></div>
+        <p class="soft context-note">{t(lang, 'reading.samjaeContext')}</p>
+      </section>
+    </div>
+
+    <div class="analysis-grid">
       <section id="relations-analysis" class="card panel relations-panel">
         <div class="panel-heading">
           <h2>{t(lang, 'reading.allRelations')}</h2>
-          <span class="panel-index" aria-hidden="true">08</span>
+          <span class="panel-index" aria-hidden="true">10</span>
         </div>
         <div class="relation-section"><h3>{t(lang, 'reading.branchRelations')}</h3><div id="branch-relations" class="relation-list"></div></div>
         <div class="relation-section"><h3>{t(lang, 'reading.stemRelations')}</h3><div id="stem-relations" class="relation-list"></div></div>
@@ -208,7 +227,7 @@ const READING_FOCUSES = [
       <section class="card panel shinsal-panel">
         <div class="panel-heading">
           <h2>{t(lang, 'reading.shinsal')}</h2>
-          <span class="panel-index" aria-hidden="true">09</span>
+          <span class="panel-index" aria-hidden="true">11</span>
         </div>
         <div id="shinsal-list" class="shinsal-list"></div>
         <p class="soft context-note">{t(lang, 'reading.shinsalContext')}</p>
@@ -221,7 +240,7 @@ const READING_FOCUSES = [
           <p class="panel-overline">10 YEAR CYCLES</p>
           <h2>{t(lang, 'reading.daeun')}</h2>
         </div>
-        <span class="panel-index" aria-hidden="true">10</span>
+        <span class="panel-index" aria-hidden="true">12</span>
       </div>
       <p id="daeun-meta" class="luck-meta"></p>
       <div id="daeun-list" class="luck-strip"></div>
@@ -235,7 +254,7 @@ const READING_FOCUSES = [
           <p class="panel-overline">YEARLY CYCLES</p>
           <h2>{t(lang, 'reading.seun')}</h2>
         </div>
-        <span class="panel-index" aria-hidden="true">11</span>
+        <span class="panel-index" aria-hidden="true">13</span>
       </div>
       <div id="seun-list" class="luck-strip luck-strip--annual"></div>
       <div id="seun-detail" class="luck-detail"></div>
@@ -303,7 +322,8 @@ const READING_FOCUSES = [
       type TwelveStage,
     } from '../../lib/saju-engine';
     import {
-      favorableElements, myeonggungPillar, strengthAnalysis, taewonPillar,
+      extraShinsal, favorableElements, gyeokguk, myeonggungPillar, samjae,
+      strengthAnalysis, taewonPillar,
       type MiniPillar,
     } from '../../lib/saju-extras';
     import { trackEvent } from '../../lib/analytics';
@@ -411,7 +431,7 @@ const READING_FOCUSES = [
       year: S['pillarYear'], month: S['pillarMonth'], day: S['pillarDay'], hour: S['pillarHour'],
     };
     const relationLabel = (type: string) => S[`rel.${type}`] ?? type;
-    const shinsalLabel = (name: ShinsalName) => S[`shinsal.${name}`] ?? name;
+    const shinsalLabel = (name: string) => S[`shinsal.${name}`] ?? name;
     const ageLabel = (totalMonths: number) => fmt(S['ageYearsMonths'], {
       years: Math.floor(totalMonths / 12), months: totalMonths % 12,
     });
@@ -611,6 +631,29 @@ const READING_FOCUSES = [
       document.getElementById('palace-cards')!.innerHTML =
         palaceCard(S['taewonLabel'], taewonPillar(r), S['taewonHint']) +
         palaceCard(S['myeonggungLabel'], myeonggungPillar(r), S['myeonggungHint']);
+
+      // 격국: 십정격 from the month branch's protruding hidden stem.
+      const gg = gyeokguk(r);
+      document.getElementById('gyeokguk-result')!.innerHTML = `
+        <strong class="verdict-badge gyeokguk-badge">${S[`gg.${gg.name}`]}</strong>
+        <div class="gyeokguk-meta">
+          <span>${S['gyeokgukStem']} <strong lang="ko">${gg.stemHanja}</strong> · ${tenGodLabel(gg.god)}</span>
+          <span class="soft">${gg.tugan ? S['gyeokgukTugan'] : S['gyeokgukNoTugan']}</span>
+        </div>`;
+
+      // 삼재: current ipchun-adjusted year vs the birth-year trine group.
+      const nowYear = new Date().getFullYear();
+      const sajuYearNow = Date.now() >= ipchunUtcMs(nowYear) ? nowYear : nowYear - 1;
+      const sj = samjae(r.year.branch, sajuYearNow);
+      const sjBranches = sj.groupBranches.map((b) => BRANCHES_HANJA[b]).join('·');
+      const windowText = fmt(S['samjaeWindow'], {
+        branches: sjBranches, start: sj.windowStartYear, end: sj.windowStartYear + 2,
+      });
+      document.getElementById('samjae-result')!.innerHTML = sj.stage === 0
+        ? `<strong class="verdict-badge samjae-badge samjae-badge--none">${S['samjaeNone']}</strong>
+           <div class="gyeokguk-meta"><span class="soft">${fmt(S['samjaeNext'], { start: sj.windowStartYear })}</span><span class="soft" lang="ko">${windowText}</span></div>`
+        : `<strong class="verdict-badge samjae-badge">${S[`samjaeStage.${sj.stage}`]}</strong>
+           <div class="gyeokguk-meta"><span lang="ko">${windowText}</span></div>`;
     }
 
     function renderRelations(r: SajuResult) {
@@ -641,15 +684,17 @@ const READING_FOCUSES = [
     }
 
     function renderShinsal(r: SajuResult) {
-      const grouped = new Map<ShinsalName, typeof r.shinsal>();
-      for (const occurrence of r.shinsal) {
+      type AnyOccurrence = { name: string; targetRole: PillarRole; targetBranch: number };
+      const grouped = new Map<string, AnyOccurrence[]>();
+      for (const occurrence of [...r.shinsal, ...extraShinsal(r)] as AnyOccurrence[]) {
         const group = grouped.get(occurrence.name) ?? [];
         group.push(occurrence);
         grouped.set(occurrence.name, group);
       }
-      const order: ShinsalName[] = [
+      const order: string[] = [
         'cheonEul', 'cheonDeok', 'wolDeok', 'munChang', 'geonRok', 'yangIn',
-        'peachBlossom', 'travelHorse', 'flowerCanopy', 'gongMang',
+        'amNok', 'geumYeo', 'cheonUi',
+        'peachBlossom', 'hongYeom', 'travelHorse', 'flowerCanopy', 'gongMang',
         'hyeonChim', 'goRan', 'baekHo', 'gwaeGang',
       ];
       const cards = order.filter((name) => grouped.has(name)).map((name) => {
@@ -1200,6 +1245,13 @@ const READING_FOCUSES = [
     .palace-hanja { font-family: var(--font-display); font-size: var(--text-2xl); line-height: var(--leading-tight); }
     .palace-ko { font-family: var(--font-mono); font-size: var(--text-sm); }
     .palace-hint { font-size: var(--text-xs); }
+
+    /* ── 격국 + 삼재 panels ── */
+    .gyeokguk-result, .samjae-result { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; margin-block-end: var(--space-3); }
+    .gyeokguk-badge { color: var(--indigo); }
+    .gyeokguk-meta { display: grid; gap: var(--space-1); font-size: var(--text-sm); }
+    .samjae-badge { color: var(--gold); }
+    .samjae-badge--none { color: var(--ink-soft); }
     .pillar-empty { align-items: center; justify-content: flex-start; }
     .pillar-empty .hint { margin: auto; text-align: center; }
 

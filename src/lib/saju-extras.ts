@@ -134,3 +134,118 @@ export function favorableElements(dayElement: Element, verdict: StrengthVerdict)
     : { favorable: [PRODUCES[dayElement], CONTROLS[dayElement], CONTROLLED_BY[dayElement]],
         unfavorable: [PRODUCED_BY[dayElement], dayElement], balanced: false };
 }
+
+// ───────────────────────── 격국 (chart structure) ─────────────────────────
+
+export type GyeokgukName =
+  | 'geonrok' | 'yangin' | 'siksin' | 'sanggwan' | 'pyeonjae'
+  | 'jeongjae' | 'pyeongwan' | 'jeonggwan' | 'pyeonin' | 'jeongin';
+
+const GOD_TO_GYEOKGUK: Record<TenGod, GyeokgukName> = {
+  '비견': 'geonrok', '겁재': 'yangin',
+  '식신': 'siksin', '상관': 'sanggwan',
+  '편재': 'pyeonjae', '정재': 'jeongjae',
+  '편관': 'pyeongwan', '정관': 'jeonggwan',
+  '편인': 'pyeonin', '정인': 'jeongin',
+};
+
+export interface GyeokgukResult {
+  name: GyeokgukName;
+  god: TenGod;
+  stemHanja: string;   // the month hidden stem that defines the 격
+  tugan: boolean;      // whether that stem protrudes to a visible stem
+}
+
+/**
+ * 십정격 determination, method disclosed in the UI: among the month branch's
+ * hidden stems, the first (정기 → 중기 → 여기) that protrudes (투간) to a
+ * visible stem defines the 격; with no protrusion the 정기 does. 비견 month →
+ * 건록격, 겁재 month → 양인격. External/special 격 are out of scope.
+ */
+export function gyeokguk(r: SajuResult): GyeokgukResult {
+  const hidden = r.hiddenStems.month ?? [];
+  const byPhase = (phase: 'main' | 'middle' | 'residual') =>
+    hidden.find((h) => h.phase === phase) ?? null;
+  const visible = new Set([r.year.stem, r.month.stem, ...(r.hour ? [r.hour.stem] : [])]);
+  for (const phase of ['main', 'middle', 'residual'] as const) {
+    const h = byPhase(phase);
+    if (h && visible.has(h.stem)) {
+      return { name: GOD_TO_GYEOKGUK[h.tenGod], god: h.tenGod, stemHanja: h.stemHanja, tugan: true };
+    }
+  }
+  const main = byPhase('main') ?? hidden[hidden.length - 1];
+  return { name: GOD_TO_GYEOKGUK[main.tenGod], god: main.tenGod, stemHanja: main.stemHanja, tugan: false };
+}
+
+// ───────────────────────── 삼재 (three-year folk cycle) ─────────────────────────
+
+export interface SamjaeResult {
+  /** The three samjae year branches for this birth-year trine group. */
+  groupBranches: [number, number, number];
+  /** 0 = not in a window this year; 1 들삼재, 2 눌삼재, 3 날삼재. */
+  stage: 0 | 1 | 2 | 3;
+  /** Gregorian year the current window started, or the next window starts. */
+  windowStartYear: number;
+}
+
+/**
+ * 삼재: the birth-year branch's trine group maps to a fixed 3-year window
+ * every 12 years — 신자진→인묘진년, 인오술→신유술년, 사유축→해자축년,
+ * 해묘미→사오미년. `sajuYear` should be ipchun-adjusted.
+ */
+export function samjae(birthYearBranch: number, sajuYear: number): SamjaeResult {
+  const startByGroup = [2, 11, 8, 5]; // trine group (branch % 4) → window start branch
+  const start = startByGroup[birthYearBranch % 4];
+  const groupBranches: [number, number, number] = [start, (start + 1) % 12, (start + 2) % 12];
+  const yearBranch = (((sajuYear - 4) % 12) + 12) % 12;
+  const idx = groupBranches.indexOf(yearBranch);
+  const untilStart = (((start - yearBranch) % 12) + 12) % 12;
+  return {
+    groupBranches,
+    stage: (idx === -1 ? 0 : idx + 1) as SamjaeResult['stage'],
+    windowStartYear: idx === -1 ? sajuYear + untilStart : sajuYear - idx,
+  };
+}
+
+// ───────────────────────── extra 신살 (홍염·암록·금여·천의) ─────────────────────────
+
+export type ExtraShinsalName = 'hongYeom' | 'amNok' | 'geumYeo' | 'cheonUi';
+
+export interface ExtraShinsalOccurrence {
+  name: ExtraShinsalName;
+  targetRole: 'year' | 'month' | 'day' | 'hour';
+  targetBranch: number;
+}
+
+/** Day stem → 홍염 branches (갑오 을신 병인 정미 무진 기진 경술·신 신유 임자·신 계신). */
+const HONG_YEOM: number[][] = [[6], [8], [2], [7], [4], [4], [10, 8], [9], [0, 8], [8]];
+/** Day stem → 건록 branch (갑인 을묘 병사 정오 무사 기오 경신 신유 임해 계자). */
+const GEONROK: number[] = [2, 3, 5, 6, 5, 6, 8, 9, 11, 0];
+/** 육합 pairs: 자축 인해 묘술 진유 사신 오미. */
+const YUKHAP: number[] = [1, 0, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2];
+
+/**
+ * Popular reference 신살 beyond the engine's set, computed here so the
+ * verified engine stays untouched: 홍염(day stem table), 암록(육합 of the
+ * day stem's 건록), 금여(건록 + 2), 천의(the branch just before the month
+ * branch, sought outside the month pillar).
+ */
+export function extraShinsal(r: SajuResult): ExtraShinsalOccurrence[] {
+  const out: ExtraShinsalOccurrence[] = [];
+  const dayStem = r.day.stem;
+  const hong = HONG_YEOM[dayStem];
+  const amnok = YUKHAP[GEONROK[dayStem]];
+  const geumyeo = (GEONROK[dayStem] + 2) % 12;
+  const cheonui = (r.month.branch + 11) % 12;
+  const roles = [
+    ['year', r.year], ['month', r.month], ['day', r.day], ['hour', r.hour],
+  ] as const;
+  for (const [role, p] of roles) {
+    if (!p) continue;
+    if (hong.includes(p.branch)) out.push({ name: 'hongYeom', targetRole: role, targetBranch: p.branch });
+    if (p.branch === amnok) out.push({ name: 'amNok', targetRole: role, targetBranch: p.branch });
+    if (p.branch === geumyeo) out.push({ name: 'geumYeo', targetRole: role, targetBranch: p.branch });
+    if (role !== 'month' && p.branch === cheonui) out.push({ name: 'cheonUi', targetRole: role, targetBranch: p.branch });
+  }
+  return out;
+}
