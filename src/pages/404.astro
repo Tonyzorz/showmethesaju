@@ -1,11 +1,44 @@
 ---
+// GitHub Pages serves this single file for every 404, so it localizes
+// client-side: locale from the URL path first (/ko/... → ko), then the
+// browser languages, falling back to en. Strings for all locales are
+// embedded at build time.
 import Base from '../layouts/Base.astro';
+import { LOCALES } from '../i18n/locales';
 import { t } from '../i18n/t';
 import { withBase } from '../lib/paths';
 const lang = 'en';
+const strings = Object.fromEntries(LOCALES.map((l) => [l.code, {
+  title: t(l.code, 'notFound.title'),
+  body: t(l.code, 'notFound.body'),
+  cta: t(l.code, 'notFound.cta'),
+}]));
+const codes = LOCALES.map((l) => l.code);
+const base = withBase('/');
 ---
 <Base lang={lang} title={t(lang, 'notFound.title')} path="404" noindex>
-  <h1>{t(lang, 'notFound.title')}</h1>
-  <p>{t(lang, 'notFound.body')}</p>
-  <a class="btn-primary" href={withBase('/en/')}>{t(lang, 'notFound.cta')}</a>
+  <h1 id="nf-title">{t(lang, 'notFound.title')}</h1>
+  <p id="nf-body">{t(lang, 'notFound.body')}</p>
+  <a id="nf-cta" class="btn-primary" href={withBase('/en/')}>{t(lang, 'notFound.cta')}</a>
+  <script is:inline define:vars={{ strings, codes, base }}>
+    let target = '';
+    const fromPath = location.pathname.slice(base.length).split('/')[0];
+    if (codes.includes(fromPath)) target = fromPath;
+    if (!target) {
+      for (const p of navigator.languages.map((l) => l.toLowerCase())) {
+        const hit = codes.find((c) => p === c || p.startsWith(c + '-') || c.startsWith(p));
+        if (hit) { target = hit; break; }
+      }
+    }
+    if (target && target !== 'en' && strings[target]) {
+      const s = strings[target];
+      document.getElementById('nf-title').textContent = s.title;
+      document.getElementById('nf-body').textContent = s.body;
+      const cta = document.getElementById('nf-cta');
+      cta.textContent = s.cta;
+      cta.href = base + target + '/';
+      document.title = s.title;
+      document.documentElement.lang = target;
+    }
+  </script>
 </Base>
