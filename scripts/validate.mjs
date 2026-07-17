@@ -3,7 +3,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import KoreanLunarCalendar from 'korean-lunar-calendar';
-import { computeSaju, ipchunUtcMs, sunApparentLongitude } from '../src/lib/saju-engine.ts';
+import {
+  branchRelationTypes,
+  computeAnnualLuck,
+  computeSaju,
+  hiddenStemsForBranch,
+  ipchunUtcMs,
+  shinsalNamesForBranch,
+  sunApparentLongitude,
+} from '../src/lib/saju-engine.ts';
 import { CITIES, tzOffsetMinutes } from '../src/lib/cities.ts';
 import { TERMS } from '../src/lib/glossary.ts';
 
@@ -67,6 +75,23 @@ assert.equal(computeSaju({ year: 2000, month: 1, day: 7, hour: 0, minute: 30, tz
 assert.equal(computeSaju({ year: 2000, month: 1, day: 7, hour: 23, minute: 30, tzOffsetMinutes: 540 }).day.hanja, '乙丑', 'Default 23:00 boundary should advance the day pillar.');
 assert.throws(() => computeSaju({ year: 2024, month: 2, day: 30, hour: 12, tzOffsetMinutes: 540 }), RangeError);
 assert.throws(() => computeSaju({ year: 2024, month: 2, day: 3, hour: 25, tzOffsetMinutes: 540 }), RangeError);
+
+assert.deepEqual(hiddenStemsForBranch(1, 0).map((item) => item.stemHanja), ['癸', '辛', '己'], '丑 hidden stems should be 癸辛己.');
+assert.deepEqual(hiddenStemsForBranch(6, 0).map((item) => item.stemHanja), ['丙', '己', '丁'], '午 hidden stems should follow the Korean 월률분야 convention.');
+assert.ok(branchRelationTypes(0, 6).includes('clash'), '子午 should form a clash.');
+assert.ok(branchRelationTypes(2, 5).includes('punishment') && branchRelationTypes(2, 5).includes('harm'), '寅巳 should form punishment and harm.');
+assert.ok(branchRelationTypes(5, 8).includes('punishment') && branchRelationTypes(5, 8).includes('break'), '巳申 should form punishment and break.');
+assert.ok(shinsalNamesForBranch(0, 0, 4, 1).includes('cheonEul'), '甲 day should recognize 丑 as 천을귀인.');
+assert.ok(shinsalNamesForBranch(0, 0, 4, 11).includes('gongMang'), '甲子 day should recognize 戌亥 공망.');
+
+const yangYearMale = computeSaju({ year: 2024, month: 7, day: 2, hour: 12, gender: 'male', tzOffsetMinutes: 540 });
+const yangYearFemale = computeSaju({ year: 2024, month: 7, day: 2, hour: 12, gender: 'female', tzOffsetMinutes: 540 });
+assert.equal(yangYearMale.year.stemYang, true, 'Fixture must use a Yang year stem.');
+assert.equal(yangYearMale.daeun?.direction, 'forward', '양남 should run Daeun forward.');
+assert.equal(yangYearFemale.daeun?.direction, 'reverse', '양녀 should run Daeun in reverse.');
+assert.ok((yangYearMale.daeun?.startAgeMonths ?? -1) >= 0 && (yangYearMale.daeun?.startAgeMonths ?? 121) <= 120, 'Daeun start age should fall within one solar month converted at 3 days per year.');
+assert.notEqual(yangYearMale.daeun?.cycles[0].pillar.hanja, yangYearFemale.daeun?.cycles[0].pillar.hanja, 'Opposite Daeun directions must produce different first cycles.');
+assert.deepEqual(computeAnnualLuck(yangYearMale, 2026, 2).map((item) => item.pillar.hanja), ['丙午', '丁未'], '2026–2027 annual pillars should be 丙午 and 丁未.');
 
 assert.equal(tzOffsetMinutes('America/New_York', 2024, 1, 15, 12), -300, 'New York winter offset should be UTC-5.');
 assert.equal(tzOffsetMinutes('America/New_York', 2024, 7, 15, 12), -240, 'New York summer offset should be UTC-4.');

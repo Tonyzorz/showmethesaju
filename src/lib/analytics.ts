@@ -20,7 +20,7 @@ declare global {
 }
 
 const EVENT_NAME = /^[a-z][a-z0-9_]{0,39}$/;
-const SENSITIVE_PARAM = /(birth|date|year|month|day|hour|minute|longitude|latitude|coordinate|query|email|phone|address|full_name)/i;
+const SENSITIVE_PARAM = /(birth|date|year|month|day|hour|minute|gender|sex|longitude|latitude|coordinate|query|email|phone|address|full_name)/i;
 
 function sanitizedParams(params: AnalyticsParams): Record<string, AnalyticsValue> {
   const safe: Record<string, AnalyticsValue> = {};

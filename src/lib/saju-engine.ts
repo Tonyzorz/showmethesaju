@@ -8,7 +8,8 @@
  *  - Month pillar: month branch from the sun's apparent longitude interval
  *    (절기 boundaries every 30° from 315°), stem via 오호둔 rule.
  *  - Hour pillar: 12 double-hours, stem via 오서둔 rule from the day stem.
- *  - Extras: five-element counts, ten gods (십성) relative to the day master.
+ *  - Advanced layers: hidden stems (지장간), ten gods, branch relations,
+ *    major shinsal, Daeun direction/start age, and annual cycles.
  *
  * NOT in scope: lunar→solar conversion. Convert 음력 input at the UI layer with
  * the `korean-lunar-calendar` npm package, then pass the solar date here.
@@ -40,6 +41,12 @@ export type TenGod =
   | '비견' | '겁재' | '식신' | '상관' | '편재'
   | '정재' | '편관' | '정관' | '편인' | '정인';
 
+export type Gender = 'female' | 'male';
+export type PillarRole = 'year' | 'month' | 'day' | 'hour';
+export type HiddenQiPhase = 'residual' | 'middle' | 'main';
+export type BranchRelationType = 'punishment' | 'clash' | 'break' | 'harm';
+export type ShinsalName = 'cheonEul' | 'munChang' | 'peachBlossom' | 'travelHorse' | 'flowerCanopy' | 'gongMang';
+
 // ───────────────────────────── types ─────────────────────────────
 
 export interface SajuInput {
@@ -47,6 +54,8 @@ export interface SajuInput {
   year: number; month: number; day: number;   // month 1–12
   hour?: number; minute?: number;             // local civil time
   timeUnknown?: boolean;
+  /** Traditional binary classification used only for Daeun direction. */
+  gender?: Gender;
   /** Minutes east of UTC for the birth place, e.g. KST = +540. */
   tzOffsetMinutes: number;
   /** Birth place longitude in degrees east; only used when useTrueSolarTime. */
@@ -76,8 +85,61 @@ export interface Pillar {
   tenGod: TenGod | null;
 }
 
+export interface HiddenStem {
+  stem: number;
+  stemHanja: string;
+  stemKo: string;
+  element: Element;
+  tenGod: TenGod;
+  phase: HiddenQiPhase;
+}
+
+export interface BranchRelation {
+  type: BranchRelationType;
+  leftRole: PillarRole;
+  rightRole: PillarRole;
+  leftBranch: number;
+  rightBranch: number;
+}
+
+export interface LuckRelation {
+  type: BranchRelationType;
+  natalRole: PillarRole;
+  natalBranch: number;
+}
+
+export interface ShinsalOccurrence {
+  name: ShinsalName;
+  targetRole: PillarRole;
+  targetBranch: number;
+}
+
+export interface LuckCycle {
+  index: number;
+  pillar: Pillar;
+  relations: LuckRelation[];
+  shinsal: ShinsalName[];
+}
+
+export interface DaeunCycle extends LuckCycle {
+  startAgeMonths: number;
+  startYear: number;
+}
+
+export interface DaeunResult {
+  direction: 'forward' | 'reverse';
+  startAgeMonths: number;
+  boundaryUtcMs: number;
+  cycles: DaeunCycle[];
+}
+
+export interface AnnualLuck extends LuckCycle {
+  year: number;
+}
+
 export interface SajuResult {
   year: Pillar; month: Pillar; day: Pillar; hour: Pillar | null;
+  gender: Gender | null;
   dayMaster: { hanja: string; ko: string; element: Element; yang: boolean };
   /** Counts across all stems+branches present (hour excluded when unknown). */
   elementCounts: Record<Element, number>;
@@ -85,6 +147,12 @@ export interface SajuResult {
   solarLongitude: number;
   /** UTC epoch ms of the birth instant used for year/month pillars. */
   utcMs: number;
+  /** Korean 월률분야 convention, ordered 여기 → 중기 → 정기. */
+  hiddenStems: Record<PillarRole, HiddenStem[]>;
+  relations: BranchRelation[];
+  shinsal: ShinsalOccurrence[];
+  /** Null for legacy/shared links that do not contain gender. */
+  daeun: DaeunResult | null;
 }
 
 // ───────────────────────── astronomy (Meeus low-precision) ─────────────────────────
@@ -159,6 +227,212 @@ export function tenGod(dayStem: number, other: number): TenGod {
   return samePol ? '편인' : '정인';                               // other generates day
 }
 
+// ─────────────────────── hidden stems and derived layers ───────────────────────
+
+type HiddenStemRule = { stem: number; phase: HiddenQiPhase };
+
+/**
+ * Korean 월률분야 convention, ordered 여기 → 중기 → 정기.
+ * This includes the transitional 여기에 commonly printed by Korean 만세력 apps
+ * (for example 子=壬癸, 午=丙己丁, 亥=戊甲壬).
+ */
+const HIDDEN_STEM_RULES: HiddenStemRule[][] = [
+  [{ stem: 8, phase: 'residual' }, { stem: 9, phase: 'main' }],
+  [{ stem: 9, phase: 'residual' }, { stem: 7, phase: 'middle' }, { stem: 5, phase: 'main' }],
+  [{ stem: 4, phase: 'residual' }, { stem: 2, phase: 'middle' }, { stem: 0, phase: 'main' }],
+  [{ stem: 0, phase: 'residual' }, { stem: 1, phase: 'main' }],
+  [{ stem: 1, phase: 'residual' }, { stem: 9, phase: 'middle' }, { stem: 4, phase: 'main' }],
+  [{ stem: 4, phase: 'residual' }, { stem: 6, phase: 'middle' }, { stem: 2, phase: 'main' }],
+  [{ stem: 2, phase: 'residual' }, { stem: 5, phase: 'middle' }, { stem: 3, phase: 'main' }],
+  [{ stem: 3, phase: 'residual' }, { stem: 1, phase: 'middle' }, { stem: 5, phase: 'main' }],
+  [{ stem: 4, phase: 'residual' }, { stem: 8, phase: 'middle' }, { stem: 6, phase: 'main' }],
+  [{ stem: 6, phase: 'residual' }, { stem: 7, phase: 'main' }],
+  [{ stem: 7, phase: 'residual' }, { stem: 3, phase: 'middle' }, { stem: 4, phase: 'main' }],
+  [{ stem: 4, phase: 'residual' }, { stem: 0, phase: 'middle' }, { stem: 8, phase: 'main' }],
+];
+
+export function hiddenStemsForBranch(branch: number, dayStem: number): HiddenStem[] {
+  if (!Number.isInteger(branch) || branch < 0 || branch > 11) throw new RangeError('Invalid earthly branch.');
+  if (!Number.isInteger(dayStem) || dayStem < 0 || dayStem > 9) throw new RangeError('Invalid day stem.');
+  return HIDDEN_STEM_RULES[branch].map(({ stem, phase }) => ({
+    stem,
+    stemHanja: STEMS_HANJA[stem],
+    stemKo: STEMS_KO[stem],
+    element: STEM_ELEMENT(stem),
+    tenGod: tenGod(dayStem, stem),
+    phase,
+  }));
+}
+
+const relationPair = (a: number, b: number) => a < b ? `${a}-${b}` : `${b}-${a}`;
+const CLASH_PAIRS = new Set(['0-6', '1-7', '2-8', '3-9', '4-10', '5-11']);
+const HARM_PAIRS = new Set(['0-7', '1-6', '2-5', '3-4', '8-11', '9-10']);
+const BREAK_PAIRS = new Set(['0-9', '1-4', '2-11', '3-6', '5-8', '7-10']);
+const PUNISHMENT_PAIRS = new Set(['0-3', '1-7', '1-10', '2-5', '2-8', '5-8', '7-10']);
+const SELF_PUNISHMENT = new Set([4, 6, 9, 11]);
+
+/** All 형·충·파·해 relationships that apply to a branch pair. */
+export function branchRelationTypes(a: number, b: number): BranchRelationType[] {
+  if (![a, b].every((n) => Number.isInteger(n) && n >= 0 && n <= 11)) throw new RangeError('Invalid earthly branch.');
+  const pair = relationPair(a, b);
+  const types: BranchRelationType[] = [];
+  if ((a === b && SELF_PUNISHMENT.has(a)) || PUNISHMENT_PAIRS.has(pair)) types.push('punishment');
+  if (CLASH_PAIRS.has(pair)) types.push('clash');
+  if (BREAK_PAIRS.has(pair)) types.push('break');
+  if (HARM_PAIRS.has(pair)) types.push('harm');
+  return types;
+}
+
+const pillarEntries = (pillars: { year: Pillar; month: Pillar; day: Pillar; hour: Pillar | null }) =>
+  ([['year', pillars.year], ['month', pillars.month], ['day', pillars.day], ['hour', pillars.hour]] as const)
+    .filter((entry): entry is [PillarRole, Pillar] => entry[1] !== null);
+
+function natalRelations(pillars: { year: Pillar; month: Pillar; day: Pillar; hour: Pillar | null }): BranchRelation[] {
+  const entries = pillarEntries(pillars);
+  const output: BranchRelation[] = [];
+  for (let left = 0; left < entries.length; left++) {
+    for (let right = left + 1; right < entries.length; right++) {
+      const [leftRole, leftPillar] = entries[left];
+      const [rightRole, rightPillar] = entries[right];
+      for (const type of branchRelationTypes(leftPillar.branch, rightPillar.branch)) {
+        output.push({ type, leftRole, rightRole, leftBranch: leftPillar.branch, rightBranch: rightPillar.branch });
+      }
+    }
+  }
+  return output;
+}
+
+const CHEON_EUL_BRANCHES: number[][] = [
+  [1, 7], [0, 8], [11, 9], [11, 9], [1, 7],
+  [0, 8], [1, 7], [6, 2], [5, 3], [5, 3],
+];
+const MUN_CHANG_BRANCH = [5, 6, 8, 9, 8, 9, 11, 0, 2, 3];
+const GONG_MANG_BY_XUN: number[][] = [[10, 11], [8, 9], [6, 7], [4, 5], [2, 3], [0, 1]];
+
+const trineTargets = (basis: number) => {
+  if ([8, 0, 4].includes(basis)) return { peachBlossom: 9, travelHorse: 2, flowerCanopy: 4 } as const;
+  if ([2, 6, 10].includes(basis)) return { peachBlossom: 3, travelHorse: 8, flowerCanopy: 10 } as const;
+  if ([5, 9, 1].includes(basis)) return { peachBlossom: 6, travelHorse: 11, flowerCanopy: 1 } as const;
+  return { peachBlossom: 0, travelHorse: 5, flowerCanopy: 7 } as const; // 亥卯未
+};
+
+const cycleIndexFromPillar = (stem: number, branch: number) => {
+  for (let index = 0; index < 60; index++) if (index % 10 === stem && index % 12 === branch) return index;
+  throw new RangeError('Stem and branch do not form a sexagenary-cycle pillar.');
+};
+
+export function shinsalNamesForBranch(dayStem: number, dayBranch: number, yearBranch: number, targetBranch: number): ShinsalName[] {
+  const names = new Set<ShinsalName>();
+  if (CHEON_EUL_BRANCHES[dayStem].includes(targetBranch)) names.add('cheonEul');
+  if (MUN_CHANG_BRANCH[dayStem] === targetBranch) names.add('munChang');
+  for (const basis of new Set([dayBranch, yearBranch])) {
+    const targets = trineTargets(basis);
+    if (targets.peachBlossom === targetBranch) names.add('peachBlossom');
+    if (targets.travelHorse === targetBranch) names.add('travelHorse');
+    if (targets.flowerCanopy === targetBranch) names.add('flowerCanopy');
+  }
+  const dayCycle = cycleIndexFromPillar(dayStem, dayBranch);
+  if (GONG_MANG_BY_XUN[Math.floor(dayCycle / 10)].includes(targetBranch)) names.add('gongMang');
+  return [...names];
+}
+
+function natalShinsal(pillars: { year: Pillar; month: Pillar; day: Pillar; hour: Pillar | null }): ShinsalOccurrence[] {
+  return pillarEntries(pillars).flatMap(([targetRole, pillar]) =>
+    shinsalNamesForBranch(pillars.day.stem, pillars.day.branch, pillars.year.branch, pillar.branch)
+      .map((name) => ({ name, targetRole, targetBranch: pillar.branch }))
+  );
+}
+
+function relationsWithNatal(
+  branch: number,
+  pillars: { year: Pillar; month: Pillar; day: Pillar; hour: Pillar | null },
+): LuckRelation[] {
+  return pillarEntries(pillars).flatMap(([natalRole, pillar]) =>
+    branchRelationTypes(branch, pillar.branch).map((type) => ({ type, natalRole, natalBranch: pillar.branch }))
+  );
+}
+
+const pillarForCycleIndex = (index: number, dayStem: number) => {
+  const normalized = mod(index, 60);
+  return makePillar(normalized % 10, normalized % 12, dayStem);
+};
+
+const luckCycle = (
+  index: number,
+  pillar: Pillar,
+  pillars: { year: Pillar; month: Pillar; day: Pillar; hour: Pillar | null },
+): LuckCycle => ({
+  index,
+  pillar,
+  relations: relationsWithNatal(pillar.branch, pillars),
+  shinsal: shinsalNamesForBranch(pillars.day.stem, pillars.day.branch, pillars.year.branch, pillar.branch),
+});
+
+const DAY_MS = 86_400_000;
+
+/** Adjacent 절입 (30° solar-longitude month boundary) used for Daeun start age. */
+export function adjacentSolarMonthBoundaryUtcMs(utcMs: number, direction: 'forward' | 'reverse'): number {
+  if (!Number.isFinite(utcMs)) throw new RangeError('Invalid UTC instant.');
+  const longitude = sunApparentLongitude(jdFromUtcMs(utcMs));
+  const withinMonth = mod(longitude - 315, 30);
+  const exactBoundary = withinMonth < 1e-8 || 30 - withinMonth < 1e-8;
+  const deltaDegrees = direction === 'forward'
+    ? (exactBoundary ? 30 : 30 - withinMonth)
+    : (exactBoundary ? -30 : -withinMonth);
+  const target = longitude + deltaDegrees;
+  const estimate = utcMs + deltaDegrees / 0.985647 * DAY_MS;
+  let lo = estimate - 3 * DAY_MS;
+  let hi = estimate + 3 * DAY_MS;
+  const unwrapped = (ms: number) => {
+    const raw = sunApparentLongitude(jdFromUtcMs(ms));
+    return raw + 360 * Math.round((target - raw) / 360);
+  };
+  for (let i = 0; i < 52; i++) {
+    const mid = (lo + hi) / 2;
+    if (unwrapped(mid) < target) lo = mid;
+    else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
+function computeDaeun(
+  input: SajuInput,
+  utcMs: number,
+  pillars: { year: Pillar; month: Pillar; day: Pillar; hour: Pillar | null },
+): DaeunResult | null {
+  if (!input.gender) return null;
+  const direction: DaeunResult['direction'] =
+    (input.gender === 'male') === pillars.year.stemYang ? 'forward' : 'reverse';
+  const boundaryUtcMs = adjacentSolarMonthBoundaryUtcMs(utcMs, direction);
+  // Traditional conversion: three days to one year; retain month precision.
+  const startAgeMonths = Math.max(0, Math.round(Math.abs(boundaryUtcMs - utcMs) / DAY_MS / 3 * 12));
+  const monthCycleIndex = cycleIndexFromPillar(pillars.month.stem, pillars.month.branch);
+  const step = direction === 'forward' ? 1 : -1;
+  const cycles = Array.from({ length: 10 }, (_, index): DaeunCycle => {
+    const cycleAgeMonths = startAgeMonths + index * 120;
+    const cyclePillar = pillarForCycleIndex(monthCycleIndex + step * (index + 1), pillars.day.stem);
+    return {
+      ...luckCycle(index, cyclePillar, pillars),
+      startAgeMonths: cycleAgeMonths,
+      startYear: input.year + Math.floor((input.month - 1 + cycleAgeMonths) / 12),
+    };
+  });
+  return { direction, startAgeMonths, boundaryUtcMs, cycles };
+}
+
+/** 세운 list keyed to the Saju year beginning at 입춘. */
+export function computeAnnualLuck(result: SajuResult, startYear: number, count = 12): AnnualLuck[] {
+  if (!Number.isInteger(startYear) || !Number.isInteger(count) || count < 1 || count > 120) {
+    throw new RangeError('Invalid annual-luck range.');
+  }
+  const pillars = { year: result.year, month: result.month, day: result.day, hour: result.hour };
+  return Array.from({ length: count }, (_, index): AnnualLuck => {
+    const year = startYear + index;
+    const cyclePillar = pillarForCycleIndex(year - YEAR_ANCHOR, result.day.stem);
+    return { ...luckCycle(index, cyclePillar, pillars), year };
+  });
+}
+
 // ───────────────────────── main ─────────────────────────
 
 export function computeSaju(input: SajuInput): SajuResult {
@@ -166,6 +440,7 @@ export function computeSaju(input: SajuInput): SajuResult {
     year, month, day,
     hour = 12, minute = 0,
     timeUnknown = false,
+    gender,
     tzOffsetMinutes,
     longitude,
     useTrueSolarTime = false,
@@ -192,6 +467,9 @@ export function computeSaju(input: SajuInput): SajuResult {
   }
   if (longitude !== undefined && (!Number.isFinite(longitude) || longitude < -180 || longitude > 180)) {
     throw new RangeError('Invalid longitude.');
+  }
+  if (gender !== undefined && gender !== 'female' && gender !== 'male') {
+    throw new RangeError('Invalid gender value.');
   }
 
   // Absolute instant (drives year & month pillars). Unknown time → assume local noon,
@@ -251,8 +529,16 @@ export function computeSaju(input: SajuInput): SajuResult {
     elementCounts[p.branchElement]++;
   }
 
+  const hiddenStems: Record<PillarRole, HiddenStem[]> = {
+    year: hiddenStemsForBranch(pillars.year.branch, dStem),
+    month: hiddenStemsForBranch(pillars.month.branch, dStem),
+    day: hiddenStemsForBranch(pillars.day.branch, dStem),
+    hour: pillars.hour ? hiddenStemsForBranch(pillars.hour.branch, dStem) : [],
+  };
+
   return {
     ...pillars,
+    gender: gender ?? null,
     dayMaster: {
       hanja: STEMS_HANJA[dStem], ko: STEMS_KO[dStem],
       element: STEM_ELEMENT(dStem), yang: dStem % 2 === 0,
@@ -260,6 +546,10 @@ export function computeSaju(input: SajuInput): SajuResult {
     elementCounts,
     solarLongitude: lambda,
     utcMs,
+    hiddenStems,
+    relations: natalRelations(pillars),
+    shinsal: natalShinsal(pillars),
+    daeun: computeDaeun(input, utcMs, pillars),
   };
 }
 

@@ -2,7 +2,7 @@
   "readingLoading": "正在生成命盘… 如果此画面持续显示，请返回首页后重试。",
   "readingError": "命盘无法显示。请返回首页后重试。你的出生信息没有被发送到任何地方。",
   "analytics": { "consentTitle": "帮助我们改进网站", "consentBody": "经你同意后，我们使用 Google Analytics 统计不含个人信息的页面浏览和操作。出生信息及结果网址中的命盘参数不会被收集。", "accept": "允许统计分析", "reject": "拒绝统计分析", "settings": "统计分析设置" },
-  "privacyAnalytics": { "title": "Google Analytics", "body": "仅在你同意后，本网站才会加载 Google Analytics 4（衡量ID G-RMFH4E7NGS）。Google 可能设置最长90天的分析Cookie。", "data": "我们只发送移除查询字符串后的页面路径、网站语言，以及生成命盘、分享、查看术语、点击商店或预约链接等事件。出生日期、出生时间、城市、经度、时区及命盘输入参数绝不会发送。", "control": "你可以随时通过页脚的统计分析设置同意或撤回。拒绝统计不会影响命盘功能。外部预约和商店链接适用各自的隐私政策。" },
+  "privacyAnalytics": { "title": "Google Analytics", "body": "仅在你同意后，本网站才会加载 Google Analytics 4（衡量ID G-RMFH4E7NGS）。Google 可能设置最长90天的分析Cookie。", "data": "我们只发送移除查询字符串后的页面路径、网站语言，以及生成命盘、分享、查看术语、点击商店或预约链接等事件。出生日期、出生时间、性别、城市、经度、时区及命盘输入参数绝不会发送。", "control": "你可以随时通过页脚的统计分析设置同意或撤回。拒绝统计不会影响命盘功能。外部预约和商店链接适用各自的隐私政策。" },
   "meta": {
     "siteName": "Show Me the Saju", "home.title": "免费韩国四柱八字排盘｜Show Me the Saju", "home.description": "输入出生年月日时，免费查看四柱、五行与十神，无需注册。",
     "reading.title": "你的四柱八字命盘｜Show Me the Saju", "learn.title": "学习四柱八字｜Show Me the Saju", "compat.title": "韩国合婚配对｜Show Me the Saju",
@@ -19,7 +19,12 @@
     "el.wood": "木", "el.fire": "火", "el.earth": "土", "el.metal": "金", "el.water": "水", "tenGods": "十神", "share": "复制命盘链接", "shared": "已复制", "learnMore": "了解你的日主", "sharePng": "保存图片（PNG）",
     "disclaimer": "四柱八字是用于自我反思的传统诠释体系，不构成医疗、法律或财务建议。", "termBoundaryNote": "你出生在节气交界附近，准确出生时间会影响命盘，请再次确认。",
     "chartAtGlance": "命盘概览", "yinYangBalance": "阴阳平衡", "elementPattern": "五行格局", "yinYangSummary": "显现的字中：阳 {yang} · 阴 {yin}。", "dominantSummary": "{element}出现最多（{total}个位置中有{count}个）。", "missingSummary": "基础命盘表面未见：{elements}。", "noMissingElements": "基础命盘中五行俱全。",
-    "elementContext": "简单计数只是第一步。季节、合冲、藏干与旺衰都会改变五行的实际作用。", "tenGodsContext": "十神并非真实神祇，而是其他天干与日主关系的十种技术分类。", "heavenlyStem": "天干", "notApplicable": "日主", "pillarRoles": "四柱各自代表什么",
+    "elementContext": "简单计数只是第一步。季节、合冲、藏干与旺衰都会改变五行的实际作用。", "tenGodsContext": "十神并非真实神祇，而是其他天干与日主关系的十种技术分类。",
+    "hiddenStems": "藏干", "hiddenStemsContext": "按韩国万年历常用的余气、中气、正气顺序显示各地支所藏天干，十神均以日主为基准。", "qi.residual": "余气", "qi.middle": "中气", "qi.main": "正气",
+    "branchRelations": "地支刑·冲·破·害", "relationsContext": "这里只显示原局内部成立的关系。它们是结构标记，不能单独作为吉凶结论。", "relationNone": "原局内没有直接成立的刑、冲、破、害。", "rel.punishment": "刑", "rel.clash": "冲", "rel.break": "破", "rel.harm": "害",
+    "shinsal": "主要神煞", "shinsalContext": "神煞是阅读整体命局后的辅助标记，不能凭单一神煞判断吉凶。", "shinsalNone": "没有显示范围内的主要神煞。", "shinsal.cheonEul": "天乙贵人", "shinsal.munChang": "文昌贵人", "shinsal.peachBlossom": "桃花煞", "shinsal.travelHorse": "驿马", "shinsal.flowerCanopy": "华盖", "shinsal.gongMang": "空亡",
+    "daeun": "大运 · 十年运", "daeunContext": "按年干阴阳与性别定顺逆，从月柱起运。起运年龄以出生时刻至相邻节入的间隔，按三日折一年换算。", "seun": "岁运 · 流年", "seunContext": "每个岁运从立春起至下一立春。选择卡片可查看藏干、与原局的关系和神煞。", "forward": "顺行", "reverse": "逆行", "daeunMeta": "{gender} · {direction} · 首运 {age}", "ageYearsMonths": "{years}岁{months}个月", "startYear": "{year}年开始", "ipchunYear": "{year}年 · 立春为界", "daeunApproximate": "因出生时间未知，起运年龄按正午估算，首运时间可能相差约一至两个月。", "genderRequired": "旧分享链接没有性别，无法计算大运。请返回首页选择性别后重新排盘。",
+    "heavenlyStem": "天干", "notApplicable": "日主", "pillarRoles": "四柱各自代表什么",
     "role.year.title": "年柱", "role.year.body": "常用于观察祖辈、早年环境、社会形象与较广的人际圈。", "role.month.title": "月柱", "role.month.body": "关联出生季节、成长环境与事业结构，也是判断全局气候的重要支点。", "role.day.title": "日柱", "role.day.body": "天干为代表自己的日主；日柱也常用于观察自我与亲密伴侣关系。", "role.hour.title": "时柱", "role.hour.body": "常关联晚年、内在目标、成果与子女，需要准确出生时间。",
     "readingGuide.title": "看整体格局，不看孤立分数", "readingGuide.body": "某五行多不等于一定吉，缺少也不等于一定凶。请把本页当作自我观察的地图，并结合季节与字之间的互动理解全局。",
     "tg.비견": "比肩", "tg.겁재": "劫财", "tg.식신": "食神", "tg.상관": "伤官", "tg.편재": "偏财", "tg.정재": "正财", "tg.편관": "七杀（偏官）", "tg.정관": "正官", "tg.편인": "偏印", "tg.정인": "正印",
@@ -29,7 +34,7 @@
     "title": "术语表", "moreLink": "在术语表中查看", "terms": {
       "saju": { "name": "四柱（Saju）", "def": "把出生年、月、日、时各转为一组干支的韩国传统命理体系，共四柱八字。" }, "palja": { "name": "八字（Palja）", "def": "构成四柱的八个字。在韩语日常表达中也可指一个人的命运际遇。" }, "ilgan": { "name": "日主（日干）", "def": "日柱的天干，是命盘中代表自我的参照点。" }, "ohaeng": { "name": "五行", "def": "木、火、土、金、水五种相互作用的变化阶段，用来描述命盘中的循环与关系。" },
       "cheongan": { "name": "天干", "def": "构成每柱上方的十个符号，各自具有五行和阴阳属性。" }, "jiji": { "name": "地支", "def": "构成每柱下方的十二个符号，也对应十二生肖。" }, "sipseong": { "name": "十神", "def": "按日主与其他天干的关系，整理出表达、资源、财富、权责等十类主题。" }, "gunghap": { "name": "宫合（韩国合婚）", "def": "比较两人命盘的相合关系，在韩国传统上常用于婚姻与伴侣咨询。" },
-      "manseryeok": { "name": "万岁历", "def": "由出生时刻推导四柱的历法系统。本网站在浏览器中计算基础命盘。" }, "jinTaeyangsi": { "name": "经度校正太阳时", "def": "根据出生地经度相对于时区中央经线校正钟表时间。本网站不加入均时差。" }, "ipchun": { "name": "立春", "def": "四柱年柱在约2月4日交替的节气，不以1月1日或农历新年为界。" }, "daeun": { "name": "大运", "def": "把人生划分为较长阶段的时间层。因需要额外规则，本基础命盘暂不计算。" }
+      "manseryeok": { "name": "万岁历", "def": "由出生时刻推导四柱的历法系统。本网站在浏览器中计算基础命盘。" }, "jinTaeyangsi": { "name": "经度校正太阳时", "def": "根据出生地经度相对于时区中央经线校正钟表时间。本网站不加入均时差。" }, "ipchun": { "name": "立春", "def": "四柱年柱在约2月4日交替的节气，不以1月1日或农历新年为界。" }, "daeun": { "name": "大运", "def": "从月柱顺排或逆排的十年周期。以年干阴阳和性别定顺逆，并按相邻节气的距离推算起运年龄。" }
     }
   },
   "about": { "masterHeading": "关于解读", "story": "Show Me the Saju希望让不同语言的用户更容易理解韩国传统命盘结构。免费命盘在你的设备上计算；真人解读则加入软件无法取代的语境、判断与交流。" },

@@ -28,7 +28,9 @@ const { lang } = Astro.params;
         <i></i>
         <span data-progress-step="time">02</span>
         <i></i>
-        <span data-progress-step="place">03</span>
+        <span data-progress-step="gender">03</span>
+        <i></i>
+        <span data-progress-step="place">04</span>
       </div>
 
       <div class="input-step" data-input-step="date">
@@ -71,9 +73,24 @@ const { lang } = Astro.params;
         </label>
       </div>
 
-      <div class="input-step" data-input-step="place">
+      <div class="input-step" data-input-step="gender">
         <div class="input-step__heading">
           <span class="input-step__number">03</span>
+          <span class="input-step__label">{t(lang, 'form.gender')}</span>
+          <span class="input-step__check" aria-hidden="true">✓</span>
+        </div>
+        <fieldset class="choice-field gender-field">
+          <legend class="visually-hidden">{t(lang, 'form.gender')}</legend>
+          <div class="choice-grid">
+            <label class="choice-tile choice-tile--gender"><input type="radio" name="gender" value="f" required /><span><b aria-hidden="true">♀</b>{t(lang, 'form.genderF')}</span></label>
+            <label class="choice-tile choice-tile--gender"><input type="radio" name="gender" value="m" /><span><b aria-hidden="true">♂</b>{t(lang, 'form.genderM')}</span></label>
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="input-step" data-input-step="place">
+        <div class="input-step__heading">
+          <span class="input-step__number">04</span>
           <label for="birth-city">{t(lang, 'form.place')}</label>
           <span class="input-step__check" aria-hidden="true">✓</span>
         </div>
@@ -100,6 +117,7 @@ const { lang } = Astro.params;
       <div class="form-summary" aria-live="polite">
         <div><span>{t(lang, 'form.date')}</span><strong id="summary-date">—</strong></div>
         <div><span>{t(lang, 'form.time')}</span><strong id="summary-time">12:00</strong></div>
+        <div><span>{t(lang, 'form.gender')}</span><strong id="summary-gender">—</strong></div>
         <div><span>{t(lang, 'form.place')}</span><strong id="summary-place">—</strong></div>
       </div>
 
@@ -136,12 +154,14 @@ const { lang } = Astro.params;
     const dateInput = form.elements.namedItem('date') as HTMLInputElement;
     const timeInput = form.elements.namedItem('time') as HTMLInputElement;
     const timeUnknownInput = form.elements.namedItem('timeUnknown') as HTMLInputElement;
+    const genderInputs = Array.from(form.querySelectorAll<HTMLInputElement>('input[name="gender"]'));
     const cityInput = form.elements.namedItem('city') as HTMLSelectElement;
     const lunarOnly = form.querySelector('.lunar-only') as HTMLElement;
     const errEl = form.querySelector('.form-error') as HTMLElement;
     const steps = Array.from(form.querySelectorAll<HTMLElement>('[data-input-step]'));
     const summaryDate = form.querySelector('#summary-date') as HTMLElement;
     const summaryTime = form.querySelector('#summary-time') as HTMLElement;
+    const summaryGender = form.querySelector('#summary-gender') as HTMLElement;
     const summaryPlace = form.querySelector('#summary-place') as HTMLElement;
 
     // Keep the static site current without requiring a rebuild each day.
@@ -183,11 +203,14 @@ const { lang } = Astro.params;
       summaryTime.textContent = timeUnknownInput.checked
         ? (timeUnknownInput.closest('.switch-row')?.querySelector(':scope > span')?.textContent?.trim() || '—')
         : (timeInput.value || '—');
+      const selectedGender = genderInputs.find((input) => input.checked);
+      summaryGender.textContent = selectedGender?.nextElementSibling?.textContent?.trim() || '—';
       summaryPlace.textContent = cityInput.selectedOptions[0]?.textContent?.trim() || '—';
 
       const completed = {
         date: Boolean(dateInput.value),
         time: Boolean(stepByName('time')?.classList.contains('is-touched') && (timeUnknownInput.checked || timeInput.value)),
+        gender: Boolean(selectedGender),
         place: Boolean(stepByName('place')?.classList.contains('is-touched')),
       };
 
@@ -282,6 +305,7 @@ const { lang } = Astro.params;
         tu: timeUnknown ? '1' : '0',
         tz: String(tzMin), lon: String(lon),
         ts: f.get('trueSolar') === 'on' ? '1' : '0',
+        g: String(f.get('gender')),
       });
       trackEvent('chart_submit', {
         language: form.dataset.lang,
@@ -324,7 +348,7 @@ const { lang } = Astro.params;
     .input-step.is-complete::before { background: var(--indigo); }
     .input-step.has-error { border-color: color-mix(in srgb, var(--vermilion) 62%, var(--line)); background: color-mix(in srgb, #fff4ef 68%, white); }
     .input-step__heading { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .65rem; }
-    .input-step__heading label { font-size: var(--text-sm); font-weight: 800; cursor: pointer; }
+    .input-step__heading label, .input-step__label { font-size: var(--text-sm); font-weight: 800; cursor: pointer; }
     .input-step__number { color: var(--vermilion); font-family: var(--font-mono); font-size: .68rem; font-weight: 850; letter-spacing: .08em; }
     .input-step__check { display: grid; inline-size: 1.35rem; block-size: 1.35rem; place-items: center; border-radius: 50%; color: white; background: var(--indigo); font-size: .72rem; opacity: 0; transform: scale(.72); transition: opacity var(--dur-fast), transform var(--dur-fast); }
     .input-step.is-complete .input-step__check { opacity: 1; transform: scale(1); }
@@ -346,6 +370,9 @@ const { lang } = Astro.params;
     .choice-tile input:checked + span { color: var(--indigo); border-color: color-mix(in srgb, var(--indigo) 52%, white); background: color-mix(in srgb, #dcebe2 68%, white); box-shadow: inset 0 0 0 1px rgb(36 84 66 / .08); }
     .choice-tile input:focus-visible + span { outline: 3px solid color-mix(in srgb, var(--indigo) 68%, white); outline-offset: 2px; }
     .choice-tile--wide { display: block; margin-top: .5rem; }
+    .choice-tile--gender > span { gap: .55rem; min-height: 3rem; }
+    .choice-tile--gender b { display: grid; inline-size: 1.45rem; block-size: 1.45rem; place-items: center; border-radius: 50%; color: var(--vermilion); background: var(--peach-pale); font-size: .95rem; }
+    .choice-tile--gender input:checked + span b { color: white; background: var(--indigo); }
     .switch-row { display: flex; min-height: 2rem; align-items: center; justify-content: space-between; gap: 1rem; color: var(--ink-soft); font-size: var(--text-xs); font-weight: 700; cursor: pointer; }
     .switch-control { position: relative; flex: 0 0 auto; inline-size: 2.75rem; block-size: 1.55rem; }
     .switch-control input { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; margin: 0; opacity: 0; cursor: pointer; }
@@ -359,7 +386,7 @@ const { lang } = Astro.params;
     .advanced[open] summary { margin-bottom: .65rem; }
     .switch-row--advanced { padding-block: .15rem; }
     .hint { margin: .35rem 0 0; color: var(--ink-soft); font-size: .7rem; line-height: 1.55; }
-    .form-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; overflow: hidden; margin-top: .2rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--line); }
+    .form-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; overflow: hidden; margin-top: .2rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--line); }
     .form-summary > div { min-width: 0; padding: .65rem .7rem; background: color-mix(in srgb, var(--paper-sunken) 45%, white); }
     .form-summary span, .form-summary strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .form-summary span { margin-bottom: .15rem; color: var(--ink-soft); font-size: .62rem; font-weight: 700; }

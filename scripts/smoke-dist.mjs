@@ -16,8 +16,10 @@ function read(relativePath) {
 for (const locale of locales) {
   const homeHtml = read(path.join(locale, 'index.html'));
   assert(homeHtml.includes('id="birth-form"'), `${locale}: missing birth form`);
-  assert((homeHtml.match(/data-input-step=/g) || []).length === 3, `${locale}: birth form must contain three input cards`);
-  assert(homeHtml.includes('id="summary-date"') && homeHtml.includes('id="summary-time"') && homeHtml.includes('id="summary-place"'),
+  assert((homeHtml.match(/data-input-step=/g) || []).length === 4, `${locale}: birth form must contain four input cards`);
+  assert(homeHtml.includes('name="gender"') && homeHtml.includes('value="f"') && homeHtml.includes('value="m"'),
+    `${locale}: required gender input is missing`);
+  assert(homeHtml.includes('id="summary-date"') && homeHtml.includes('id="summary-time"') && homeHtml.includes('id="summary-gender"') && homeHtml.includes('id="summary-place"'),
     `${locale}: missing live birth-data review strip`);
   assert(homeHtml.includes('name="date"') && homeHtml.includes('name="time"') && homeHtml.includes('name="city"'),
     `${locale}: native birth inputs are missing`);
@@ -26,6 +28,9 @@ for (const locale of locales) {
   assert(html.includes('id="loading-state"'), `${locale}: missing non-blank loading fallback`);
   assert(html.includes('id="render-error"'), `${locale}: missing visible render error`);
   assert(html.includes('id="element-radar"'), `${locale}: missing Five Elements chart`);
+  assert(html.includes('id="hidden-stems"'), `${locale}: missing hidden-stem panel`);
+  assert(html.includes('id="branch-relations"') && html.includes('id="shinsal-list"'), `${locale}: missing relation or shinsal panel`);
+  assert(html.includes('id="daeun-list"') && html.includes('id="seun-list"'), `${locale}: missing Daeun or annual-luck panel`);
   assert(html.includes('id="analytics-consent"'), `${locale}: missing consent controls`);
   assert(html.includes("window.gtag('consent', 'default'"), `${locale}: consent default is not in the document head`);
   assert(!html.includes('<script async src="https://www.googletagmanager.com/gtag/js'), `${locale}: GA must not load before consent`);
@@ -43,10 +48,14 @@ const renderBootIndex = readingBundle.source.indexOf('Unable to render Saju char
 assert(elementOrderIndex >= 0 && elementOrderIndex < renderBootIndex,
   'Reading boot runs before the Five Elements constant is initialized');
 
-const homeBundle = bundles.find(({ source }) => source.includes('summary-date') && source.includes('chart_submit'));
+const homeBundle = bundles.find(({ source }) => source.includes('summary-date') && source.includes('summary-gender') && source.includes('chart_submit'));
 assert(homeBundle, 'Could not identify the built interactive birth-form bundle');
 assert(homeBundle.source.includes('Intl.DateTimeFormat') && homeBundle.source.includes('data-input-step'),
   'Birth-form bundle is missing localized summary or card-state behavior');
+assert(homeBundle.source.includes('gender'), 'Birth-form bundle does not carry gender into the chart query');
+
+assert(readingBundle.source.includes('hidden-stems') && readingBundle.source.includes('daeun-list') && readingBundle.source.includes('seun-list'),
+  'Reading bundle is missing advanced 만세력 rendering behavior');
 
 const analyticsBundle = bundles.find(({ source }) => source.includes('google-analytics-script'));
 assert(analyticsBundle, 'Could not identify the built analytics bundle');
