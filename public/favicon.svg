@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- showmethesaju mark: vermilion seal, four pillar bars -->
+  <g transform="rotate(-4 256 256)">
+    <rect x="31" y="31" width="450" height="450" rx="72" fill="#BF3B2B"/>
+  </g>
+  <g fill="#FAF7F0" transform="rotate(-4 256 256)">
+    <rect x="122" y="148" width="59" height="215" rx="19"/>
+    <rect x="208" y="123" width="59" height="266" rx="19"/>
+    <rect x="294" y="123" width="59" height="266" rx="19"/>
+    <rect x="380" y="148" width="59" height="215" rx="19"/>
+  </g>
+</svg>

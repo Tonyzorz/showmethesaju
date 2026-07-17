@@ -52,6 +52,16 @@ const commerce = [
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={t(lang, 'meta.siteName')} />
+    <meta property="og:locale" content={htmlLang.replace('-', '_')} />
+    <meta property="og:image" content={`${site}/og/og-default.png`} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={`${site}/og/og-default.png`} />
+    <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
+    <link rel="icon" href={withBase('/icons/favicon-32.png')} sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href={withBase('/icons/apple-touch-icon.png')} />
     <meta name="theme-color" content="#f8f7f3" />
     <script is:inline define:vars={{ measurementId: GA_MEASUREMENT_ID }}>
       window.dataLayer = window.dataLayer || [];
