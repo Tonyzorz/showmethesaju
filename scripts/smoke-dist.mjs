@@ -14,6 +14,14 @@ function read(relativePath) {
 }
 
 for (const locale of locales) {
+  const homeHtml = read(path.join(locale, 'index.html'));
+  assert(homeHtml.includes('id="birth-form"'), `${locale}: missing birth form`);
+  assert((homeHtml.match(/data-input-step=/g) || []).length === 3, `${locale}: birth form must contain three input cards`);
+  assert(homeHtml.includes('id="summary-date"') && homeHtml.includes('id="summary-time"') && homeHtml.includes('id="summary-place"'),
+    `${locale}: missing live birth-data review strip`);
+  assert(homeHtml.includes('name="date"') && homeHtml.includes('name="time"') && homeHtml.includes('name="city"'),
+    `${locale}: native birth inputs are missing`);
+
   const html = read(path.join(locale, 'reading', 'index.html'));
   assert(html.includes('id="loading-state"'), `${locale}: missing non-blank loading fallback`);
   assert(html.includes('id="render-error"'), `${locale}: missing visible render error`);
@@ -35,6 +43,11 @@ const renderBootIndex = readingBundle.source.indexOf('Unable to render Saju char
 assert(elementOrderIndex >= 0 && elementOrderIndex < renderBootIndex,
   'Reading boot runs before the Five Elements constant is initialized');
 
+const homeBundle = bundles.find(({ source }) => source.includes('summary-date') && source.includes('chart_submit'));
+assert(homeBundle, 'Could not identify the built interactive birth-form bundle');
+assert(homeBundle.source.includes('Intl.DateTimeFormat') && homeBundle.source.includes('data-input-step'),
+  'Birth-form bundle is missing localized summary or card-state behavior');
+
 const analyticsBundle = bundles.find(({ source }) => source.includes('google-analytics-script'));
 assert(analyticsBundle, 'Could not identify the built analytics bundle');
 assert(analyticsBundle.source.includes('G-RMFH4E7NGS'), 'GA4 measurement ID missing from analytics bundle');
@@ -42,4 +55,4 @@ assert(analyticsBundle.source.includes('location.origin') && analyticsBundle.sou
   'Analytics page locations are not built from the query-free origin and path');
 assert(!analyticsBundle.source.includes('location.search'), 'Analytics bundle must not read or send URL query parameters');
 
-console.log(`Smoke-tested ${locales.length} reading pages, rendering order, consent defaults, and query-free GA4 wiring.`);
+console.log(`Smoke-tested ${locales.length} home and reading pages, interactive birth cards, rendering order, consent defaults, and query-free GA4 wiring.`);

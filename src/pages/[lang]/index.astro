@@ -23,40 +23,88 @@ const { lang } = Astro.params;
     <form id="birth-form" class="card birth-form" data-lang={lang}
       data-err-future={t(lang, 'form.errFuture')} data-err-lunar={t(lang, 'form.errLunarRange')}
       data-err-solar-city={t(lang, 'form.errSolarCity')}>
-      <div class="grid">
-        <label>{t(lang, 'form.date')}
-          <input class="field" type="date" name="date" required min="1900-01-01" />
-        </label>
-        <label>{t(lang, 'form.time')}
-          <input class="field" type="time" name="time" value="12:00" />
-        </label>
+      <div class="form-progress" aria-hidden="true">
+        <span data-progress-step="date">01</span>
+        <i></i>
+        <span data-progress-step="time">02</span>
+        <i></i>
+        <span data-progress-step="place">03</span>
       </div>
-      <label class="check"><input type="checkbox" name="timeUnknown" /> {t(lang, 'form.timeUnknown')}</label>
 
-      <div class="grid grid--calendar">
-        <fieldset>
+      <div class="input-step" data-input-step="date">
+        <div class="input-step__heading">
+          <span class="input-step__number">01</span>
+          <label for="birth-date">{t(lang, 'form.date')}</label>
+          <span class="input-step__check" aria-hidden="true">✓</span>
+        </div>
+        <div class="field-shell">
+          <span class="field-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M7 3v3m10-3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" /></svg>
+          </span>
+          <input id="birth-date" class="field" type="date" name="date" required min="1900-01-01" />
+        </div>
+        <fieldset class="choice-field">
           <legend>{t(lang, 'form.calendar')}</legend>
-          <label class="check"><input type="radio" name="cal" value="solar" checked /> {t(lang, 'form.solar')}</label>
-          <label class="check"><input type="radio" name="cal" value="lunar" /> {t(lang, 'form.lunar')}</label>
-          <label class="check lunar-only" hidden><input type="checkbox" name="leap" /> {t(lang, 'form.lunarLeap')}</label>
+          <div class="choice-grid">
+            <label class="choice-tile"><input type="radio" name="cal" value="solar" checked /><span>{t(lang, 'form.solar')}</span></label>
+            <label class="choice-tile"><input type="radio" name="cal" value="lunar" /><span>{t(lang, 'form.lunar')}</span></label>
+          </div>
+          <label class="choice-tile choice-tile--wide lunar-only" hidden><input type="checkbox" name="leap" /><span>{t(lang, 'form.lunarLeap')}</span></label>
         </fieldset>
       </div>
 
-      <label>{t(lang, 'form.place')}
-        <select class="field" name="city">
-          <option value="">— {t(lang, 'form.place')} (auto) —</option>
-          {CITIES.map((c) => <option value={c.tz} data-lon={c.lon}>{c.name}</option>)}
-        </select>
-      </label>
+      <div class="input-step" data-input-step="time">
+        <div class="input-step__heading">
+          <span class="input-step__number">02</span>
+          <label for="birth-time">{t(lang, 'form.time')}</label>
+          <span class="input-step__check" aria-hidden="true">✓</span>
+        </div>
+        <div class="field-shell">
+          <span class="field-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+          </span>
+          <input id="birth-time" class="field" type="time" name="time" value="12:00" />
+        </div>
+        <label class="switch-row">
+          <span>{t(lang, 'form.timeUnknown')}</span>
+          <span class="switch-control"><input type="checkbox" name="timeUnknown" /><i aria-hidden="true"></i></span>
+        </label>
+      </div>
 
-      <details class="advanced">
-        <summary>{t(lang, 'form.advanced')}</summary>
-        <label class="check"><input type="checkbox" name="trueSolar" /> {t(lang, 'form.trueSolar')}</label>
-        <p class="hint">{t(lang, 'form.trueSolarHint')}</p>
-      </details>
+      <div class="input-step" data-input-step="place">
+        <div class="input-step__heading">
+          <span class="input-step__number">03</span>
+          <label for="birth-city">{t(lang, 'form.place')}</label>
+          <span class="input-step__check" aria-hidden="true">✓</span>
+        </div>
+        <div class="field-shell">
+          <span class="field-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></svg>
+          </span>
+          <select id="birth-city" class="field" name="city">
+            <option value="">— {t(lang, 'form.place')} (auto) —</option>
+            {CITIES.map((c) => <option value={c.tz} data-lon={c.lon}>{c.name}</option>)}
+          </select>
+        </div>
+
+        <details class="advanced">
+          <summary>{t(lang, 'form.advanced')}</summary>
+          <label class="switch-row switch-row--advanced">
+            <span>{t(lang, 'form.trueSolar')}</span>
+            <span class="switch-control"><input type="checkbox" name="trueSolar" /><i aria-hidden="true"></i></span>
+          </label>
+          <p class="hint">{t(lang, 'form.trueSolarHint')}</p>
+        </details>
+      </div>
+
+      <div class="form-summary" aria-live="polite">
+        <div><span>{t(lang, 'form.date')}</span><strong id="summary-date">—</strong></div>
+        <div><span>{t(lang, 'form.time')}</span><strong id="summary-time">12:00</strong></div>
+        <div><span>{t(lang, 'form.place')}</span><strong id="summary-place">—</strong></div>
+      </div>
 
       <p class="form-error" role="alert" hidden></p>
-      <button class="btn-primary" type="submit">{t(lang, 'hero.cta')}</button>
+      <button class="btn-primary" type="submit"><span>{t(lang, 'hero.cta')}</span><span class="button-arrow" aria-hidden="true">→</span></button>
     </form>
   </section>
 
@@ -86,29 +134,112 @@ const { lang } = Astro.params;
 
     const form = document.getElementById('birth-form') as HTMLFormElement;
     const dateInput = form.elements.namedItem('date') as HTMLInputElement;
+    const timeInput = form.elements.namedItem('time') as HTMLInputElement;
+    const timeUnknownInput = form.elements.namedItem('timeUnknown') as HTMLInputElement;
+    const cityInput = form.elements.namedItem('city') as HTMLSelectElement;
     const lunarOnly = form.querySelector('.lunar-only') as HTMLElement;
     const errEl = form.querySelector('.form-error') as HTMLElement;
+    const steps = Array.from(form.querySelectorAll<HTMLElement>('[data-input-step]'));
+    const summaryDate = form.querySelector('#summary-date') as HTMLElement;
+    const summaryTime = form.querySelector('#summary-time') as HTMLElement;
+    const summaryPlace = form.querySelector('#summary-place') as HTMLElement;
 
     // Keep the static site current without requiring a rebuild each day.
     const today = new Date();
     dateInput.max = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-');
 
+    const stepByName = (name: string) => form.querySelector<HTMLElement>(`[data-input-step="${name}"]`);
+
+    function clearError() {
+      errEl.hidden = true;
+      form.classList.remove('has-error');
+      steps.forEach((step) => step.classList.remove('has-error'));
+    }
+
+    function showError(message: string, stepName: string) {
+      errEl.textContent = message;
+      errEl.hidden = false;
+      form.classList.add('has-error');
+      stepByName(stepName)?.classList.add('has-error');
+    }
+
+    function formatDate(value: string) {
+      if (!value) return '—';
+      const [year, month, day] = value.split('-').map(Number);
+      try {
+        return new Intl.DateTimeFormat(document.documentElement.lang, {
+          year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC',
+        }).format(new Date(Date.UTC(year, month - 1, day)));
+      } catch {
+        return value;
+      }
+    }
+
+    function updateFormState() {
+      timeInput.disabled = timeUnknownInput.checked;
+      timeInput.closest('.field-shell')?.classList.toggle('is-disabled', timeUnknownInput.checked);
+
+      summaryDate.textContent = formatDate(dateInput.value);
+      summaryTime.textContent = timeUnknownInput.checked
+        ? (timeUnknownInput.closest('.switch-row')?.querySelector(':scope > span')?.textContent?.trim() || '—')
+        : (timeInput.value || '—');
+      summaryPlace.textContent = cityInput.selectedOptions[0]?.textContent?.trim() || '—';
+
+      const completed = {
+        date: Boolean(dateInput.value),
+        time: Boolean(stepByName('time')?.classList.contains('is-touched') && (timeUnknownInput.checked || timeInput.value)),
+        place: Boolean(stepByName('place')?.classList.contains('is-touched')),
+      };
+
+      Object.entries(completed).forEach(([name, isComplete]) => {
+        stepByName(name)?.classList.toggle('is-complete', isComplete);
+        form.querySelector(`[data-progress-step="${name}"]`)?.classList.toggle('is-complete', isComplete);
+      });
+    }
+
+    function setActiveStep(activeStep: HTMLElement | null) {
+      steps.forEach((step) => step.classList.toggle('is-active', step === activeStep));
+      form.querySelectorAll('[data-progress-step]').forEach((marker) => {
+        marker.classList.toggle('is-active', marker.getAttribute('data-progress-step') === activeStep?.dataset.inputStep);
+      });
+    }
+
+    steps.forEach((step) => {
+      step.addEventListener('focusin', () => setActiveStep(step));
+      step.addEventListener('focusout', () => {
+        requestAnimationFrame(() => {
+          const focusedStep = steps.find((candidate) => candidate.contains(document.activeElement));
+          setActiveStep(focusedStep || null);
+        });
+      });
+      ['input', 'change'].forEach((eventName) => step.addEventListener(eventName, () => {
+        step.classList.add('is-touched');
+        clearError();
+        updateFormState();
+      }));
+    });
+
     form.querySelectorAll('input[name="cal"]').forEach((r) =>
       r.addEventListener('change', () => {
         lunarOnly.hidden = (form.elements.namedItem('cal') as RadioNodeList).value !== 'lunar';
+        updateFormState();
       })
     );
 
+    setActiveStep(stepByName('date') || null);
+    updateFormState();
+
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      errEl.hidden = true;
+      clearError();
       const f = new FormData(form);
       let [y, m, d] = String(f.get('date')).split('-').map(Number);
       const timeUnknown = f.get('timeUnknown') === 'on';
       const [h, mi] = timeUnknown ? [12, 0] : String(f.get('time') || '12:00').split(':').map(Number);
 
       if (new Date(y, m - 1, d) > new Date()) {
-        errEl.textContent = form.dataset.errFuture!; errEl.hidden = false;
+        showError(form.dataset.errFuture!, 'date');
+        dateInput.focus();
         trackEvent('chart_form_error', { error_type: 'future_value', language: form.dataset.lang });
         return;
       }
@@ -116,7 +247,8 @@ const { lang } = Astro.params;
       // Lunar → solar conversion happens here, once, at the input layer.
       if (f.get('cal') === 'lunar') {
         if (y < 1900 || y > 2050) {
-          errEl.textContent = form.dataset.errLunar!; errEl.hidden = false;
+          showError(form.dataset.errLunar!, 'date');
+          dateInput.focus();
           trackEvent('chart_form_error', { error_type: 'lunar_range', language: form.dataset.lang });
           return;
         }
@@ -126,7 +258,8 @@ const { lang } = Astro.params;
           const s = cal.getSolarCalendar();
           y = s.year; m = s.month; d = s.day;
         } catch {
-          errEl.textContent = form.dataset.errLunar!; errEl.hidden = false;
+          showError(form.dataset.errLunar!, 'date');
+          dateInput.focus();
           trackEvent('chart_form_error', { error_type: 'lunar_conversion', language: form.dataset.lang });
           return;
         }
@@ -134,8 +267,7 @@ const { lang } = Astro.params;
 
       const citySel = form.elements.namedItem('city') as HTMLSelectElement;
       if (f.get('trueSolar') === 'on' && !citySel.value) {
-        errEl.textContent = form.dataset.errSolarCity!;
-        errEl.hidden = false;
+        showError(form.dataset.errSolarCity!, 'place');
         citySel.focus();
         trackEvent('chart_form_error', { error_type: 'solar_city_required', language: form.dataset.lang });
         return;
@@ -177,19 +309,65 @@ const { lang } = Astro.params;
     .hero-sub { max-width: 34rem; font-size: clamp(1.05rem, 2vw, 1.28rem); color: var(--ink-soft); line-height: 1.65; }
     .trust-line { display: inline-flex; align-items: center; gap: .55rem; margin-top: var(--space-3); padding: .6rem .85rem; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-soft); background: rgb(255 255 255 / .55); font-size: var(--text-xs); font-weight: 650; }
     .trust-line::before { content: '✓'; display: grid; inline-size: 1.2rem; block-size: 1.2rem; place-items: center; border-radius: 50%; color: white; background: var(--indigo); font-size: .68rem; }
-    .birth-form { position: relative; padding: clamp(1.5rem, 4vw, 2.25rem); display: grid; gap: var(--space-5); box-shadow: var(--shadow-float); }
+    .birth-form { position: relative; padding: clamp(1.1rem, 3vw, 1.6rem); display: grid; gap: var(--space-3); box-shadow: var(--shadow-float); }
     .birth-form::before { content: ''; position: absolute; inset: 0 0 auto; height: .35rem; background: linear-gradient(90deg, var(--el-wood), var(--el-fire), var(--el-earth), var(--el-metal), var(--el-water)); }
-    .birth-form .grid { display: grid; gap: var(--space-4); grid-template-columns: 1fr 1fr; }
-    .birth-form .grid--calendar { grid-template-columns: 1fr; }
-    .birth-form label { display: grid; gap: .4rem; font-size: var(--text-sm); font-weight: 650; }
-    .birth-form .check { display: flex; align-items: center; gap: var(--space-2); }
-    fieldset { border: 1px solid var(--line); border-radius: var(--radius); display: grid; gap: var(--space-2); padding: var(--space-4); background: rgb(239 238 232 / .42); }
-    legend { font-size: var(--text-sm); font-weight: 750; padding-inline: var(--space-2); }
-    .advanced { padding-top: var(--space-2); border-top: 1px solid var(--line); }
-    .advanced summary { cursor: pointer; font-size: var(--text-sm); font-weight: 700; color: var(--indigo); }
-    .hint { font-size: var(--text-xs); color: var(--ink-soft); margin: var(--space-1) 0 0; }
-    .form-error { color: var(--vermilion); font-size: var(--text-sm); margin: 0; }
-    .birth-form .btn-primary { width: 100%; margin-top: var(--space-2); }
+    .form-progress { display: flex; align-items: center; justify-content: center; gap: .45rem; margin: .35rem auto .15rem; color: var(--ink-soft); font-family: var(--font-mono); font-size: .65rem; font-weight: 800; letter-spacing: .08em; }
+    .form-progress span { display: grid; inline-size: 1.75rem; block-size: 1.75rem; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: var(--paper-raised); transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast), transform var(--dur-fast); }
+    .form-progress i { inline-size: clamp(1.5rem, 5vw, 3.5rem); block-size: 1px; background: linear-gradient(90deg, var(--line), #d8ddd9); }
+    .form-progress span.is-active { color: white; border-color: var(--vermilion); background: var(--vermilion); transform: scale(1.08); }
+    .form-progress span.is-complete { color: white; border-color: var(--indigo); background: var(--indigo); }
+    .input-step { position: relative; display: grid; gap: .8rem; padding: 1rem; border: 1px solid color-mix(in srgb, var(--line) 88%, transparent); border-radius: var(--radius); background: color-mix(in srgb, var(--paper-raised) 72%, transparent); box-shadow: 0 5px 18px rgb(35 53 44 / .035); transition: transform var(--dur-fast) var(--ease-reveal), border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast); }
+    .input-step::before { content: ''; position: absolute; inset: .8rem auto .8rem 0; inline-size: 3px; border-radius: 0 3px 3px 0; background: var(--line); transition: background var(--dur-fast), transform var(--dur-fast); transform: scaleY(.45); }
+    .input-step:hover { border-color: #cbd2cd; background: rgb(255 255 255 / .8); }
+    .input-step.is-active, .input-step:focus-within { z-index: 1; border-color: color-mix(in srgb, var(--indigo) 52%, var(--line)); background: rgb(255 255 255 / .94); box-shadow: 0 13px 30px rgb(36 84 66 / .11); transform: translateY(-2px); }
+    .input-step.is-active::before, .input-step:focus-within::before { background: var(--vermilion); transform: scaleY(1); }
+    .input-step.is-complete::before { background: var(--indigo); }
+    .input-step.has-error { border-color: color-mix(in srgb, var(--vermilion) 62%, var(--line)); background: color-mix(in srgb, #fff4ef 68%, white); }
+    .input-step__heading { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .65rem; }
+    .input-step__heading label { font-size: var(--text-sm); font-weight: 800; cursor: pointer; }
+    .input-step__number { color: var(--vermilion); font-family: var(--font-mono); font-size: .68rem; font-weight: 850; letter-spacing: .08em; }
+    .input-step__check { display: grid; inline-size: 1.35rem; block-size: 1.35rem; place-items: center; border-radius: 50%; color: white; background: var(--indigo); font-size: .72rem; opacity: 0; transform: scale(.72); transition: opacity var(--dur-fast), transform var(--dur-fast); }
+    .input-step.is-complete .input-step__check { opacity: 1; transform: scale(1); }
+    .field-shell { position: relative; }
+    .field-shell .field { min-height: 3.25rem; padding-inline-start: 2.9rem; border-color: color-mix(in srgb, var(--line) 88%, transparent); background: color-mix(in srgb, var(--paper-sunken) 45%, white); font-weight: 650; }
+    .field-shell .field:focus { background: white; }
+    .field-icon { position: absolute; z-index: 1; inset: 50% auto auto .9rem; display: grid; inline-size: 1.2rem; block-size: 1.2rem; place-items: center; color: var(--ink-soft); pointer-events: none; transform: translateY(-50%); transition: color var(--dur-fast), transform var(--dur-fast); }
+    .field-icon svg { inline-size: 100%; block-size: 100%; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+    .field-shell:focus-within .field-icon { color: var(--indigo); transform: translateY(-50%) scale(1.08); }
+    .field-shell.is-disabled { opacity: .48; }
+    .field-shell.is-disabled .field { cursor: not-allowed; }
+    .choice-field { min-width: 0; margin: 0; padding: 0; border: 0; }
+    .choice-field legend { margin-block-end: .45rem; padding: 0; color: var(--ink-soft); font-size: .7rem; font-weight: 750; }
+    .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+    .choice-tile { position: relative; cursor: pointer; }
+    .choice-tile input { position: absolute; inline-size: 1px; block-size: 1px; opacity: 0; pointer-events: none; }
+    .choice-tile > span { display: flex; min-height: 2.45rem; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: .75rem; padding: .5rem .75rem; color: var(--ink-soft); background: rgb(255 255 255 / .62); font-size: var(--text-xs); font-weight: 750; transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast), transform var(--dur-fast); }
+    .choice-tile:hover > span { border-color: #aebdb5; transform: translateY(-1px); }
+    .choice-tile input:checked + span { color: var(--indigo); border-color: color-mix(in srgb, var(--indigo) 52%, white); background: color-mix(in srgb, #dcebe2 68%, white); box-shadow: inset 0 0 0 1px rgb(36 84 66 / .08); }
+    .choice-tile input:focus-visible + span { outline: 3px solid color-mix(in srgb, var(--indigo) 68%, white); outline-offset: 2px; }
+    .choice-tile--wide { display: block; margin-top: .5rem; }
+    .switch-row { display: flex; min-height: 2rem; align-items: center; justify-content: space-between; gap: 1rem; color: var(--ink-soft); font-size: var(--text-xs); font-weight: 700; cursor: pointer; }
+    .switch-control { position: relative; flex: 0 0 auto; inline-size: 2.75rem; block-size: 1.55rem; }
+    .switch-control input { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; margin: 0; opacity: 0; cursor: pointer; }
+    .switch-control i { display: block; inline-size: 100%; block-size: 100%; border: 1px solid #c8ceca; border-radius: 999px; background: #e7e8e4; transition: border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast); }
+    .switch-control i::after { content: ''; position: absolute; inline-size: 1.1rem; block-size: 1.1rem; inset: .225rem auto auto .25rem; border-radius: 50%; background: white; box-shadow: 0 2px 6px rgb(35 53 44 / .22); transition: transform var(--dur-fast) var(--ease-reveal); }
+    .switch-control input:checked + i { border-color: var(--indigo); background: var(--indigo); }
+    .switch-control input:checked + i::after { transform: translateX(1.18rem); }
+    .switch-control input:focus-visible + i { outline: 3px solid color-mix(in srgb, var(--indigo) 68%, white); outline-offset: 2px; }
+    .advanced { padding-top: .65rem; border-top: 1px solid color-mix(in srgb, var(--line) 75%, transparent); }
+    .advanced summary { color: var(--indigo); font-size: var(--text-xs); font-weight: 750; cursor: pointer; }
+    .advanced[open] summary { margin-bottom: .65rem; }
+    .switch-row--advanced { padding-block: .15rem; }
+    .hint { margin: .35rem 0 0; color: var(--ink-soft); font-size: .7rem; line-height: 1.55; }
+    .form-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; overflow: hidden; margin-top: .2rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--line); }
+    .form-summary > div { min-width: 0; padding: .65rem .7rem; background: color-mix(in srgb, var(--paper-sunken) 45%, white); }
+    .form-summary span, .form-summary strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .form-summary span { margin-bottom: .15rem; color: var(--ink-soft); font-size: .62rem; font-weight: 700; }
+    .form-summary strong { color: var(--ink); font-size: .72rem; font-weight: 800; }
+    .form-error { margin: .2rem 0 0; padding: .7rem .85rem; border-radius: var(--radius-sm); color: #9f3226; background: #fff0eb; font-size: var(--text-xs); font-weight: 700; }
+    .birth-form .btn-primary { width: 100%; margin-top: .2rem; }
+    .button-arrow { display: grid; inline-size: 1.65rem; block-size: 1.65rem; margin-inline-start: .25rem; place-items: center; border-radius: 50%; background: rgb(255 255 255 / .16); font-size: 1rem; transition: transform var(--dur-fast); }
+    .birth-form .btn-primary:hover .button-arrow { transform: translateX(3px); }
     .explainer > h2 { max-width: 16ch; margin-bottom: var(--space-8); }
     .explainer .steps { display: grid; gap: var(--space-5); grid-template-columns: 1fr; }
     @media (min-width: 720px) { .explainer .steps { grid-template-columns: repeat(3, 1fr); } }
@@ -207,9 +385,17 @@ const { lang } = Astro.params;
     @media (max-width: 560px) {
       .hero { margin-block-end: var(--space-20); }
       .hero-symbols span { inline-size: 1.85rem; block-size: 1.85rem; }
-      .birth-form .grid { grid-template-columns: 1fr; }
+      .birth-form { padding: 1rem; }
+      .input-step { padding: .9rem; }
+      .form-summary { grid-template-columns: 1fr; }
+      .form-summary > div { display: grid; grid-template-columns: minmax(5rem, auto) 1fr; align-items: center; gap: .75rem; }
+      .form-summary span { margin: 0; }
+      .form-summary strong { text-align: end; }
       .trust-line { border-radius: var(--radius); }
       .waitlist > .btn-secondary { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .input-step, .input-step::before, .field-icon, .input-step__check, .choice-tile > span, .switch-control i, .switch-control i::after, .button-arrow { transition: none; }
     }
   </style>
 </Base>
