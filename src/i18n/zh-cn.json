@@ -1,4 +1,8 @@
 {
+  "readingLoading": "正在生成命盘… 如果此画面持续显示，请返回首页后重试。",
+  "readingError": "命盘无法显示。请返回首页后重试。你的出生信息没有被发送到任何地方。",
+  "analytics": { "consentTitle": "帮助我们改进网站", "consentBody": "经你同意后，我们使用 Google Analytics 统计不含个人信息的页面浏览和操作。出生信息及结果网址中的命盘参数不会被收集。", "accept": "允许统计分析", "reject": "拒绝统计分析", "settings": "统计分析设置" },
+  "privacyAnalytics": { "title": "Google Analytics", "body": "仅在你同意后，本网站才会加载 Google Analytics 4（衡量ID G-RMFH4E7NGS）。Google 可能设置最长90天的分析Cookie。", "data": "我们只发送移除查询字符串后的页面路径、网站语言，以及生成命盘、分享、查看术语、点击商店或预约链接等事件。出生日期、出生时间、城市、经度、时区及命盘输入参数绝不会发送。", "control": "你可以随时通过页脚的统计分析设置同意或撤回。拒绝统计不会影响命盘功能。外部预约和商店链接适用各自的隐私政策。" },
   "meta": {
     "siteName": "Show Me the Saju", "home.title": "免费韩国四柱八字排盘｜Show Me the Saju", "home.description": "输入出生年月日时，免费查看四柱、五行与十神，无需注册。",
     "reading.title": "你的四柱八字命盘｜Show Me the Saju", "learn.title": "学习四柱八字｜Show Me the Saju", "compat.title": "韩国合婚配对｜Show Me the Saju",

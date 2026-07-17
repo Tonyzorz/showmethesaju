@@ -75,13 +75,14 @@ const { lang } = Astro.params;
   <section class="card waitlist">
     <h2>{t(lang, 'waitlist.title')}</h2>
     <p>{t(lang, 'waitlist.body')}</p>
-    <a class="btn-secondary" href="https://pf.kakao.com/" rel="noopener" target="_blank">{t(lang, 'footer.booking')} <span aria-hidden="true">↗</span></a>
+    <a class="btn-secondary" href="https://pf.kakao.com/" rel="noopener" target="_blank" data-analytics-event="booking_click" data-analytics-destination="kakao_booking" data-analytics-area="home_cta">{t(lang, 'footer.booking')} <span aria-hidden="true">↗</span></a>
   </section>
 
   <script>
     import KoreanLunarCalendar from 'korean-lunar-calendar';
     import { tzOffsetMinutes } from '../../lib/cities';
     import { withBase } from '../../lib/paths';
+    import { trackEvent } from '../../lib/analytics';
 
     const form = document.getElementById('birth-form') as HTMLFormElement;
     const dateInput = form.elements.namedItem('date') as HTMLInputElement;
@@ -106,17 +107,29 @@ const { lang } = Astro.params;
       const timeUnknown = f.get('timeUnknown') === 'on';
       const [h, mi] = timeUnknown ? [12, 0] : String(f.get('time') || '12:00').split(':').map(Number);
 
-      if (new Date(y, m - 1, d) > new Date()) { errEl.textContent = form.dataset.errFuture!; errEl.hidden = false; return; }
+      if (new Date(y, m - 1, d) > new Date()) {
+        errEl.textContent = form.dataset.errFuture!; errEl.hidden = false;
+        trackEvent('chart_form_error', { error_type: 'future_value', language: form.dataset.lang });
+        return;
+      }
 
       // Lunar → solar conversion happens here, once, at the input layer.
       if (f.get('cal') === 'lunar') {
-        if (y < 1900 || y > 2050) { errEl.textContent = form.dataset.errLunar!; errEl.hidden = false; return; }
+        if (y < 1900 || y > 2050) {
+          errEl.textContent = form.dataset.errLunar!; errEl.hidden = false;
+          trackEvent('chart_form_error', { error_type: 'lunar_range', language: form.dataset.lang });
+          return;
+        }
         try {
           const cal = new KoreanLunarCalendar();
           if (!cal.setLunarDate(y, m, d, f.get('leap') === 'on')) throw new Error('Invalid lunar date');
           const s = cal.getSolarCalendar();
           y = s.year; m = s.month; d = s.day;
-        } catch { errEl.textContent = form.dataset.errLunar!; errEl.hidden = false; return; }
+        } catch {
+          errEl.textContent = form.dataset.errLunar!; errEl.hidden = false;
+          trackEvent('chart_form_error', { error_type: 'lunar_conversion', language: form.dataset.lang });
+          return;
+        }
       }
 
       const citySel = form.elements.namedItem('city') as HTMLSelectElement;
@@ -124,6 +137,7 @@ const { lang } = Astro.params;
         errEl.textContent = form.dataset.errSolarCity!;
         errEl.hidden = false;
         citySel.focus();
+        trackEvent('chart_form_error', { error_type: 'solar_city_required', language: form.dataset.lang });
         return;
       }
       const tz = citySel.value || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
@@ -136,6 +150,12 @@ const { lang } = Astro.params;
         tu: timeUnknown ? '1' : '0',
         tz: String(tzMin), lon: String(lon),
         ts: f.get('trueSolar') === 'on' ? '1' : '0',
+      });
+      trackEvent('chart_submit', {
+        language: form.dataset.lang,
+        calendar_type: String(f.get('cal')),
+        pillar_status: timeUnknown ? 'three_pillars' : 'four_pillars',
+        solar_correction: f.get('trueSolar') === 'on',
       });
       location.href = withBase(`/${form.dataset.lang}/reading/`) + `?${q}`;
     });

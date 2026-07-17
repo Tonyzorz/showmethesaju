@@ -1,0 +1,57 @@
+---
+import { t } from '../i18n/t';
+import { withBase } from '../lib/paths';
+
+interface Props { lang: string; }
+const { lang } = Astro.props;
+---
+<aside id="analytics-consent" class="analytics-consent card" role="dialog" aria-labelledby="analytics-consent-title" hidden>
+  <div>
+    <h2 id="analytics-consent-title">{t(lang, 'analytics.consentTitle')}</h2>
+    <p>{t(lang, 'analytics.consentBody')} <a href={withBase(`/${lang}/privacy/`)}>{t(lang, 'footer.privacy')}</a></p>
+  </div>
+  <div class="analytics-consent-actions">
+    <button id="analytics-reject" class="btn-secondary" type="button">{t(lang, 'analytics.reject')}</button>
+    <button id="analytics-accept" class="btn-primary" type="button">{t(lang, 'analytics.accept')}</button>
+  </div>
+</aside>
+
+<script>
+  import { initializeAnalyticsConsent } from '../lib/analytics';
+
+  const banner = document.getElementById('analytics-consent') as HTMLElement;
+  initializeAnalyticsConsent({
+    banner,
+    acceptButton: document.getElementById('analytics-accept') as HTMLButtonElement,
+    rejectButton: document.getElementById('analytics-reject') as HTMLButtonElement,
+    settingsButton: document.getElementById('analytics-settings') as HTMLButtonElement | null,
+  });
+</script>
+
+<style>
+  .analytics-consent {
+    position: fixed;
+    z-index: 100;
+    inset: auto var(--space-5) var(--space-5);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-5);
+    max-width: 58rem;
+    margin-inline: auto;
+    padding: clamp(1.15rem, 3vw, 1.6rem);
+    border-color: color-mix(in srgb, var(--indigo) 25%, var(--line));
+    box-shadow: var(--shadow-float);
+    background: color-mix(in srgb, var(--paper-raised) 96%, transparent);
+    backdrop-filter: blur(18px);
+  }
+  .analytics-consent[hidden] { display: none; }
+  .analytics-consent h2 { margin: 0 0 var(--space-2); font-size: var(--text-lg); }
+  .analytics-consent p { margin: 0; color: var(--ink-soft); font-size: var(--text-sm); }
+  .analytics-consent-actions { display: flex; gap: var(--space-2); }
+  .analytics-consent-actions button { min-height: 2.8rem; padding: .65rem 1rem; white-space: nowrap; }
+  @media (max-width: 680px) {
+    .analytics-consent { grid-template-columns: 1fr; inset-inline: var(--space-3); inset-block-end: var(--space-3); }
+    .analytics-consent-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  }
+</style>

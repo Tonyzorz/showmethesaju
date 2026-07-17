@@ -2,6 +2,8 @@
 import { LOCALES, DEFAULT_LOCALE } from '../i18n/locales';
 import { t } from '../i18n/t';
 import { withBase } from '../lib/paths';
+import AnalyticsConsent from '../components/AnalyticsConsent.astro';
+import { GA_MEASUREMENT_ID } from '../lib/analytics';
 import '../styles/tokens.css';
 
 interface Props {
@@ -20,16 +22,16 @@ const htmlLang = LOCALES.find((l) => l.code === lang)?.htmlLang ?? lang;
 const year = new Date().getFullYear();
 
 const nav = [
-  { href: withBase(`/${lang}/reading/`), label: t(lang, 'nav.reading') },
-  { href: withBase(`/${lang}/compatibility/`), label: t(lang, 'nav.compatibility') },
-  { href: withBase(`/${lang}/learn/`), label: t(lang, 'nav.learn') },
-  { href: withBase(`/${lang}/glossary/`), label: t(lang, 'nav.glossary') },
-  { href: withBase(`/${lang}/about/`), label: t(lang, 'nav.about') },
+  { href: withBase(`/${lang}/reading/`), label: t(lang, 'nav.reading'), analyticsKey: 'reading' },
+  { href: withBase(`/${lang}/compatibility/`), label: t(lang, 'nav.compatibility'), analyticsKey: 'compatibility' },
+  { href: withBase(`/${lang}/learn/`), label: t(lang, 'nav.learn'), analyticsKey: 'learn' },
+  { href: withBase(`/${lang}/glossary/`), label: t(lang, 'nav.glossary'), analyticsKey: 'glossary' },
+  { href: withBase(`/${lang}/about/`), label: t(lang, 'nav.about'), analyticsKey: 'about' },
 ];
 
 const commerce = [
-  { href: 'https://smartstore.naver.com/', label: t(lang, 'footer.shop'), className: 'shop-link' },
-  { href: 'https://pf.kakao.com/', label: t(lang, 'footer.booking'), className: 'booking-link' },
+  { href: 'https://smartstore.naver.com/', label: t(lang, 'footer.shop'), className: 'shop-link', analyticsEvent: 'shop_click', analyticsKey: 'naver_store' },
+  { href: 'https://pf.kakao.com/', label: t(lang, 'footer.booking'), className: 'booking-link', analyticsEvent: 'booking_click', analyticsKey: 'kakao_booking' },
 ];
 ---
 <!doctype html>
@@ -37,6 +39,7 @@ const commerce = [
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
     {noindex && <meta name="robots" content="noindex" />}
@@ -50,6 +53,19 @@ const commerce = [
     <meta property="og:url" content={canonical} />
     <meta property="og:type" content="website" />
     <meta name="theme-color" content="#f8f7f3" />
+    <script is:inline define:vars={{ measurementId: GA_MEASUREMENT_ID }}>
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+      window.__sajuAnalyticsMeasurementId = measurementId;
+      window.gtag('consent', 'default', {
+        analytics_storage: 'denied',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        wait_for_update: 500,
+      });
+      window.gtag('set', 'ads_data_redaction', true);
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@500;600;700&family=Noto+Sans+JP:wght@400;600;700&family=Noto+Sans+SC:wght@400;600;700&family=Noto+Sans+TC:wght@400;600;700&family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -58,22 +74,22 @@ const commerce = [
   <body>
     <header class="site-header">
       <div class="header-inner">
-        <a class="logo" href={withBase(`/${lang}/`)}>
+        <a class="logo" href={withBase(`/${lang}/`)} data-analytics-event="navigation_click" data-analytics-destination="home" data-analytics-area="header">
           <span class="seal seal--logo" aria-hidden="true">쇼미</span>
           <span class="logo-text">{t(lang, 'meta.siteName')}</span>
         </a>
         <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">☰</button>
         <nav id="site-nav" class="site-nav">
-          {nav.map((n) => <a href={n.href}>{n.label}</a>)}
+          {nav.map((n) => <a href={n.href} data-analytics-event="navigation_click" data-analytics-destination={n.analyticsKey} data-analytics-area="header">{n.label}</a>)}
           <div class="nav-commerce">
             {commerce.map((item) => (
-              <a class={item.className} href={item.href} rel="noopener" target="_blank">{item.label}<span aria-hidden="true">↗</span></a>
+              <a class={item.className} href={item.href} rel="noopener" target="_blank" data-analytics-event={item.analyticsEvent} data-analytics-destination={item.analyticsKey} data-analytics-area="mobile_menu">{item.label}<span aria-hidden="true">↗</span></a>
             ))}
           </div>
         </nav>
         <div class="header-actions">
           {commerce.map((item) => (
-            <a class={item.className} href={item.href} rel="noopener" target="_blank">{item.label}<span aria-hidden="true">↗</span></a>
+            <a class={item.className} href={item.href} rel="noopener" target="_blank" data-analytics-event={item.analyticsEvent} data-analytics-destination={item.analyticsKey} data-analytics-area="header">{item.label}<span aria-hidden="true">↗</span></a>
           ))}
         </div>
         <div class="lang-switch">
@@ -92,21 +108,27 @@ const commerce = [
     <footer class="site-footer">
       <div class="footer-inner">
         <div class="footer-links">
-          <a href="https://smartstore.naver.com/" rel="noopener" target="_blank">{t(lang, 'footer.shop')}</a>
-          <a href="https://pf.kakao.com/" rel="noopener" target="_blank">{t(lang, 'footer.booking')}</a>
-          <a href={withBase(`/${lang}/privacy/`)}>{t(lang, 'footer.privacy')}</a>
+          <a href="https://smartstore.naver.com/" rel="noopener" target="_blank" data-analytics-event="shop_click" data-analytics-destination="naver_store" data-analytics-area="footer">{t(lang, 'footer.shop')}</a>
+          <a href="https://pf.kakao.com/" rel="noopener" target="_blank" data-analytics-event="booking_click" data-analytics-destination="kakao_booking" data-analytics-area="footer">{t(lang, 'footer.booking')}</a>
+          <a href={withBase(`/${lang}/privacy/`)} data-analytics-event="navigation_click" data-analytics-destination="privacy" data-analytics-area="footer">{t(lang, 'footer.privacy')}</a>
+          <button id="analytics-settings" class="footer-settings" type="button">{t(lang, 'analytics.settings')}</button>
         </div>
         <p class="footer-rights">{t(lang, 'footer.rights', { year })}</p>
       </div>
     </footer>
 
+    <AnalyticsConsent lang={lang} />
+
     <script>
+      import { trackEvent } from '../lib/analytics';
+
       // Language switcher: preserve the current sub-path across locales.
       const sel = document.getElementById('lang-select') as HTMLSelectElement | null;
       const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // '' or '/showmethesaju'
       sel?.addEventListener('change', () => {
         const current = sel.dataset.current!;
         const next = sel.value;
+        trackEvent('language_change', { from_language: current, to_language: next });
         const url = new URL(location.href);
         let path = url.pathname;
         if (base && path.startsWith(base)) path = path.slice(base.length); // strip base before swapping locale
@@ -159,7 +181,8 @@ const commerce = [
       .footer-inner { padding-block: var(--space-8); }
       .footer-links { display: flex; flex-wrap: wrap; gap: var(--space-5); }
       .footer-links a { color: var(--ink); font-size: var(--text-sm); font-weight: 650; text-decoration: none; }
-      .footer-links a:hover { color: var(--indigo); }
+      .footer-settings { appearance: none; border: 0; padding: 0; color: var(--ink); background: transparent; font: inherit; font-size: var(--text-sm); font-weight: 650; cursor: pointer; }
+      .footer-links a:hover, .footer-settings:hover { color: var(--indigo); }
       .footer-rights { color: var(--ink-soft); font-size: var(--text-sm); margin-block-end: 0; }
       @media (max-width: 1120px) {
         .header-actions .shop-link { display: none; }

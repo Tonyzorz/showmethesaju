@@ -98,6 +98,8 @@ const glossaryBase = withBase(`/${lang}/glossary/`);
 </style>
 
 <script>
+  import { trackEvent } from '../lib/analytics';
+
   type Entry = { name: string; def: string; hanja: string; roman: string };
   const DATA: Record<string, Entry> = JSON.parse(document.getElementById('gloss-data')!.textContent!);
   const pop = document.getElementById('gloss-pop') as HTMLElement;
@@ -175,7 +177,11 @@ const glossaryBase = withBase(`/${lang}/glossary/`);
     const trg = closest(e.target);
     if (trg?.dataset.gloss) {
       e.preventDefault();
-      if (active === trg) close(); else open(trg);
+      if (active === trg) close();
+      else {
+        open(trg);
+        trackEvent('glossary_open', { term: trg.dataset.gloss, language: document.documentElement.lang });
+      }
     } else if (!pop.contains(e.target as Node)) {
       close();
     }
