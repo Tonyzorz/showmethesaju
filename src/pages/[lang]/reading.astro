@@ -167,10 +167,38 @@ const READING_FOCUSES = [
     </section>
 
     <div class="analysis-grid">
+      <section id="strength-analysis" class="card panel strength-panel">
+        <div class="panel-heading">
+          <h2><button class="gloss" data-gloss="singang" type="button">{t(lang, 'reading.strength')}</button></h2>
+          <span class="panel-index" aria-hidden="true">06</span>
+        </div>
+        <div id="strength-verdict" class="strength-verdict"></div>
+        <div id="strength-marks" class="strength-marks"></div>
+        <div class="relation-section">
+          <h3><button class="gloss" data-gloss="yongsin" type="button">{t(lang, 'reading.favorableTitle')}</button></h3>
+          <div id="favorable-list" class="favorable-list"></div>
+        </div>
+        <p class="soft context-note">{t(lang, 'reading.strengthContext')}</p>
+      </section>
+      <section id="palace-analysis" class="card panel palace-panel">
+        <div class="panel-heading">
+          <h2>
+            <button class="gloss" data-gloss="taewon" type="button">{t(lang, 'reading.taewonLabel')}</button>
+            ·
+            <button class="gloss" data-gloss="myeonggung" type="button">{t(lang, 'reading.myeonggungLabel')}</button>
+          </h2>
+          <span class="panel-index" aria-hidden="true">07</span>
+        </div>
+        <div id="palace-cards" class="palace-cards"></div>
+        <p class="soft context-note">{t(lang, 'reading.palaceContext')}</p>
+      </section>
+    </div>
+
+    <div class="analysis-grid">
       <section id="relations-analysis" class="card panel relations-panel">
         <div class="panel-heading">
           <h2>{t(lang, 'reading.allRelations')}</h2>
-          <span class="panel-index" aria-hidden="true">06</span>
+          <span class="panel-index" aria-hidden="true">08</span>
         </div>
         <div class="relation-section"><h3>{t(lang, 'reading.branchRelations')}</h3><div id="branch-relations" class="relation-list"></div></div>
         <div class="relation-section"><h3>{t(lang, 'reading.stemRelations')}</h3><div id="stem-relations" class="relation-list"></div></div>
@@ -180,7 +208,7 @@ const READING_FOCUSES = [
       <section class="card panel shinsal-panel">
         <div class="panel-heading">
           <h2>{t(lang, 'reading.shinsal')}</h2>
-          <span class="panel-index" aria-hidden="true">07</span>
+          <span class="panel-index" aria-hidden="true">09</span>
         </div>
         <div id="shinsal-list" class="shinsal-list"></div>
         <p class="soft context-note">{t(lang, 'reading.shinsalContext')}</p>
@@ -193,7 +221,7 @@ const READING_FOCUSES = [
           <p class="panel-overline">10 YEAR CYCLES</p>
           <h2>{t(lang, 'reading.daeun')}</h2>
         </div>
-        <span class="panel-index" aria-hidden="true">08</span>
+        <span class="panel-index" aria-hidden="true">10</span>
       </div>
       <p id="daeun-meta" class="luck-meta"></p>
       <div id="daeun-list" class="luck-strip"></div>
@@ -207,7 +235,7 @@ const READING_FOCUSES = [
           <p class="panel-overline">YEARLY CYCLES</p>
           <h2>{t(lang, 'reading.seun')}</h2>
         </div>
-        <span class="panel-index" aria-hidden="true">09</span>
+        <span class="panel-index" aria-hidden="true">11</span>
       </div>
       <div id="seun-list" class="luck-strip luck-strip--annual"></div>
       <div id="seun-detail" class="luck-detail"></div>
@@ -274,6 +302,10 @@ const READING_FOCUSES = [
       type TwelveShinsalName,
       type TwelveStage,
     } from '../../lib/saju-engine';
+    import {
+      favorableElements, myeonggungPillar, strengthAnalysis, taewonPillar,
+      type MiniPillar,
+    } from '../../lib/saju-extras';
     import { trackEvent } from '../../lib/analytics';
 
     const S: Record<string, string> = JSON.parse(document.getElementById('i18n-reading')!.textContent!);
@@ -548,6 +580,39 @@ const READING_FOCUSES = [
       paint(selectedReadingFocus);
     }
 
+    function renderExtras(r: SajuResult) {
+      // Strength verdict + 득령/득지/득세 marks + 억부 favorable-element candidates.
+      const st = strengthAnalysis(r);
+      document.getElementById('strength-verdict')!.innerHTML =
+        `<strong class="verdict-badge verdict--${st.verdict}">${S[`strengthV.${st.verdict}`]}</strong>
+         <span class="soft">${fmt(S['supportScore'], { support: st.supportWeight, total: st.totalWeight })}</span>`;
+      const marks = [
+        ['deukryeong', st.deukryeong], ['deukji', st.deukji], ['deukse', st.deukse],
+      ] as const;
+      document.getElementById('strength-marks')!.innerHTML = marks.map(([key, got]) =>
+        `<span class="strength-mark${got ? ' is-got' : ''}">${got ? '✓' : '✗'} ${S[key]}</span>`).join('');
+
+      const fav = favorableElements(r.dayMaster.element, st.verdict);
+      const chip = (el: string) =>
+        `<span class="element-chip element-bg-soft--${el} element-text--${el}"><i class="element-dot element-bg--${el}"></i>${S[`el.${el}`]}</span>`;
+      document.getElementById('favorable-list')!.innerHTML = fav.balanced
+        ? `<p class="soft">${S['favorableBalanced']}</p>`
+        : `<div class="favorable-row"><span class="favorable-label">${S['favorable']}</span><span class="favorable-chips">${fav.favorable.map(chip).join('')}</span></div>
+           <div class="favorable-row"><span class="favorable-label">${S['unfavorable']}</span><span class="favorable-chips">${fav.unfavorable.map(chip).join('')}</span></div>`;
+
+      // 태원 · 명궁 auxiliary pillars.
+      const palaceCard = (label: string, p: MiniPillar | null, hint: string) => `
+        <div class="palace-card">
+          <span class="palace-label">${label}</span>
+          ${p ? `<strong class="palace-hanja" lang="ko"><span class="element-text--${p.stemElement}">${p.hanja[0]}</span><span class="element-text--${p.branchElement}">${p.hanja[1]}</span></strong>
+          <span class="palace-ko">${p.ko}</span>` : `<span class="soft">${S['myeonggungUnavailable']}</span>`}
+          <span class="palace-hint soft">${hint}</span>
+        </div>`;
+      document.getElementById('palace-cards')!.innerHTML =
+        palaceCard(S['taewonLabel'], taewonPillar(r), S['taewonHint']) +
+        palaceCard(S['myeonggungLabel'], myeonggungPillar(r), S['myeonggungHint']);
+    }
+
     function renderRelations(r: SajuResult) {
       const target = document.getElementById('branch-relations')!;
       target.innerHTML = r.relations.length ? r.relations.map((relation) =>
@@ -773,6 +838,7 @@ const READING_FOCUSES = [
         ).join('') + `</tbody>`;
 
       renderHiddenStems(r);
+      renderExtras(r);
       renderRelations(r);
       renderShinsal(r);
       renderLuck(r, timeUnknown);
@@ -1111,6 +1177,29 @@ const READING_FOCUSES = [
     }
     .element-pair b { color: var(--line); font-weight: 400; }
     .element-dot { display: inline-block; flex: 0 0 auto; inline-size: .55rem; block-size: .55rem; border-radius: 50%; }
+
+    /* ── strength (신강/신약) + favorable elements panel ── */
+    .strength-verdict { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; margin-block-end: var(--space-3); }
+    .verdict-badge { font-family: var(--font-display); font-size: var(--text-lg); padding: var(--space-1) var(--space-3); border-radius: 999px; background: var(--paper-sunken); }
+    .verdict--extremeStrong, .verdict--strong { color: var(--indigo); }
+    .verdict--extremeWeak, .verdict--weak { color: var(--gold); }
+    .strength-marks { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-block-end: var(--space-4); }
+    .strength-mark { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-soft); border: 1px solid var(--line); border-radius: 999px; padding: var(--space-1) var(--space-3); }
+    .strength-mark.is-got { color: var(--indigo); border-color: color-mix(in srgb, var(--indigo) 45%, var(--line)); background: color-mix(in srgb, var(--indigo) 7%, transparent); }
+    .favorable-list { display: grid; gap: var(--space-2); }
+    .favorable-row { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+    .favorable-label { font-size: var(--text-sm); color: var(--ink-soft); min-inline-size: 5.5rem; }
+    .favorable-chips { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+    .element-chip { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--text-sm); font-weight: 600; border-radius: 999px; padding: var(--space-1) var(--space-3); }
+
+    /* ── 태원 · 명궁 auxiliary pillars ── */
+    .palace-cards { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+    @media (max-width: 480px) { .palace-cards { grid-template-columns: 1fr; } }
+    .palace-card { display: grid; justify-items: center; gap: var(--space-1); padding: var(--space-4); background: var(--paper-sunken); border: 1px solid var(--line); border-radius: var(--radius); text-align: center; }
+    .palace-label { font-size: var(--text-sm); color: var(--ink-soft); }
+    .palace-hanja { font-family: var(--font-display); font-size: var(--text-2xl); line-height: var(--leading-tight); }
+    .palace-ko { font-family: var(--font-mono); font-size: var(--text-sm); }
+    .palace-hint { font-size: var(--text-xs); }
     .pillar-empty { align-items: center; justify-content: flex-start; }
     .pillar-empty .hint { margin: auto; text-align: center; }
 

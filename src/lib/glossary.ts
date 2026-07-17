@@ -18,4 +18,8 @@ export const TERMS: Term[] = [
   { key: 'jinTaeyangsi', hanja: '地方平均太陽時', roman: 'local solar time' },
   { key: 'ipchun', hanja: '立春', roman: 'ipchun' },
   { key: 'daeun', hanja: '大運', roman: 'daeun' },
+  { key: 'taewon', hanja: '胎元', roman: 'taewon' },
+  { key: 'myeonggung', hanja: '命宮', roman: 'myeonggung' },
+  { key: 'singang', hanja: '身强·身弱', roman: 'singang · sinyak' },
+  { key: 'yongsin', hanja: '用神', roman: 'yongsin' },
 ];
