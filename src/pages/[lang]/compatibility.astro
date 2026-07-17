@@ -269,27 +269,6 @@ const personFields = [
       location.href = `${location.pathname}?${q}`;
     });
 
-    // ── Result rendering (all state in the querystring; nothing stored) ──
-    const q = new URLSearchParams(location.search);
-    if (q.has('ay') && q.has('by')) {
-      const input = (key: string): SajuInput => ({
-        year: +q.get(`${key}y`)!, month: +q.get(`${key}m`)!, day: +q.get(`${key}d`)!,
-        hour: +q.get(`${key}h`)!, minute: +q.get(`${key}i`)!,
-        timeUnknown: q.get(`${key}u`) === '1',
-        tzOffsetMinutes: +q.get(`${key}z`)!, longitude: +q.get(`${key}l`)!,
-        gender: q.get(`${key}g`) === 'f' ? 'female' : q.get(`${key}g`) === 'm' ? 'male' : undefined,
-      });
-      try {
-        const g: GunghapResult = computeGunghap(input('a'), input('b'));
-        render(g);
-        form.hidden = true;
-        document.getElementById('gunghap-result')!.hidden = false;
-        trackEvent('gunghap_view', { language: document.documentElement.lang });
-      } catch {
-        // Malformed/legacy querystring: fall back to the empty form.
-      }
-    }
-
     function miniChart(r: SajuResult, label: string): string {
       const symbol = r.gender === 'female' ? '♀' : r.gender === 'male' ? '♂' : '';
       const roles = [[r.hour, S['pillarHour']], [r.day, S['pillarDay']], [r.month, S['pillarMonth']], [r.year, S['pillarYear']]] as const;
@@ -342,6 +321,29 @@ const personFields = [
           S['strengthNote']),
       ].join('');
     }
+
+    // ── Result rendering — MUST run after every helper above is initialized
+    // (state lives in the querystring; nothing is stored) ──
+    const q = new URLSearchParams(location.search);
+    if (q.has('ay') && q.has('by')) {
+      const input = (key: string): SajuInput => ({
+        year: +q.get(`${key}y`)!, month: +q.get(`${key}m`)!, day: +q.get(`${key}d`)!,
+        hour: +q.get(`${key}h`)!, minute: +q.get(`${key}i`)!,
+        timeUnknown: q.get(`${key}u`) === '1',
+        tzOffsetMinutes: +q.get(`${key}z`)!, longitude: +q.get(`${key}l`)!,
+        gender: q.get(`${key}g`) === 'f' ? 'female' : q.get(`${key}g`) === 'm' ? 'male' : undefined,
+      });
+      try {
+        const g: GunghapResult = computeGunghap(input('a'), input('b'));
+        render(g);
+        form.hidden = true;
+        document.getElementById('gunghap-result')!.hidden = false;
+        trackEvent('gunghap_view', { language: document.documentElement.lang });
+      } catch (err) {
+        // Malformed/legacy querystring: fall back to the empty form.
+        console.error('[gunghap] failed to render result:', err);
+      }
+    }
   </script>
 
   <style>
@@ -353,6 +355,7 @@ const personFields = [
 
     /* ── form: same component language as the main birth form ── */
     .gform { position: relative; padding: clamp(1.1rem, 3vw, 1.6rem); display: grid; gap: var(--space-3); margin-block-end: var(--space-12); box-shadow: var(--shadow-float, var(--shadow-card)); overflow: hidden; }
+    .gform[hidden] { display: none; }
     .gform::before { content: ''; position: absolute; inset: 0 0 auto; height: .35rem; background: linear-gradient(90deg, var(--el-wood), var(--el-fire), var(--el-earth), var(--el-metal), var(--el-water)); }
     .gform-title { margin: .4rem 0 0; font-size: var(--text-xl); }
     .gform-grid { display: grid; gap: var(--space-4); grid-template-columns: 1fr 1fr; }
