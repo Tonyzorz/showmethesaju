@@ -1,9 +1,20 @@
 ---
+import { getCollection } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
 import { LOCALES } from '../../../i18n/locales';
 import { t } from '../../../i18n/t';
+import { withBase } from '../../../lib/paths';
 export function getStaticPaths() { return LOCALES.map((l) => ({ params: { lang: l.code } })); }
 const { lang } = Astro.params;
+
+// Articles for this locale; locales without their own fall back to the
+// English set (linked cross-locale, labeled).
+const all = await getCollection('learn', ({ data }) => !data.draft);
+const own = all.filter((e) => e.slug.split('/')[0] === lang);
+const fallback = own.length === 0;
+const articles = (fallback ? all.filter((e) => e.slug.split('/')[0] === 'en') : own)
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+const articleHref = (slug: string) => withBase(`/${fallback ? 'en' : lang}/learn/${slug.split('/')[1]}/`);
 ---
 <Base lang={lang} title={t(lang, 'meta.learn.title')} path="learn">
   <section class="learn-hero">
@@ -23,6 +34,19 @@ const { lang } = Astro.params;
         <p>{t(lang, `learn.${key}.body`)}</p>
       </article>
     ))}
+  </section>
+
+  <section class="articles">
+    <h2>{t(lang, 'learn.articles')}{fallback && <span class="article-lang-tag">{t(lang, 'learn.inEnglish')}</span>}</h2>
+    <div class="article-grid">
+      {articles.map((entry) => (
+        <a class="card article-card" href={articleHref(entry.slug)}>
+          <h3>{entry.data.title}</h3>
+          <p>{entry.data.description}</p>
+          <span class="article-more">{t(lang, 'learn.readMore')} →</span>
+        </a>
+      ))}
+    </div>
   </section>
 
   <aside class="card learn-note">
@@ -46,6 +70,16 @@ const { lang } = Astro.params;
     .lesson-mark { display: inline-block; margin-bottom: var(--space-10); color: var(--vermilion); font-family: var(--font-display); font-size: var(--text-2xl); }
     .lesson h2 { font-size: var(--text-xl); }
     .lesson p { margin: 0; color: var(--ink-soft); }
+    .articles { margin-block-start: var(--space-16); }
+    .articles h2 { font-size: var(--text-xl); }
+    .article-lang-tag { margin-inline-start: var(--space-2); font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 400; color: var(--ink-soft); }
+    .article-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-5); }
+    @media (max-width: 860px) { .article-grid { grid-template-columns: 1fr; } }
+    .article-card { display: grid; align-content: start; gap: var(--space-2); padding: var(--space-6); text-decoration: none; color: var(--ink); }
+    .article-card h3 { margin: 0; font-size: var(--text-lg); line-height: var(--leading-tight); }
+    .article-card p { margin: 0; color: var(--ink-soft); font-size: var(--text-sm); }
+    .article-card .article-more { color: var(--indigo); font-size: var(--text-sm); font-weight: 600; }
+    .article-card:hover h3 { color: var(--indigo); }
     .learn-note { max-width: 55rem; margin-block: var(--space-16); padding: clamp(1.5rem, 5vw, 3rem); border-inline-start: 5px solid var(--gold); }
     .learn-note h2 { font-size: var(--text-xl); }
     .learn-note p { margin: 0; color: var(--ink-soft); }

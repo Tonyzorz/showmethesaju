@@ -1,0 +1,66 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import { t } from '../../../i18n/t';
+import { withBase } from '../../../lib/paths';
+
+// Routes exist only for locales that have the article (en + ko today);
+// hreflang is restricted to those via altLocales.
+export async function getStaticPaths() {
+  const entries = await getCollection('learn', ({ data }) => !data.draft);
+  return entries.map((entry) => {
+    const [locale, slug] = entry.slug.split('/');
+    const altLocales = entries
+      .filter((e) => e.data.translationKey === entry.data.translationKey)
+      .map((e) => e.slug.split('/')[0]);
+    return { params: { lang: locale, slug }, props: { entry, altLocales } };
+  });
+}
+
+interface Props { entry: CollectionEntry<'learn'>; altLocales: string[]; }
+const { entry, altLocales } = Astro.props;
+const { lang, slug } = Astro.params;
+const { Content } = await entry.render();
+const site = Astro.site?.toString().replace(/\/$/, '') ?? '';
+const dateFmt = new Intl.DateTimeFormat(lang, { dateStyle: 'long' });
+
+const articleLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: entry.data.title,
+  description: entry.data.description,
+  datePublished: entry.data.pubDate.toISOString(),
+  inLanguage: lang,
+  mainEntityOfPage: `${site}/${lang}/learn/${slug}/`,
+  publisher: { '@type': 'Organization', name: t(lang, 'meta.siteName') },
+};
+---
+<Base lang={lang} title={`${entry.data.title} — ${t(lang, 'meta.siteName')}`} description={entry.data.description} path={`learn/${slug}`} altLocales={altLocales}>
+  <script type="application/ld+json" set:html={JSON.stringify(articleLd)} />
+  <article class="article">
+    <header>
+      <p class="article-crumb"><a href={withBase(`/${lang}/learn/`)}>← {t(lang, 'nav.learn')}</a></p>
+      <h1>{entry.data.title}</h1>
+      <p class="article-meta">{dateFmt.format(entry.data.pubDate)} · {t(lang, 'meta.siteName')}</p>
+    </header>
+    <div class="article-body"><Content /></div>
+    <footer class="article-cta card">
+      <p>{t(lang, 'learn.articleCta')}</p>
+      <a class="btn-primary" href={withBase(`/${lang}/`)}>{t(lang, 'hero.cta')}</a>
+    </footer>
+  </article>
+  <style>
+    .article { max-width: var(--container-text); margin: 0 auto; }
+    .article-crumb a { text-decoration: none; font-size: var(--text-sm); }
+    .article h1 { font-size: var(--text-2xl); line-height: var(--leading-tight); }
+    .article-meta { color: var(--ink-soft); font-family: var(--font-mono); font-size: var(--text-xs); border-bottom: 1px solid var(--line); padding-bottom: var(--space-4); }
+    .article-body :global(h2) { font-size: var(--text-xl); margin-top: var(--space-8); }
+    .article-body :global(p) { line-height: var(--leading-body); }
+    .article-body :global(table) { width: 100%; border-collapse: collapse; font-size: var(--text-sm); margin-block: var(--space-4); }
+    .article-body :global(th), .article-body :global(td) { text-align: left; padding: var(--space-2); border-bottom: 1px solid var(--line); }
+    .article-body :global(th) { color: var(--ink-soft); }
+    .article-body :global(blockquote) { border-inline-start: 3px solid var(--gold); margin-inline: 0; padding-inline-start: var(--space-4); color: var(--ink-soft); }
+    .article-cta { margin-block: var(--space-12); padding: var(--space-6); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
+    .article-cta p { margin: 0; }
+  </style>
+</Base>
