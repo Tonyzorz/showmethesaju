@@ -1,8 +1,19 @@
 {
   "readingLoading": "Preparing your chart… If this message remains, return to the first screen and try again.",
   "readingError": "We couldn't display this chart. Please return to the first screen and try again. Your birth details were not sent anywhere.",
-  "analytics": { "consentTitle": "Help us improve the site", "consentBody": "With your permission, Google Analytics measures privacy-safe page views and interactions. Birth details and chart parameters in result URLs are excluded.", "accept": "Allow analytics", "reject": "No analytics", "settings": "Analytics preferences" },
-  "privacyAnalytics": { "title": "Google Analytics", "body": "Only after you consent does this site load Google Analytics 4 (measurement ID G-RMFH4E7NGS). Google may set analytics cookies for up to 90 days.", "data": "We send the page path without its query string, the site language, and events such as chart creation, sharing, glossary use, and shop or booking clicks. Birth date, birth time, gender, city, longitude, time zone, and chart inputs are never sent.", "control": "You can grant or withdraw consent at any time through Analytics preferences in the footer. Refusing analytics does not affect the chart. External booking and shop links have their own privacy policies." },
+  "analytics": {
+    "consentTitle": "Help us improve the site",
+    "consentBody": "With your permission, Google Analytics measures privacy-safe page views and interactions. Birth details and chart parameters in result URLs are excluded.",
+    "accept": "Allow analytics",
+    "reject": "No analytics",
+    "settings": "Analytics preferences"
+  },
+  "privacyAnalytics": {
+    "title": "Google Analytics",
+    "body": "Only after you consent does this site load Google Analytics 4 (measurement ID G-RMFH4E7NGS). Google may set analytics cookies for up to 90 days.",
+    "data": "We send the page path without its query string, the site language, and events such as chart creation, sharing, glossary use, and shop or booking clicks. Birth date, birth time, gender, city, longitude, time zone, and chart inputs are never sent.",
+    "control": "You can grant or withdraw consent at any time through Analytics preferences in the footer. Refusing analytics does not affect the chart. External booking and shop links have their own privacy policies."
+  },
   "fortune": {
     "eyebrow": "Choose a reading",
     "title": "What would you like to explore?",
@@ -176,25 +187,37 @@
     "tenGodsContext": "The Ten Gods are relationship categories, not literal deities. They describe how each visible stem relates to your Day Master.",
     "hiddenStems": "Hidden Stems",
     "hiddenStemsContext": "Hidden heavenly stems are shown in the Korean order of residual, middle, and main qi. Their Ten Gods are calculated from the Day Master.",
-    "qi.residual": "Residual qi", "qi.middle": "Middle qi", "qi.main": "Main qi",
+    "qi.residual": "Residual qi",
+    "qi.middle": "Middle qi",
+    "qi.main": "Main qi",
     "branchRelations": "Branch Punishment, Clash, Break & Harm",
     "relationsContext": "These are relationships formed inside the natal chart. They are structural markers, not stand-alone predictions of good or bad fortune.",
     "relationNone": "No direct branch relation in the selected set is formed inside the natal chart.",
-    "rel.punishment": "Punishment", "rel.clash": "Clash", "rel.break": "Break", "rel.harm": "Harm",
+    "rel.punishment": "Punishment",
+    "rel.clash": "Clash",
+    "rel.break": "Break",
+    "rel.harm": "Harm",
     "shinsal": "Major Shinsal",
     "shinsalContext": "Shinsal are supplementary traditional markers. They should be read after the overall chart, never as a verdict by themselves.",
     "shinsalNone": "None of the major shinsal shown here is present.",
-    "shinsal.cheonEul": "Heavenly Noble", "shinsal.munChang": "Literary Star", "shinsal.peachBlossom": "Peach Blossom", "shinsal.travelHorse": "Traveling Horse", "shinsal.flowerCanopy": "Flower Canopy", "shinsal.gongMang": "Void",
+    "shinsal.cheonEul": "Heavenly Noble",
+    "shinsal.munChang": "Literary Star",
+    "shinsal.peachBlossom": "Peach Blossom",
+    "shinsal.travelHorse": "Traveling Horse",
+    "shinsal.flowerCanopy": "Flower Canopy",
+    "shinsal.gongMang": "Void",
     "daeun": "Daeun · Ten-Year Luck",
     "daeunContext": "Direction follows the year-stem polarity and gender, moving from the month pillar. Start age converts the interval to the adjacent solar-month boundary at three days per year.",
     "seun": "Seun · Annual Luck",
     "seunContext": "Each annual cycle runs from Ipchun to the next Ipchun. Select a card to inspect its hidden stems, natal interactions, and shinsal.",
-    "forward": "Forward", "reverse": "Reverse",
+    "forward": "Forward",
+    "reverse": "Reverse",
     "daeunMeta": "{gender} · {direction} · first cycle at {age}",
     "ageYearsMonths": "{years}y {months}m",
     "startYear": "Starts {year}",
     "ipchunYear": "{year} · from Ipchun",
-    "daeunApproximate": "Because the birth time is unknown, start age is estimated from noon and may differ by about one or two months.", "genderRequired": "This older shared link has no gender, so Daeun cannot be calculated. Return to the first screen and select gender.",
+    "daeunApproximate": "Because the birth time is unknown, start age is estimated from noon and may differ by about one or two months.",
+    "genderRequired": "This older shared link has no gender, so Daeun cannot be calculated. Return to the first screen and select gender.",
     "allRelations": "Stem & branch relations",
     "originalChart": "Original chart",
     "originalChartContext": "Compare the four pillars and turn detail layers on or off. The Day pillar is highlighted as the self.",
@@ -311,25 +334,82 @@
     "title": "Glossary",
     "moreLink": "Open in glossary",
     "terms": {
-      "saju": { "name": "Saju (Four Pillars)", "def": "Korea's traditional destiny-reading framework. Birth year, month, day, and hour each form a pillar of two characters—eight in total." },
-      "palja": { "name": "Palja (Eight Characters)", "def": "The eight characters that make up the four pillars. In everyday Korean, palja can also mean one's lot in life." },
-      "ilgan": { "name": "Day Master", "def": "The heavenly stem of the day pillar, used as the chart's reference point for the self." },
-      "ohaeng": { "name": "Five Elements", "def": "Wood, fire, earth, metal, and water: five interacting phases used to describe cycles and relationships in the chart." },
-      "cheongan": { "name": "Heavenly Stems", "def": "Ten signs that form the upper character of each pillar. Each has an element and a yin or yang polarity." },
-      "jiji": { "name": "Earthly Branches", "def": "Twelve signs that form the lower character of each pillar and correspond to the familiar twelve zodiac animals." },
-      "sipseong": { "name": "Ten Gods", "def": "Ten relationship categories between the Day Master and other stems, used to organize themes such as expression, resources, wealth, and structure." },
-      "gunghap": { "name": "Gunghap (Compatibility)", "def": "A comparison of two charts. In Korea it has traditionally been consulted around marriage and partnership." },
-      "manseryeok": { "name": "Manseryeok (Perpetual Calendar)", "def": "A calendar system used to derive the pillars from a birth moment. This site calculates the core chart in your browser." },
-      "jinTaeyangsi": { "name": "Longitude-adjusted Solar Time", "def": "Clock time adjusted for the birthplace's longitude relative to its time-zone meridian. This site does not apply the equation of time." },
-      "ipchun": { "name": "Ipchun (Start of Spring)", "def": "The solar term near February 4 when the Saju year changes. It does not change on January 1 or Lunar New Year." },
-      "daeun": { "name": "Daeun (Ten-Year Cycles)", "def": "Ten-year cycles advancing from the month pillar. Direction follows year-stem polarity and gender, while the adjacent solar boundary determines the starting age." },
-      "taewon": { "name": "Taewon (Conception Pillar)", "def": "An auxiliary pillar for the estimated month of conception — the month stem advanced one step and the month branch three. Read alongside the four pillars, never in place of them." },
-      "myeonggung": { "name": "Myeonggung (Life Palace)", "def": "The \"palace where the destiny resides\", derived from the birth month (counted by mid-terms) and the birth hour. Similar in spirit to the ascendant in Western astrology." },
-      "singang": { "name": "Singang / Sinyak (Strength)", "def": "Whether the chart's supporters make the Day Master strong (singang) or weak (sinyak). This verdict is the starting point for choosing which elements help the chart." },
-      "yongsin": { "name": "Yongsin (Useful God)", "def": "The element a chart most needs. Elements that assist it are huisin (favorable); those that work against it are gisin (challenging). Schools differ on how to select them." },
-      "gyeokguk": { "name": "Gyeokguk (Chart Structure)", "def": "The chart's overall structure, one of ten classical types, named after the ten god of the month branch's defining hidden stem. It frames how the rest of the chart is read." },
-      "samjae": { "name": "Samjae (Three Calamities)", "def": "A folk cycle: every 12 years, three consecutive years are considered cautionary for your birth-year group. Widely observed in Korea, though it is custom rather than chart analysis." },
-      "johu": { "name": "Johu (Climate Adjustment)", "def": "A school of yongsin selection that reads the chart as a climate: a winter chart may need fire, a summer chart water. The classic reference is the Gungtong-bogam." }
+      "saju": {
+        "name": "Saju (Four Pillars)",
+        "def": "Korea's traditional destiny-reading framework. Birth year, month, day, and hour each form a pillar of two characters—eight in total."
+      },
+      "palja": {
+        "name": "Palja (Eight Characters)",
+        "def": "The eight characters that make up the four pillars. In everyday Korean, palja can also mean one's lot in life."
+      },
+      "ilgan": {
+        "name": "Day Master",
+        "def": "The heavenly stem of the day pillar, used as the chart's reference point for the self."
+      },
+      "ohaeng": {
+        "name": "Five Elements",
+        "def": "Wood, fire, earth, metal, and water: five interacting phases used to describe cycles and relationships in the chart."
+      },
+      "cheongan": {
+        "name": "Heavenly Stems",
+        "def": "Ten signs that form the upper character of each pillar. Each has an element and a yin or yang polarity."
+      },
+      "jiji": {
+        "name": "Earthly Branches",
+        "def": "Twelve signs that form the lower character of each pillar and correspond to the familiar twelve zodiac animals."
+      },
+      "sipseong": {
+        "name": "Ten Gods",
+        "def": "Ten relationship categories between the Day Master and other stems, used to organize themes such as expression, resources, wealth, and structure."
+      },
+      "gunghap": {
+        "name": "Gunghap (Compatibility)",
+        "def": "A comparison of two charts. In Korea it has traditionally been consulted around marriage and partnership."
+      },
+      "manseryeok": {
+        "name": "Manseryeok (Perpetual Calendar)",
+        "def": "A calendar system used to derive the pillars from a birth moment. This site calculates the core chart in your browser."
+      },
+      "jinTaeyangsi": {
+        "name": "Longitude-adjusted Solar Time",
+        "def": "Clock time adjusted for the birthplace's longitude relative to its time-zone meridian. This site does not apply the equation of time."
+      },
+      "ipchun": {
+        "name": "Ipchun (Start of Spring)",
+        "def": "The solar term near February 4 when the Saju year changes. It does not change on January 1 or Lunar New Year."
+      },
+      "daeun": {
+        "name": "Daeun (Ten-Year Cycles)",
+        "def": "Ten-year cycles advancing from the month pillar. Direction follows year-stem polarity and gender, while the adjacent solar boundary determines the starting age."
+      },
+      "taewon": {
+        "name": "Taewon (Conception Pillar)",
+        "def": "An auxiliary pillar for the estimated month of conception — the month stem advanced one step and the month branch three. Read alongside the four pillars, never in place of them."
+      },
+      "myeonggung": {
+        "name": "Myeonggung (Life Palace)",
+        "def": "The \"palace where the destiny resides\", derived from the birth month (counted by mid-terms) and the birth hour. Similar in spirit to the ascendant in Western astrology."
+      },
+      "singang": {
+        "name": "Singang / Sinyak (Strength)",
+        "def": "Whether the chart's supporters make the Day Master strong (singang) or weak (sinyak). This verdict is the starting point for choosing which elements help the chart."
+      },
+      "yongsin": {
+        "name": "Yongsin (Useful God)",
+        "def": "The element a chart most needs. Elements that assist it are huisin (favorable); those that work against it are gisin (challenging). Schools differ on how to select them."
+      },
+      "gyeokguk": {
+        "name": "Gyeokguk (Chart Structure)",
+        "def": "The chart's overall structure, one of ten classical types, named after the ten god of the month branch's defining hidden stem. It frames how the rest of the chart is read."
+      },
+      "samjae": {
+        "name": "Samjae (Three Calamities)",
+        "def": "A folk cycle: every 12 years, three consecutive years are considered cautionary for your birth-year group. Widely observed in Korea, though it is custom rather than chart analysis."
+      },
+      "johu": {
+        "name": "Johu (Climate Adjustment)",
+        "def": "A school of yongsin selection that reads the chart as a climate: a winter chart may need fire, a summer chart water. The classic reference is the Gungtong-bogam."
+      }
     }
   },
   "about": {
@@ -434,8 +514,8 @@
     "errBothRequired": "Enter both birth dates."
   },
   "compat": {
-    "headline": "Gunghap (궁합) — Korean compatibility reading",
-    "body": "For centuries, Korean families checked gunghap before a marriage. Our compatibility engine is in the works.",
+    "headline": "Gunghap — Korean Compatibility",
+    "body": "The centuries-old tradition of comparing two charts before marriage — now free in your browser. See how two saju structures meet.",
     "cta": "Notify me"
   },
   "footer": {
