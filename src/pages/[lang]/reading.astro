@@ -292,8 +292,10 @@ const READING_FOCUSES = [
     </section>
 
     <div class="actions card">
+      <button id="share-native" class="btn-primary" type="button" hidden>{t(lang, 'reading.shareNative')}</button>
       <button id="share-url" class="btn-secondary" type="button">{t(lang, 'reading.share')}</button>
-      <button id="share-png" class="btn-primary" type="button">{t(lang, 'reading.sharePng')}</button>
+      <button id="share-png" class="btn-secondary" type="button">{t(lang, 'reading.sharePng')}</button>
+      <button id="share-story" class="btn-secondary" type="button">{t(lang, 'reading.shareStory')}</button>
       <a class="btn-secondary" href={withBase(`/${lang}/learn/`)} data-analytics-event="navigation_click" data-analytics-destination="learn_from_chart" data-analytics-area="reading_actions">{t(lang, 'reading.learnMore')}</a>
     </div>
     <p class="disclaimer">{t(lang, 'reading.disclaimer')}</p>
@@ -947,37 +949,63 @@ const READING_FOCUSES = [
         trackEvent('share', { method: 'link', content_type: 'saju_chart', language: document.documentElement.lang });
       });
 
-      // Share: PNG card (square 1080). Fonts must be loaded before drawing hanja.
-      document.getElementById('share-png')!.addEventListener('click', async () => {
+      // Share cards v2: square 1080 + IG story 1080×1920, both carrying the
+      // day master and 격국·신강약 line. No birth data on the image by design.
+      const siteLabel = location.host + (import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL.replace(/\/$/, ''));
+      async function drawCard(mode: 'square' | 'story'): Promise<HTMLCanvasElement> {
         await (document as any).fonts?.ready;
+        const W = 1080, H = mode === 'story' ? 1920 : 1080;
         const c = document.createElement('canvas');
-        c.width = 1080; c.height = 1080;
+        c.width = W; c.height = H;
         const ctx = c.getContext('2d')!;
         const css = getComputedStyle(document.documentElement);
         const v = (n: string) => css.getPropertyValue(n).trim();
-        ctx.fillStyle = v('--paper'); ctx.fillRect(0, 0, 1080, 1080);
-        ctx.fillStyle = v('--ink');
-        ctx.font = '700 56px "Gowun Batang", serif';
+        ctx.fillStyle = v('--paper'); ctx.fillRect(0, 0, W, H);
         ctx.textAlign = 'center';
-        ctx.fillText(S['yourPillars'], 540, 130);
+
+        const top = mode === 'story' ? 260 : 130;
+        ctx.fillStyle = v('--ink');
+        ctx.font = `700 ${mode === 'story' ? 64 : 56}px "Gowun Batang", serif`;
+        ctx.fillText(S['yourPillars'], W / 2, top);
+
+        const cardY = mode === 'story' ? 420 : 240;
+        const cardH = mode === 'story' ? 620 : 520;
+        const roleLabels4 = [S['pillarYear'], S['pillarMonth'], S['pillarDay'], S['pillarHour']];
         const ps = [r.year, r.month, r.day, r.hour];
         ps.forEach((p, i) => {
           const x = 180 + i * 240;
+          ctx.fillStyle = v('--ink-soft');
+          ctx.font = '400 28px "IBM Plex Mono", monospace';
+          ctx.fillText(roleLabels4[i], x, cardY - 24);
           ctx.strokeStyle = v('--line'); ctx.lineWidth = 2;
-          ctx.strokeRect(x - 90, 220, 180, 520);
+          ctx.strokeRect(x - 90, cardY, 180, cardH);
           if (!p) return;
           ctx.fillStyle = v(`--el-${p.stemElement}`);
-          ctx.fillRect(x - 90, 220, 180, 10);
-          ctx.font = '700 110px "Gowun Batang", serif';
-          ctx.fillText(p.stemHanja, x, 400);
-          ctx.fillText(p.branchHanja, x, 560);
+          ctx.fillRect(x - 90, cardY, 180, 10);
+          ctx.fillStyle = v('--ink');
+          ctx.font = `700 ${mode === 'story' ? 120 : 110}px "Gowun Batang", serif`;
+          ctx.fillText(p.stemHanja, x, cardY + (mode === 'story' ? 220 : 160));
+          ctx.fillText(p.branchHanja, x, cardY + (mode === 'story' ? 400 : 320));
           ctx.fillStyle = v('--ink-soft');
           ctx.font = '400 34px "IBM Plex Mono", monospace';
-          ctx.fillText(p.stemKo + p.branchKo, x, 660);
+          ctx.fillText(p.stemKo + p.branchKo, x, cardY + cardH - 60);
         });
-        // seal
+
+        // Day master + structure line (격국 · 신강약).
+        const gg = gyeokguk(r);
+        const st = strengthAnalysis(r);
+        const infoY = cardY + cardH + (mode === 'story' ? 130 : 90);
+        ctx.fillStyle = v('--ink');
+        ctx.font = '700 44px "Gowun Batang", serif';
+        ctx.fillText(`${S['dayMaster']} ${r.dayMaster.hanja}(${r.dayMaster.ko})`, W / 2, infoY);
+        ctx.fillStyle = v('--ink-soft');
+        ctx.font = '400 34px "IBM Plex Mono", monospace';
+        ctx.fillText(`${S[`gg.${gg.name}`]} · ${S[`strengthV.${st.verdict}`]}`, W / 2, infoY + 60);
+
+        // Seal + domain.
+        const sealC = mode === 'story' ? [W / 2, H - 360] : [910, 900];
         ctx.save();
-        ctx.translate(910, 900); ctx.rotate(-0.07);
+        ctx.translate(sealC[0], sealC[1]); ctx.rotate(-0.07);
         ctx.strokeStyle = v('--vermilion'); ctx.lineWidth = 6;
         ctx.strokeRect(-70, -70, 140, 140);
         ctx.fillStyle = v('--vermilion');
@@ -986,14 +1014,39 @@ const READING_FOCUSES = [
         ctx.restore();
         ctx.fillStyle = v('--ink-soft');
         ctx.font = '400 30px "IBM Plex Mono", monospace';
-        ctx.textAlign = 'left';
-        ctx.fillText('tonyzorz.github.io/showmethesaju', 60, 1010);
+        if (mode === 'story') { ctx.fillText(siteLabel, W / 2, H - 160); }
+        else { ctx.textAlign = 'left'; ctx.fillText(siteLabel, 60, 1010); }
+        return c;
+      }
+
+      const download = (c: HTMLCanvasElement, name: string, method: string) => {
         const a = document.createElement('a');
-        a.download = 'my-saju.png';
+        a.download = name;
         a.href = c.toDataURL('image/png');
         a.click();
-        trackEvent('share', { method: 'image', content_type: 'saju_chart', language: document.documentElement.lang });
-      });
+        trackEvent('share', { method, content_type: 'saju_chart', language: document.documentElement.lang });
+      };
+      document.getElementById('share-png')!.addEventListener('click', async () =>
+        download(await drawCard('square'), 'my-saju.png', 'image'));
+      document.getElementById('share-story')!.addEventListener('click', async () =>
+        download(await drawCard('story'), 'my-saju-story.png', 'image_story'));
+
+      // Native share sheet (mobile: includes KakaoTalk/Instagram/etc. — no SDK).
+      const nativeBtn = document.getElementById('share-native')!;
+      if (navigator.share) {
+        nativeBtn.hidden = false;
+        nativeBtn.addEventListener('click', async () => {
+          const c = await drawCard('square');
+          const blob: Blob = await new Promise((res) => c.toBlob((b) => res(b!), 'image/png'));
+          const file = new File([blob], 'my-saju.png', { type: 'image/png' });
+          const payload: ShareData = { title: document.title, url: location.href };
+          try {
+            if (navigator.canShare?.({ files: [file] })) await navigator.share({ ...payload, files: [file] });
+            else await navigator.share(payload);
+            trackEvent('share', { method: 'native', content_type: 'saju_chart', language: document.documentElement.lang });
+          } catch { /* user dismissed the sheet */ }
+        });
+      }
     }
 
     // Run only after every helper and const above has been initialized.
@@ -1498,6 +1551,8 @@ const READING_FOCUSES = [
     .actions { display: flex; justify-content: center; gap: var(--space-3); flex-wrap: wrap; margin-block: var(--space-8); padding: var(--space-4); background: color-mix(in srgb, var(--paper-raised) 88%, transparent); }
     #share-url::before { content: '↗'; }
     #share-png::before { content: '↓'; }
+    #share-story::before { content: '▯'; }
+    #share-native::before { content: '⇪'; }
     .actions a::before { content: '→'; }
     .note { margin-block: var(--space-5); padding: var(--space-4) var(--space-5); border: 1px solid #ead7ae; border-inline-start: 4px solid var(--gold); border-radius: var(--radius); background: #fff8e9; }
     .disclaimer { color: var(--ink-soft); font-size: var(--text-xs); text-align: center; }
