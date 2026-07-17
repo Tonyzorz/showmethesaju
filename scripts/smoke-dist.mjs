@@ -16,6 +16,12 @@ function read(relativePath) {
 for (const locale of locales) {
   const homeHtml = read(path.join(locale, 'index.html'));
   assert(homeHtml.includes('id="birth-form"'), `${locale}: missing birth form`);
+  assert((homeHtml.match(/class="fortune-card fortune-card--/g) || []).length === 6,
+    `${locale}: homepage must contain six themed reading cards`);
+  assert(homeHtml.includes('name="focus"') && homeHtml.includes('value="basic"') && homeHtml.includes('value="wealth"') &&
+    homeHtml.includes('value="health"') && homeHtml.includes('value="career"') &&
+    homeHtml.includes('value="relationships"') && homeHtml.includes('value="timing"'),
+    `${locale}: themed reading choices are incomplete`);
   assert((homeHtml.match(/data-input-step=/g) || []).length === 4, `${locale}: birth form must contain four input cards`);
   assert(homeHtml.includes('name="gender"') && homeHtml.includes('value="f"') && homeHtml.includes('value="m"'),
     `${locale}: required gender input is missing`);
@@ -28,6 +34,10 @@ for (const locale of locales) {
   assert(html.includes('id="loading-state"'), `${locale}: missing non-blank loading fallback`);
   assert(html.includes('id="render-error"'), `${locale}: missing visible render error`);
   assert(html.includes('id="element-radar"'), `${locale}: missing Five Elements chart`);
+  assert(html.includes('id="reading-focus"') && (html.match(/data-reading-focus=/g) || []).length === 6,
+    `${locale}: reading page must contain six switchable themed summaries`);
+  assert(html.includes('id="focus-metrics"') && html.includes('id="focus-details"'),
+    `${locale}: themed summary metrics or evidence link is missing`);
   assert(html.includes('class="card chart-matrix-panel"') && html.includes('id="chart-facts"'),
     `${locale}: missing detailed original-chart matrix or fact grid`);
   assert((html.match(/data-layer-toggle=/g) || []).length === 4,
@@ -58,12 +68,17 @@ assert(homeBundle, 'Could not identify the built interactive birth-form bundle')
 assert(homeBundle.source.includes('Intl.DateTimeFormat') && homeBundle.source.includes('data-input-step'),
   'Birth-form bundle is missing localized summary or card-state behavior');
 assert(homeBundle.source.includes('gender'), 'Birth-form bundle does not carry gender into the chart query');
+assert(homeBundle.source.includes('reading_focus_select') && homeBundle.source.includes('reading_focus'),
+  'Birth-form bundle does not carry or measure the selected reading focus');
 
 assert(readingBundle.source.includes('hidden-stems') && readingBundle.source.includes('daeun-list') && readingBundle.source.includes('seun-list'),
   'Reading bundle is missing advanced 만세력 rendering behavior');
 assert(readingBundle.source.includes('chart_layer_toggle') && readingBundle.source.includes('pillar-stage-layer') &&
   readingBundle.source.includes('pillar-nayin-layer') && readingBundle.source.includes('twelveShinsal'),
   'Reading bundle is missing chart-layer analytics or advanced pillar detail behavior');
+assert(readingBundle.source.includes('reading_focus_select') && readingBundle.source.includes('focus-metrics') &&
+  readingBundle.source.includes('annualPillar'),
+  'Reading bundle is missing themed summary switching, metrics, or annual-cycle support');
 
 const analyticsBundle = bundles.find(({ source }) => source.includes('google-analytics-script'));
 assert(analyticsBundle, 'Could not identify the built analytics bundle');
@@ -72,4 +87,4 @@ assert(analyticsBundle.source.includes('location.origin') && analyticsBundle.sou
   'Analytics page locations are not built from the query-free origin and path');
 assert(!analyticsBundle.source.includes('location.search'), 'Analytics bundle must not read or send URL query parameters');
 
-console.log(`Smoke-tested ${locales.length} home and reading pages, rich chart layers, interactive birth cards, rendering order, consent defaults, and query-free GA4 wiring.`);
+console.log(`Smoke-tested ${locales.length} home and reading pages, six localized reading themes, rich chart layers, interactive birth cards, rendering order, consent defaults, and query-free GA4 wiring.`);

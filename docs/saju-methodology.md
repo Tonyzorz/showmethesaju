@@ -94,6 +94,19 @@ Shinsal tables and names vary more by school than the core pillar arithmetic. Th
 
 Annual pillars follow the sexagenary year beginning at each Ipchun. The selected annual branch is compared with the natal branches for hidden stems, relations, and Shinsal.
 
+## Themed reading summaries
+
+The six home-page cards are different views of the same locally calculated chart, not separate predictive engines:
+
+- **Core Saju** summarizes the Day Master, visible Five-Element counts, and visible Yin-Yang positions.
+- **Wealth flow** counts Direct and Indirect Wealth relationships across visible and hidden stems, identifies the Day Master's Wealth element, and links to Daeun and Seun timing. Counts are descriptive, not financial advice or a wealth score.
+- **Health and balance** shows only the traditional visible Five-Element distribution. It is explicitly not a diagnosis, medical guidance, or a prediction of illness.
+- **Career and achievement** counts Authority and Output relationships across visible and hidden stems and presents them beside the month pillar and current cycles.
+- **Love and relationships** uses the day branch, unique natal pillar pairs with branch relations, and Peach Blossom occurrences. It does not claim compatibility with a person whose chart was not entered.
+- **Daeun and annual timing** shows the active ten-year cycle by current full age and the annual pillar for the current Saju year. The Saju year changes at Ipchun.
+
+Every theme links back to the supporting detailed chart section. Visitors can switch themes on the result page without recalculating or re-entering birth data.
+
 ## Verification sources
 
 - Korea Astronomy and Space Science Institute calendar/astronomy service: https://astro.kasi.re.kr

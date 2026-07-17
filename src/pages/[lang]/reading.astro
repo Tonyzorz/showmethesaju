@@ -9,13 +9,19 @@ export function getStaticPaths() {
   return LOCALES.map((l) => ({ params: { lang: l.code } }));
 }
 const { lang } = Astro.params;
+const focusStrings = ns(lang, 'fortune');
 const strings = {
   ...ns(lang, 'reading'),
+  ...Object.fromEntries(Object.entries(focusStrings).map(([key, value]) => [`focus.${key}`, value])),
   cta: t(lang, 'hero.cta'),
   siteName: t(lang, 'meta.siteName'),
   genderFemale: t(lang, 'form.genderF'),
   genderMale: t(lang, 'form.genderM'),
 };
+const READING_FOCUSES = [
+  { key: 'basic', mark: '命' }, { key: 'wealth', mark: '財' }, { key: 'health', mark: '身' },
+  { key: 'career', mark: '業' }, { key: 'relationships', mark: '緣' }, { key: 'timing', mark: '運' },
+] as const;
 ---
 <Base lang={lang} title={t(lang, 'meta.reading.title')} path="reading" noindex>
   <script type="application/json" id="i18n-reading" set:html={JSON.stringify(strings)} />
@@ -36,7 +42,32 @@ const strings = {
     </header>
     <p id="boundary-note" class="note" hidden></p>
 
-    <section class="card chart-matrix-panel">
+    <section id="reading-focus" class="reading-focus" aria-labelledby="reading-focus-title">
+      <div class="reading-focus__heading">
+        <p class="panel-overline">{t(lang, 'fortune.eyebrow')}</p>
+        <h2 id="reading-focus-title">{t(lang, 'fortune.resultTitle')}</h2>
+        <span>{t(lang, 'fortune.resultSubtitle')}</span>
+      </div>
+      <div class="focus-tabs" role="group" aria-label={t(lang, 'fortune.resultTitle')}>
+        {READING_FOCUSES.map((focus) => (
+          <button type="button" data-reading-focus={focus.key} aria-pressed="false">
+            <span aria-hidden="true">{focus.mark}</span>{t(lang, `fortune.${focus.key}.title`)}
+          </button>
+        ))}
+      </div>
+      <article id="focus-content" class="focus-content" aria-live="polite">
+        <span id="focus-mark" class="focus-content__mark" aria-hidden="true">命</span>
+        <div class="focus-content__copy">
+          <p id="focus-kicker"></p>
+          <h3 id="focus-title"></h3>
+          <p id="focus-summary"></p>
+          <div id="focus-metrics" class="focus-metrics"></div>
+          <a id="focus-details" href="#original-chart">{t(lang, 'fortune.viewDetails')} <span aria-hidden="true">↓</span></a>
+        </div>
+      </article>
+    </section>
+
+    <section id="original-chart" class="card chart-matrix-panel">
       <div class="chart-matrix-heading">
         <div>
           <p class="panel-overline">ORIGINAL CHART</p>
@@ -89,7 +120,7 @@ const strings = {
       </section>
     </div>
 
-    <section class="card panel element-panel">
+    <section id="element-balance" class="card panel element-panel">
       <div class="panel-heading">
         <div>
           <p class="panel-overline">{t(lang, 'reading.elementPattern')}</p>
@@ -117,7 +148,7 @@ const strings = {
       <p class="soft context-note">{t(lang, 'reading.elementContext')}</p>
     </section>
 
-    <section class="card panel gods-panel">
+    <section id="ten-gods-analysis" class="card panel gods-panel">
       <div class="panel-heading">
         <h2><button class="gloss" data-gloss="sipseong" type="button">{t(lang, 'reading.tenGods')}</button></h2>
         <span class="panel-index" aria-hidden="true">04</span>
@@ -136,7 +167,7 @@ const strings = {
     </section>
 
     <div class="analysis-grid">
-      <section class="card panel relations-panel">
+      <section id="relations-analysis" class="card panel relations-panel">
         <div class="panel-heading">
           <h2>{t(lang, 'reading.allRelations')}</h2>
           <span class="panel-index" aria-hidden="true">06</span>
@@ -156,7 +187,7 @@ const strings = {
       </section>
     </div>
 
-    <section class="card panel luck-panel daeun-panel">
+    <section id="luck-analysis" class="card panel luck-panel daeun-panel">
       <div class="panel-heading">
         <div>
           <p class="panel-overline">10 YEAR CYCLES</p>
@@ -247,6 +278,10 @@ const strings = {
 
     const S: Record<string, string> = JSON.parse(document.getElementById('i18n-reading')!.textContent!);
     const q = new URLSearchParams(location.search);
+    const readingFocuses = ['basic', 'wealth', 'health', 'career', 'relationships', 'timing'] as const;
+    type ReadingFocus = typeof readingFocuses[number];
+    let selectedReadingFocus: ReadingFocus = readingFocuses.includes(q.get('focus') as ReadingFocus)
+      ? q.get('focus') as ReadingFocus : 'basic';
     const fmt = (template: string, vars: Record<string, string | number>) =>
       Object.entries(vars).reduce((text, [key, value]) => text.replaceAll(`{${key}}`, String(value)), template);
     const tenGodLabel = (name: string | null) => name ? (S[`tg.${name}`] ?? name) : S['notApplicable'];
@@ -419,6 +454,100 @@ const strings = {
       });
     }
 
+    function renderReadingFocus(r: SajuResult) {
+      const visiblePillars = [r.hour, r.day, r.month, r.year].filter((pillar): pillar is Pillar => Boolean(pillar));
+      const visibleGods = visiblePillars.map((pillar) => pillar.tenGod).filter((god): god is NonNullable<typeof god> => Boolean(god));
+      const hiddenGods = Object.values(r.hiddenStems).flat().map((stem) => stem.tenGod);
+      const allGods = [...visibleGods, ...hiddenGods];
+      const countGods = (...names: string[]) => allGods.filter((god) => names.includes(god)).length;
+      const wealthCount = countGods('편재', '정재');
+      const authorityCount = countGods('편관', '정관');
+      const outputCount = countGods('식신', '상관');
+      const wealthElementByDayMaster = { wood: 'earth', fire: 'metal', earth: 'water', metal: 'wood', water: 'fire' } as const;
+      const wealthElement = wealthElementByDayMaster[r.dayMaster.element];
+      const elementEntries = Object.entries(r.elementCounts) as [keyof SajuResult['elementCounts'], number][];
+      const totalElements = elementEntries.reduce((sum, [, count]) => sum + count, 0);
+      const maxElementCount = Math.max(...elementEntries.map(([, count]) => count));
+      const minElementCount = Math.min(...elementEntries.map(([, count]) => count));
+      const dominantElement = elementEntries.find(([, count]) => count === maxElementCount)?.[0] ?? r.dayMaster.element;
+      const lowElements = elementEntries.filter(([, count]) => count === minElementCount).map(([element]) => S[`el.${element}`]).join(' · ');
+      const yang = visiblePillars.reduce((sum, pillar) => sum + Number(pillar.stemYang) + Number(pillar.branchYang), 0);
+      const yin = visiblePillars.length * 2 - yang;
+      const relationPairs = new Set(r.relations.map((relation) => [relation.leftRole, relation.rightRole].sort().join('-'))).size;
+      const relationshipStars = r.shinsal.filter((item) => item.name === 'peachBlossom').length;
+      const today = new Date();
+      const civilYear = today.getFullYear();
+      const currentSajuYear = today.getTime() < ipchunUtcMs(civilYear) ? civilYear - 1 : civilYear;
+      let ageMonths = (civilYear - values.year) * 12 + (today.getMonth() + 1 - values.month);
+      if (today.getDate() < values.day) ageMonths--;
+      const activeDaeun = r.daeun?.cycles.filter((cycle) => cycle.startAgeMonths <= ageMonths).at(-1);
+      const annual = computeAnnualLuck(r, currentSajuYear, 1)[0];
+      const metric = (label: string, value: string | number) => `<span><small>${label}</small><strong>${value}</strong></span>`;
+      const configs: Record<ReadingFocus, { mark: string; summary: string; metrics: string; target: string }> = {
+        basic: {
+          mark: '命',
+          summary: fmt(S['focus.basic.summary'], { dayMaster: `${r.dayMaster.hanja} ${r.dayMaster.ko}`, element: S[`el.${dominantElement}`], count: maxElementCount, total: totalElements, yang, yin }),
+          metrics: metric(S['focus.metric.dayMaster'], `${r.dayMaster.hanja} · ${S[`el.${r.dayMaster.element}`]}`) + metric(S['focus.metric.dominantElement'], S[`el.${dominantElement}`]) + metric(S['focus.metric.yinYang'], `${yang} / ${yin}`),
+          target: '#original-chart',
+        },
+        wealth: {
+          mark: '財',
+          summary: fmt(S['focus.wealth.summary'], { wealthCount, element: S[`el.${wealthElement}`] }),
+          metrics: metric(S['focus.metric.wealthElement'], S[`el.${wealthElement}`]) + metric(S['focus.metric.wealthStars'], wealthCount) + metric(S['focus.metric.currentDaeun'], activeDaeun?.pillar.hanja ?? S['focus.unavailable']),
+          target: '#ten-gods-analysis',
+        },
+        health: {
+          mark: '身',
+          summary: fmt(S['focus.health.summary'], { dominant: S[`el.${dominantElement}`], lowElements }),
+          metrics: metric(S['focus.metric.dominantElement'], S[`el.${dominantElement}`]) + metric(S['focus.metric.leastElements'], lowElements) + metric(S['focus.metric.visibleBalance'], `${maxElementCount} : ${minElementCount}`),
+          target: '#element-balance',
+        },
+        career: {
+          mark: '業',
+          summary: fmt(S['focus.career.summary'], { authorityCount, outputCount }),
+          metrics: metric(S['focus.metric.authorityStars'], authorityCount) + metric(S['focus.metric.outputStars'], outputCount) + metric(S['focus.metric.monthPillar'], r.month.hanja),
+          target: '#ten-gods-analysis',
+        },
+        relationships: {
+          mark: '緣',
+          summary: fmt(S['focus.relationships.summary'], { dayBranch: `${r.day.branchHanja} ${r.day.branchKo}`, relationCount: relationPairs, starCount: relationshipStars }),
+          metrics: metric(S['focus.metric.dayBranch'], r.day.branchHanja) + metric(S['focus.metric.relations'], relationPairs) + metric(S['focus.metric.relationshipStars'], relationshipStars),
+          target: '#relations-analysis',
+        },
+        timing: {
+          mark: '運',
+          summary: fmt(S['focus.timing.summary'], { direction: r.daeun ? S[r.daeun.direction] : S['focus.unavailable'], daeunPillar: activeDaeun?.pillar.hanja ?? S['focus.unavailable'], year: currentSajuYear, annualPillar: annual.pillar.hanja }),
+          metrics: metric(S['focus.metric.direction'], r.daeun ? S[r.daeun.direction] : S['focus.unavailable']) + metric(S['focus.metric.currentDaeun'], activeDaeun?.pillar.hanja ?? S['focus.unavailable']) + metric(S['focus.metric.annualPillar'], annual.pillar.hanja),
+          target: '#luck-analysis',
+        },
+      };
+
+      const paint = (focus: ReadingFocus, track = false) => {
+        const config = configs[focus];
+        selectedReadingFocus = focus;
+        document.querySelectorAll<HTMLButtonElement>('[data-reading-focus]').forEach((button) => {
+          button.setAttribute('aria-pressed', String(button.dataset.readingFocus === focus));
+        });
+        const content = document.getElementById('focus-content')!;
+        content.dataset.focus = focus;
+        document.getElementById('focus-mark')!.textContent = config.mark;
+        document.getElementById('focus-kicker')!.textContent = S['focus.selected'];
+        document.getElementById('focus-title')!.textContent = S[`focus.${focus}.title`];
+        document.getElementById('focus-summary')!.textContent = config.summary;
+        document.getElementById('focus-metrics')!.innerHTML = config.metrics;
+        document.getElementById('focus-details')!.setAttribute('href', config.target);
+        const url = new URL(location.href);
+        url.searchParams.set('focus', focus);
+        history.replaceState(null, '', url);
+        if (track) trackEvent('reading_focus_select', { reading_focus: focus, selection_area: 'result', language: document.documentElement.lang });
+      };
+
+      document.querySelectorAll<HTMLButtonElement>('[data-reading-focus]').forEach((button) => {
+        button.addEventListener('click', () => paint(button.dataset.readingFocus as ReadingFocus, true));
+      });
+      paint(selectedReadingFocus);
+    }
+
     function renderRelations(r: SajuResult) {
       const target = document.getElementById('branch-relations')!;
       target.innerHTML = r.relations.length ? r.relations.map((relation) =>
@@ -587,6 +716,7 @@ const strings = {
         pillarCard(r.year, S['pillarYear'], 'year', 3, r),
       ].join('');
       renderChartFacts(r);
+      renderReadingFocus(r);
 
       // Day master
       document.getElementById('dm-char')!.textContent = r.dayMaster.hanja;
@@ -742,6 +872,7 @@ const strings = {
           language: document.documentElement.lang,
           pillar_status: timeUnknown ? 'three_pillars' : 'four_pillars',
           solar_correction: q.get('ts') === '1',
+          reading_focus: selectedReadingFocus,
         });
       } catch (error) {
         console.error('Unable to render Saju chart', error);
@@ -828,6 +959,37 @@ const strings = {
     .element-ribbon i:nth-child(3) { background: var(--el-earth); }
     .element-ribbon i:nth-child(4) { background: #aeb3b1; }
     .element-ribbon i:nth-child(5) { background: var(--el-water); }
+
+    .reading-focus { --focus-accent: var(--indigo); position: relative; margin-block: clamp(2rem, 5vw, 4rem); }
+    .reading-focus__heading { margin-bottom: 1rem; }
+    .reading-focus__heading h2 { margin: 0; font-size: clamp(1.45rem, 3vw, 2rem); }
+    .reading-focus__heading > span { display: block; max-width: 45rem; margin-top: .45rem; color: var(--ink-soft); font-size: var(--text-sm); line-height: 1.6; }
+    .focus-tabs { display: flex; gap: .45rem; overflow-x: auto; padding: .2rem .1rem .7rem; scrollbar-width: thin; }
+    .focus-tabs button { display: inline-flex; min-height: 2.7rem; flex: 0 0 auto; align-items: center; gap: .45rem; padding: .55rem .75rem; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-soft); background: rgb(255 255 255 / .68); font-size: .7rem; font-weight: 760; cursor: pointer; transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast), transform var(--dur-fast); }
+    .focus-tabs button:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--indigo) 32%, var(--line)); }
+    .focus-tabs button span { display: grid; inline-size: 1.45rem; aspect-ratio: 1; place-items: center; border-radius: 50%; color: var(--indigo); background: var(--jade-pale); font-family: var(--font-display); font-size: .76rem; }
+    .focus-tabs button[aria-pressed="true"] { border-color: var(--indigo); color: white; background: var(--indigo); box-shadow: 0 8px 20px rgb(36 84 66 / .18); }
+    .focus-tabs button[aria-pressed="true"] span { color: var(--indigo); background: white; }
+    .focus-tabs button:focus-visible { outline: 3px solid color-mix(in srgb, var(--indigo) 55%, white); outline-offset: 2px; }
+    .focus-content { position: relative; display: grid; min-height: 16rem; grid-template-columns: auto 1fr; align-items: center; gap: clamp(1.2rem, 4vw, 2.4rem); overflow: hidden; padding: clamp(1.3rem, 4vw, 2.5rem); border: 1px solid color-mix(in srgb, var(--focus-accent) 28%, var(--line)); border-radius: var(--radius-lg); background: linear-gradient(135deg, color-mix(in srgb, var(--focus-accent) 10%, white), rgb(255 255 255 / .94) 56%); box-shadow: 0 20px 55px rgb(35 53 44 / .1); }
+    .focus-content::after { content: ''; position: absolute; inline-size: 15rem; aspect-ratio: 1; inset: -7rem -5rem auto auto; border: 1px solid var(--focus-accent); border-radius: 50%; box-shadow: 0 0 0 2.7rem color-mix(in srgb, var(--focus-accent) 4%, transparent), 0 0 0 5.4rem color-mix(in srgb, var(--focus-accent) 2.5%, transparent); opacity: .13; pointer-events: none; }
+    .focus-content[data-focus="wealth"] { --focus-accent: #a47428; }
+    .focus-content[data-focus="health"] { --focus-accent: #ae5147; }
+    .focus-content[data-focus="career"] { --focus-accent: #405f8e; }
+    .focus-content[data-focus="relationships"] { --focus-accent: #a34e70; }
+    .focus-content[data-focus="timing"] { --focus-accent: #65538f; }
+    .focus-content__mark { position: relative; z-index: 1; display: grid; inline-size: clamp(5.2rem, 10vw, 7rem); aspect-ratio: 1; place-items: center; border: 1px solid color-mix(in srgb, var(--focus-accent) 28%, transparent); border-radius: 1.6rem; color: var(--focus-accent); background: color-mix(in srgb, var(--focus-accent) 9%, white); box-shadow: inset 0 0 0 .45rem rgb(255 255 255 / .5), 0 14px 30px color-mix(in srgb, var(--focus-accent) 15%, transparent); font-family: var(--font-display); font-size: clamp(2.6rem, 6vw, 4rem); font-weight: 750; }
+    .focus-content__copy { position: relative; z-index: 1; min-width: 0; }
+    .focus-content__copy > p:first-child { margin: 0 0 .25rem; color: var(--focus-accent); font-family: var(--font-mono); font-size: .65rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .focus-content__copy h3 { margin: 0; font-size: clamp(1.45rem, 3vw, 2.1rem); }
+    .focus-content__copy > p:not(:first-child) { max-width: 49rem; margin: .65rem 0 0; color: var(--ink-soft); font-size: clamp(.82rem, 1.6vw, .98rem); line-height: 1.75; }
+    .focus-metrics { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+    .focus-metrics > span { display: grid; min-width: 7.2rem; gap: .2rem; padding: .55rem .7rem; border: 1px solid color-mix(in srgb, var(--focus-accent) 17%, var(--line)); border-radius: .75rem; background: rgb(255 255 255 / .66); }
+    .focus-metrics small { color: var(--ink-soft); font-size: .56rem; font-weight: 720; }
+    .focus-metrics strong { color: var(--focus-accent); font-size: .76rem; overflow-wrap: anywhere; }
+    #focus-details { display: inline-flex; align-items: center; gap: .45rem; margin-top: 1rem; color: var(--focus-accent); font-size: .72rem; font-weight: 800; text-decoration: none; }
+    #focus-details span { display: grid; inline-size: 1.4rem; aspect-ratio: 1; place-items: center; border-radius: 50%; color: white; background: var(--focus-accent); }
+    #original-chart, #element-balance, #ten-gods-analysis, #relations-analysis, #luck-analysis { scroll-margin-top: 6rem; }
 
     .chart-matrix-panel {
       position: relative;
@@ -1181,6 +1343,11 @@ const strings = {
       .result-kicker { font-size: .66rem; }
       .birth-summary { align-items: flex-start; border-radius: var(--radius-sm); font-size: .7rem; line-height: 1.5; }
       .chart-matrix-panel { padding-inline: 1rem; }
+      .focus-tabs { margin-inline: -1rem; padding-inline: 1rem; }
+      .focus-content { min-height: 0; grid-template-columns: 1fr; gap: 1rem; }
+      .focus-content__mark { inline-size: 4.6rem; border-radius: 1.2rem; }
+      .focus-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .focus-metrics > span { min-width: 0; padding-inline: .5rem; }
       .chart-layer-controls { flex-wrap: nowrap; inline-size: calc(100% + 2rem); overflow-x: auto; margin-inline: -1rem; padding-inline: 1rem; scrollbar-width: none; }
       .chart-layer-controls::-webkit-scrollbar { display: none; }
       .chart-layer-controls button { flex: 0 0 auto; }
@@ -1222,6 +1389,7 @@ const strings = {
       .actions > * { flex: 1 1 10rem; }
     }
     @media (max-width: 390px) {
+      .focus-metrics { grid-template-columns: 1fr; }
       .pillar-glyph { font-size: 2.85rem; }
       .tengods tbody { grid-template-columns: 1fr; }
     }
