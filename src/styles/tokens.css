@@ -83,6 +83,14 @@ body {
     radial-gradient(circle at 94% 16%, rgb(36 84 66 / .09), transparent 25rem),
     linear-gradient(180deg, #fbfaf7 0%, var(--paper) 35%, #f5f4ef 100%);
 }
+html:lang(ja) body { font-family: 'Noto Sans JP', var(--font-body); }
+html:lang(zh-CN) body { font-family: 'Noto Sans SC', var(--font-body); }
+html:lang(zh-TW) body { font-family: 'Noto Sans TC', var(--font-body); }
+html:lang(th) body { font-family: 'Noto Sans Thai', var(--font-body); }
+html:lang(ja) h1, html:lang(ja) h2, html:lang(ja) h3,
+html:lang(zh-CN) h1, html:lang(zh-CN) h2, html:lang(zh-CN) h3,
+html:lang(zh-TW) h1, html:lang(zh-TW) h2, html:lang(zh-TW) h3,
+html:lang(th) h1, html:lang(th) h2, html:lang(th) h3 { font-family: inherit; }
 body::before {
   content: '';
   position: fixed;

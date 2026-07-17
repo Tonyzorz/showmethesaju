@@ -1,1 +1,41 @@
-{}
+{
+  "meta": {
+    "siteName": "Show Me the Saju", "home.title": "免费韩国四柱八字排盘｜Show Me the Saju", "home.description": "输入出生年月日时，免费查看四柱、五行与十神，无需注册。",
+    "reading.title": "你的四柱八字命盘｜Show Me the Saju", "learn.title": "学习四柱八字｜Show Me the Saju", "compat.title": "韩国合婚配对｜Show Me the Saju",
+    "about.title": "关于我们｜Show Me the Saju", "glossary.title": "四柱八字术语表｜Show Me the Saju", "glossary.description": "解释日主、十神、五行、天干地支等四柱八字基本术语。"
+  },
+  "nav": { "reading": "八字排盘", "compatibility": "合婚", "learn": "学习", "about": "关于", "glossary": "术语表", "language": "语言" },
+  "hero": { "headline": "千年命理智慧，10秒排出你的四柱。", "sub": "输入出生信息，即可查看四柱八字。免费且无需注册。", "cta": "查看我的八字", "trust": "免费 · 无需注册 · 出生信息不会离开你的设备" },
+  "form": {
+    "date": "出生日期", "time": "出生时间", "timeUnknown": "不知道出生时间", "gender": "性别", "genderF": "女", "genderM": "男", "calendar": "历法", "solar": "公历", "lunar": "农历", "lunarLeap": "闰月", "place": "出生城市",
+    "trueSolar": "使用经度校正太阳时", "trueSolarHint": "按出生地经度校正时间（首尔约−32分钟）。", "errFuture": "出生日期不能是未来日期。", "errLunarRange": "农历日期支持1900年至2050年。", "errSolarCity": "使用经度校正太阳时前，请先选择出生城市。", "advanced": "高级选项"
+  },
+  "reading": {
+    "yourPillars": "你的四柱八字", "pillarYear": "年柱", "pillarMonth": "月柱", "pillarDay": "日柱", "pillarHour": "时柱", "hourUnknown": "出生时间未知，无法显示时柱。", "dayMaster": "你的日主", "elements": "五行分布",
+    "el.wood": "木", "el.fire": "火", "el.earth": "土", "el.metal": "金", "el.water": "水", "tenGods": "十神", "share": "复制命盘链接", "shared": "已复制", "learnMore": "了解你的日主", "sharePng": "保存图片（PNG）",
+    "disclaimer": "四柱八字是用于自我反思的传统诠释体系，不构成医疗、法律或财务建议。", "termBoundaryNote": "你出生在节气交界附近，准确出生时间会影响命盘，请再次确认。",
+    "chartAtGlance": "命盘概览", "yinYangBalance": "阴阳平衡", "elementPattern": "五行格局", "yinYangSummary": "显现的字中：阳 {yang} · 阴 {yin}。", "dominantSummary": "{element}出现最多（{total}个位置中有{count}个）。", "missingSummary": "基础命盘表面未见：{elements}。", "noMissingElements": "基础命盘中五行俱全。",
+    "elementContext": "简单计数只是第一步。季节、合冲、藏干与旺衰都会改变五行的实际作用。", "tenGodsContext": "十神并非真实神祇，而是其他天干与日主关系的十种技术分类。", "heavenlyStem": "天干", "notApplicable": "日主", "pillarRoles": "四柱各自代表什么",
+    "role.year.title": "年柱", "role.year.body": "常用于观察祖辈、早年环境、社会形象与较广的人际圈。", "role.month.title": "月柱", "role.month.body": "关联出生季节、成长环境与事业结构，也是判断全局气候的重要支点。", "role.day.title": "日柱", "role.day.body": "天干为代表自己的日主；日柱也常用于观察自我与亲密伴侣关系。", "role.hour.title": "时柱", "role.hour.body": "常关联晚年、内在目标、成果与子女，需要准确出生时间。",
+    "readingGuide.title": "看整体格局，不看孤立分数", "readingGuide.body": "某五行多不等于一定吉，缺少也不等于一定凶。请把本页当作自我观察的地图，并结合季节与字之间的互动理解全局。",
+    "tg.비견": "比肩", "tg.겁재": "劫财", "tg.식신": "食神", "tg.상관": "伤官", "tg.편재": "偏财", "tg.정재": "正财", "tg.편관": "七杀（偏官）", "tg.정관": "正官", "tg.편인": "偏印", "tg.정인": "正印",
+    "dm.0": "甲木如挺拔大树，重成长、方向与原则。是否有根、有水、有阳光和伸展空间，要结合全盘判断。", "dm.1": "乙木如花草藤蔓，善于适应、协调并绕过阻碍。灵活会成为韧性还是犹疑，取决于周围配置。", "dm.2": "丙火如太阳，开朗外放，能照亮并带动整体。温暖的光还是过盛的热，要看命盘温度与平衡。", "dm.3": "丁火如灯烛，专注细腻，善于照亮具体之处。燃料、遮风与周围环境决定其稳定程度。", "dm.4": "戊土如高山厚地，稳健、守护且耐久。坚实会成为可靠基础还是固执阻滞，要看全局流通。", "dm.5": "己土如田园沃土，务实、细心并善于培育。它所承接、整理和滋养的对象决定其发挥。", "dm.6": "庚金如原矿或刀剑，果断、坚韧，能在压力中成形。适当锻炼、目标与柔韧让锋芒化为行动力。", "dm.7": "辛金如珠玉精器，精确、讲究且有鉴别力。命盘会显示这份细致成为优雅清晰，还是过度自我苛责。", "dm.8": "壬水如江海，视野宽、流动性强，能承载大量信息。方向与边界能让广阔化为推进，而非漂流。", "dm.9": "癸水如雨露雾泉，细腻敏锐，能渗入隐微之处。周围的通道、温度与支持决定其表现。"
+  },
+  "glossary": {
+    "title": "术语表", "moreLink": "在术语表中查看", "terms": {
+      "saju": { "name": "四柱（Saju）", "def": "把出生年、月、日、时各转为一组干支的韩国传统命理体系，共四柱八字。" }, "palja": { "name": "八字（Palja）", "def": "构成四柱的八个字。在韩语日常表达中也可指一个人的命运际遇。" }, "ilgan": { "name": "日主（日干）", "def": "日柱的天干，是命盘中代表自我的参照点。" }, "ohaeng": { "name": "五行", "def": "木、火、土、金、水五种相互作用的变化阶段，用来描述命盘中的循环与关系。" },
+      "cheongan": { "name": "天干", "def": "构成每柱上方的十个符号，各自具有五行和阴阳属性。" }, "jiji": { "name": "地支", "def": "构成每柱下方的十二个符号，也对应十二生肖。" }, "sipseong": { "name": "十神", "def": "按日主与其他天干的关系，整理出表达、资源、财富、权责等十类主题。" }, "gunghap": { "name": "宫合（韩国合婚）", "def": "比较两人命盘的相合关系，在韩国传统上常用于婚姻与伴侣咨询。" },
+      "manseryeok": { "name": "万岁历", "def": "由出生时刻推导四柱的历法系统。本网站在浏览器中计算基础命盘。" }, "jinTaeyangsi": { "name": "经度校正太阳时", "def": "根据出生地经度相对于时区中央经线校正钟表时间。本网站不加入均时差。" }, "ipchun": { "name": "立春", "def": "四柱年柱在约2月4日交替的节气，不以1月1日或农历新年为界。" }, "daeun": { "name": "大运", "def": "把人生划分为较长阶段的时间层。因需要额外规则，本基础命盘暂不计算。" }
+    }
+  },
+  "about": { "masterHeading": "关于解读", "story": "Show Me the Saju希望让不同语言的用户更容易理解韩国传统命盘结构。免费命盘在你的设备上计算；真人解读则加入软件无法取代的语境、判断与交流。" },
+  "learn": {
+    "title": "如何读四柱八字", "intro": "四柱把出生时刻排列为年、月、日、时四组天干地支。本指南讲解基础语法，不用单一符号给人生下定论。", "pillars.title": "四柱八字", "pillars.body": "年柱、月柱、日柱、时柱各有一个天干与地支，共八字。出生时间未知时不列时柱。", "dayMaster.title": "日主是参照点", "dayMaster.body": "日柱上方的天干为日主，代表自我。五行与十神关系以此为参照，但日主本身不能代表全盘。", "elements.title": "五行描述变化", "elements.body": "木火土金水不是单纯物质，而是五种互动阶段。生克循环用来描述支持、输出、约束和转化。", "tenGods.title": "十神整理关系", "tenGods.body": "十神按五行与阴阳比较其他天干和日主。它们不是吉凶排名，也不是字面上的神。", "solarTerms.title": "年柱月柱依节气交替", "solarTerms.body": "四柱的年、月以太阳节气为界。四柱新年从约2月4日立春开始，可能不同于元旦和农历新年。", "tradition.title": "延续至今的韩国文化", "tradition.body": "在韩国，新年运势与宫合咨询至今仍可见。不同流派和命理师的细节方法会有所不同。", "responsible.title": "用于反思，而非确定预言", "responsible.body": "命盘是传统解释框架，不是科学诊断或保证实现的预测，也不能替代医疗、法律、财务或心理健康专业建议。", "sources": "文化与天文参考"
+  },
+  "privacy": { "leadStrong": "你的出生信息不会离开设备。", "body1": "四柱命盘完全在浏览器中计算。我们不收集、传输或保存出生日期、时间或命盘结果。", "body2": "网站可能通过重视隐私、无Cookie的分析服务收集匿名访问统计。" },
+  "explainer": { "title": "什么是四柱？", "step1.title": "四柱", "step1.body": "出生年、月、日、时各形成一组干支，合为六十甲子循环中的八个字。", "step2.title": "五行", "step2.body": "每个字都属于木火土金水之一，其分布与关系用于观察气质和倾向。", "step3.title": "命盘解读", "step3.body": "通过柱与柱之间的互动观察优势、关系和时机主题。它是反思框架，不是固定判决。" },
+  "waitlist": { "title": "想进一步理解基础命盘？", "body": "真人解读可以结合合冲、季节旺衰、运势流转和你当下最关心的问题。", "email": "电子邮箱", "cta": "接收通知", "done": "已登记" },
+  "compat": { "headline": "宫合（궁합）— 韩国合婚", "body": "韩国传统上会在婚前比较两人的命盘。线上合婚功能正在开发中。", "cta": "通知我" },
+  "footer": { "shop": "护身符与天然石商品", "booking": "预约真人解读", "privacy": "隐私政策", "rights": "© {year} Show Me the Saju" },
+  "notFound": { "title": "找不到页面", "body": "该页面不存在，请返回首页。", "cta": "返回首页" }
+}

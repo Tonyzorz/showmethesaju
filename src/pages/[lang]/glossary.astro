@@ -8,12 +8,11 @@ export function getStaticPaths() {
   return LOCALES.map((l) => ({ params: { lang: l.code } }));
 }
 const { lang } = Astro.params;
-const L = lang === 'ko' ? 'ko' : 'en';
 const faqLd = {
   '@context': 'https://schema.org', '@type': 'FAQPage',
   mainEntity: TERMS.map((tm) => ({
-    '@type': 'Question', name: `What is ${tm.name.en}?`,
-    acceptedAnswer: { '@type': 'Answer', text: tm.def.en },
+    '@type': 'Question', name: t(lang, `glossary.terms.${tm.key}.name`),
+    acceptedAnswer: { '@type': 'Answer', text: t(lang, `glossary.terms.${tm.key}.def`) },
   })),
 };
 ---
@@ -23,8 +22,8 @@ const faqLd = {
   <div class="terms">
     {TERMS.map((tm) => (
       <article class="card term" id={tm.key}>
-        <h2>{tm.name[L]} <span class="meta" lang="ko">{tm.hanja}</span> <span class="meta">{tm.roman}</span></h2>
-        <p>{tm.def[L]}</p>
+        <h2>{t(lang, `glossary.terms.${tm.key}.name`)} <span class="meta" lang="ko">{tm.hanja}</span> <span class="meta">{tm.roman}</span></h2>
+        <p>{t(lang, `glossary.terms.${tm.key}.def`)}</p>
       </article>
     ))}
   </div>

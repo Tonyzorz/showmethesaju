@@ -12,9 +12,13 @@ import { withBase } from '../lib/paths';
 
 interface Props { lang: string; }
 const { lang } = Astro.props;
-const L = lang === 'ko' ? 'ko' : 'en';
 const data = Object.fromEntries(
-  TERMS.map((tm) => [tm.key, { name: tm.name[L], def: tm.def[L], hanja: tm.hanja, roman: tm.roman }]),
+  TERMS.map((tm) => [tm.key, {
+    name: t(lang, `glossary.terms.${tm.key}.name`),
+    def: t(lang, `glossary.terms.${tm.key}.def`),
+    hanja: tm.hanja,
+    roman: tm.roman,
+  }]),
 );
 const moreLabel = t(lang, 'glossary.moreLink');
 const glossaryBase = withBase(`/${lang}/glossary/`);

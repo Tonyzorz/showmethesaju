@@ -19,20 +19,55 @@ const strings = { ...ns(lang, 'reading'), cta: t(lang, 'hero.cta'), siteName: t(
     <p id="boundary-note" class="note" hidden></p>
     <div id="pillars" class="pillars"></div>
 
-    <div class="panel-grid">
+    <h2 class="section-title">{t(lang, 'reading.chartAtGlance')}</h2>
+    <div class="insight-grid">
       <section class="card panel">
         <h2><button class="gloss" data-gloss="ilgan" type="button">{t(lang, 'reading.dayMaster')}</button> <span id="dm-char" class="dm-char"></span></h2>
         <p id="dm-text"></p>
       </section>
       <section class="card panel">
-        <h2><button class="gloss" data-gloss="ohaeng" type="button">{t(lang, 'reading.elements')}</button></h2>
-        <div id="element-bars" class="element-bars"></div>
+        <h2>{t(lang, 'reading.yinYangBalance')}</h2>
+        <div class="yy-track" aria-hidden="true"><span id="yy-yang"></span><span id="yy-yin"></span></div>
+        <p id="yy-text"></p>
+      </section>
+      <section class="card panel">
+        <h2>{t(lang, 'reading.elementPattern')}</h2>
+        <p id="dominant-text"></p>
+        <p id="missing-text" class="soft"></p>
       </section>
     </div>
+
+    <section class="card panel element-panel">
+      <h2><button class="gloss" data-gloss="ohaeng" type="button">{t(lang, 'reading.elements')}</button></h2>
+      <div id="element-bars" class="element-bars"></div>
+      <p class="soft context-note">{t(lang, 'reading.elementContext')}</p>
+    </section>
 
     <section class="card panel">
       <h2><button class="gloss" data-gloss="sipseong" type="button">{t(lang, 'reading.tenGods')}</button></h2>
       <table id="tengods" class="tengods"></table>
+      <p class="soft context-note">{t(lang, 'reading.tenGodsContext')}</p>
+    </section>
+
+    <section class="pillar-guide">
+      <h2>{t(lang, 'reading.pillarRoles')}</h2>
+      <div class="role-grid">
+        {(['year', 'month', 'day', 'hour'] as const).map((role) => (
+          <article class="role-card">
+            <span aria-hidden="true">{role === 'year' ? '年' : role === 'month' ? '月' : role === 'day' ? '日' : '時'}</span>
+            <h3>{t(lang, `reading.role.${role}.title`)}</h3>
+            <p>{t(lang, `reading.role.${role}.body`)}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="card reading-guide">
+      <div aria-hidden="true" class="guide-mark">讀</div>
+      <div>
+        <h2>{t(lang, 'reading.readingGuide.title')}</h2>
+        <p>{t(lang, 'reading.readingGuide.body')}</p>
+      </div>
     </section>
 
     <div class="actions">
@@ -55,18 +90,30 @@ const strings = { ...ns(lang, 'reading'), cta: t(lang, 'hero.cta'), siteName: t(
 
     const S: Record<string, string> = JSON.parse(document.getElementById('i18n-reading')!.textContent!);
     const q = new URLSearchParams(location.search);
-    const lang = document.documentElement.lang.toLowerCase();
+    const fmt = (template: string, vars: Record<string, string | number>) =>
+      Object.entries(vars).reduce((text, [key, value]) => text.replaceAll(`{${key}}`, String(value)), template);
+    const tenGodLabel = (name: string | null) => name ? (S[`tg.${name}`] ?? name) : S['notApplicable'];
 
-    if (!q.has('y')) {
+    const values = {
+      year: Number(q.get('y')), month: Number(q.get('m')), day: Number(q.get('d')),
+      hour: Number(q.get('h')), minute: Number(q.get('mi')),
+      tzOffsetMinutes: Number(q.get('tz')), longitude: Number(q.get('lon')),
+    };
+    const dateCheck = new Date(Date.UTC(values.year, values.month - 1, values.day));
+    const validQuery = q.has('y') && Object.values(values).every(Number.isFinite) &&
+      values.year >= 1900 && values.year <= 2050 &&
+      dateCheck.getUTCFullYear() === values.year && dateCheck.getUTCMonth() === values.month - 1 && dateCheck.getUTCDate() === values.day &&
+      values.hour >= 0 && values.hour <= 23 && values.minute >= 0 && values.minute <= 59 &&
+      values.tzOffsetMinutes >= -840 && values.tzOffsetMinutes <= 840 &&
+      values.longitude >= -180 && values.longitude <= 180;
+
+    if (!validQuery) {
       document.getElementById('no-query')!.hidden = false;
     } else {
       const timeUnknown = q.get('tu') === '1';
       const res: SajuResult = computeSaju({
-        year: +q.get('y')!, month: +q.get('m')!, day: +q.get('d')!,
-        hour: +q.get('h')!, minute: +q.get('mi')!,
+        ...values,
         timeUnknown,
-        tzOffsetMinutes: +q.get('tz')!,
-        longitude: +q.get('lon')!,
         useTrueSolarTime: q.get('ts') === '1',
       });
       render(res, timeUnknown);
@@ -75,7 +122,7 @@ const strings = { ...ns(lang, 'reading'), cta: t(lang, 'hero.cta'), siteName: t(
 
     function pillarCard(p: Pillar | null, label: string, i: number): string {
       if (!p) return `<div class="pillar reveal" style="--reveal-i:${i}"><span class="reading">${label}</span><p class="hint">${S['hourUnknown']}</p></div>`;
-      const tg = p.tenGod ? `<span class="reading">${p.tenGod}</span>` : '<span class="reading">日主</span>';
+      const tg = `<span class="reading">${tenGodLabel(p.tenGod)}</span>`;
       return `<div class="pillar pillar--${p.stemElement} reveal" style="--reveal-i:${i}">
         <span class="reading">${label}</span>
         <span class="hanja" lang="ko">${p.stemHanja}${p.branchHanja}</span>
@@ -96,8 +143,26 @@ const strings = { ...ns(lang, 'reading'), cta: t(lang, 'hero.cta'), siteName: t(
       document.getElementById('dm-char')!.textContent = `${r.dayMaster.hanja} (${r.dayMaster.ko})`;
       document.getElementById('dm-text')!.textContent = S[`dm.${r.day.stem}`] ?? '';
 
+      // Yin/yang overview across every visible stem and branch.
+      const visiblePillars = [r.year, r.month, r.day, r.hour].filter((p): p is Pillar => !!p);
+      const yang = visiblePillars.reduce((sum, p) => sum + Number(p.stemYang) + Number(p.branchYang), 0);
+      const totalPolarity = visiblePillars.length * 2;
+      const yin = totalPolarity - yang;
+      (document.getElementById('yy-yang') as HTMLElement).style.width = `${yang / totalPolarity * 100}%`;
+      (document.getElementById('yy-yin') as HTMLElement).style.width = `${yin / totalPolarity * 100}%`;
+      document.getElementById('yy-text')!.textContent = fmt(S['yinYangSummary'], { yang, yin });
+
       // Element bars
       const total = Object.values(r.elementCounts).reduce((a, b) => a + b, 0) || 1;
+      const rankedElements = (Object.entries(r.elementCounts) as [string, number][]).sort((a, b) => b[1] - a[1]);
+      const [dominant, dominantCount] = rankedElements[0];
+      const missing = rankedElements.filter(([, count]) => count === 0).map(([element]) => S[`el.${element}`]);
+      document.getElementById('dominant-text')!.textContent = fmt(S['dominantSummary'], {
+        element: S[`el.${dominant}`], count: dominantCount, total,
+      });
+      document.getElementById('missing-text')!.textContent = missing.length
+        ? fmt(S['missingSummary'], { elements: missing.join(', ') })
+        : S['noMissingElements'];
       document.getElementById('element-bars')!.innerHTML = (
         ['wood', 'fire', 'earth', 'metal', 'water'] as const
       ).map((el) => {
@@ -112,15 +177,15 @@ const strings = { ...ns(lang, 'reading'), cta: t(lang, 'hero.cta'), siteName: t(
         [S['pillarHour'], r.hour], [S['pillarDay'], r.day], [S['pillarMonth'], r.month], [S['pillarYear'], r.year],
       ] as const;
       document.getElementById('tengods')!.innerHTML =
-        `<thead><tr><th></th><th><button class="gloss" data-gloss="cheongan" type="button">天干</button></th><th><button class="gloss" data-gloss="sipseong" type="button">十星</button></th></tr></thead><tbody>` +
+        `<thead><tr><th></th><th><button class="gloss" data-gloss="cheongan" type="button">${S['heavenlyStem']}</button></th><th><button class="gloss" data-gloss="sipseong" type="button">${S['tenGods']}</button></th></tr></thead><tbody>` +
         rows.map(([label, p]) => p
-          ? `<tr><th scope="row">${label}</th><td lang="ko">${p.stemHanja} ${p.stemKo}</td><td>${p.tenGod ?? '日主'}</td></tr>`
+          ? `<tr><th scope="row">${label}</th><td lang="ko">${p.stemHanja} ${p.stemKo}</td><td>${tenGodLabel(p.tenGod)}</td></tr>`
           : `<tr><th scope="row">${label}</th><td colspan="2">—</td></tr>`
         ).join('') + `</tbody>`;
 
       // Term-boundary warning: within ~0.15° of a 30° boundary (≈ a few hours), or time unknown near one.
       const off = ((r.solarLongitude - 315) % 30 + 30) % 30;
-      if (Math.min(off, 30 - off) < 0.15) {
+      if (Math.min(off, 30 - off) < (timeUnknown ? 0.6 : 0.15)) {
         const note = document.getElementById('boundary-note')!;
         note.textContent = S['termBoundaryNote'];
         note.hidden = false;
@@ -128,7 +193,16 @@ const strings = { ...ns(lang, 'reading'), cta: t(lang, 'hero.cta'), siteName: t(
 
       // Share: copy URL
       document.getElementById('share-url')!.addEventListener('click', async (e) => {
-        await navigator.clipboard.writeText(location.href);
+        try {
+          await navigator.clipboard.writeText(location.href);
+        } catch {
+          const input = document.createElement('textarea');
+          input.value = location.href;
+          document.body.append(input);
+          input.select();
+          document.execCommand('copy');
+          input.remove();
+        }
         (e.currentTarget as HTMLElement).textContent = S['shared'];
       });
 
@@ -172,7 +246,7 @@ const strings = { ...ns(lang, 'reading'), cta: t(lang, 'hero.cta'), siteName: t(
         ctx.fillStyle = v('--ink-soft');
         ctx.font = '400 30px "IBM Plex Mono", monospace';
         ctx.textAlign = 'left';
-        ctx.fillText('showmethesaju.com', 60, 1010);
+        ctx.fillText('tonyzorz.github.io/showmethesaju', 60, 1010);
         const a = document.createElement('a');
         a.download = 'my-saju.png';
         a.href = c.toDataURL('image/png');
@@ -185,11 +259,17 @@ const strings = { ...ns(lang, 'reading'), cta: t(lang, 'hero.cta'), siteName: t(
     #result > h1 { margin-bottom: var(--space-4); }
     .pillars { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); margin-block: var(--space-10); }
     @media (max-width: 600px) { .pillars { grid-template-columns: repeat(2, 1fr); } }
-    .panel-grid { display: grid; gap: var(--space-5); grid-template-columns: 1fr; }
-    @media (min-width: 800px) { .panel-grid { grid-template-columns: 1fr 1fr; } }
+    .section-title { margin-top: var(--space-16); }
+    .insight-grid { display: grid; gap: var(--space-5); grid-template-columns: 1fr; }
+    @media (min-width: 800px) { .insight-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
     .panel { padding: clamp(1.5rem, 4vw, 2.25rem); margin-block-end: var(--space-5); }
     .panel h2 { font-size: var(--text-xl); }
     .dm-char { font-family: var(--font-display); color: var(--indigo); }
+    .soft { color: var(--ink-soft); font-size: var(--text-sm); }
+    .yy-track { display: flex; height: 1rem; margin-block: var(--space-5); overflow: hidden; border-radius: 999px; background: var(--paper-sunken); }
+    #yy-yang { background: var(--vermilion); }
+    #yy-yin { background: var(--el-water); }
+    .element-panel { margin-block-start: var(--space-5); }
     .element-bars { display: grid; gap: var(--space-2); }
     .ebar { display: grid; grid-template-columns: 5rem 1fr 2rem; align-items: center; gap: var(--space-2); font-size: var(--text-sm); }
     .ebar-track { background: var(--paper-sunken); border-radius: 99px; height: .9rem; overflow: hidden; display: block; box-shadow: inset 0 1px 2px rgb(24 32 28 / .08); }
@@ -198,9 +278,24 @@ const strings = { ...ns(lang, 'reading'), cta: t(lang, 'hero.cta'), siteName: t(
     .tengods { width: 100%; border-collapse: collapse; }
     .tengods th, .tengods td { text-align: left; padding: var(--space-3); border-bottom: 1px solid var(--line); }
     .tengods tbody tr:hover { background: var(--jade-pale); }
+    .context-note { margin: var(--space-5) 0 0; padding-top: var(--space-4); border-top: 1px solid var(--line); }
+    .pillar-guide { margin-block: var(--space-16); }
+    .role-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+    .role-card { padding: var(--space-5); border-top: 1px solid var(--line); }
+    .role-card > span { color: var(--vermilion); font-family: var(--font-display); font-size: var(--text-2xl); }
+    .role-card h3 { margin: var(--space-3) 0; font-size: var(--text-lg); }
+    .role-card p { margin: 0; color: var(--ink-soft); font-size: var(--text-sm); }
+    .reading-guide { position: relative; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: var(--space-6); padding: clamp(1.5rem, 5vw, 3rem); background: linear-gradient(135deg, var(--jade-pale), var(--paper-raised)); }
+    .reading-guide h2 { margin-bottom: var(--space-3); }
+    .reading-guide p { margin: 0; color: var(--ink-soft); }
+    .guide-mark { display: grid; inline-size: 4rem; block-size: 4rem; place-items: center; border-radius: 50%; color: white; background: var(--indigo); font-family: var(--font-display); font-size: var(--text-xl); }
     .actions { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-block: var(--space-8); }
     .note { background: #fff8e9; border: 1px solid #ead7ae; border-left: 4px solid var(--gold); padding: var(--space-4) var(--space-5); border-radius: var(--radius); }
     .disclaimer { color: var(--ink-soft); font-size: var(--text-xs); }
     .hint { font-size: var(--text-xs); color: var(--ink-soft); }
+    @media (max-width: 600px) {
+      .role-grid { grid-template-columns: 1fr; }
+      .reading-guide { grid-template-columns: 1fr; }
+    }
   </style>
 </Base>

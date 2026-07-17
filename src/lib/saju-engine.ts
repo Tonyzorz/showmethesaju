@@ -52,7 +52,8 @@ export interface SajuInput {
   /** Birth place longitude in degrees east; only used when useTrueSolarTime. */
   longitude?: number;
   /**
-   * Apply mean true-solar-time correction: (longitude×4 − tzOffset) minutes.
+   * Apply longitude-based local-mean-solar-time correction:
+   * (longitude×4 − tzOffset) minutes.
    * Seoul (126.98°E, KST) ≈ −32 min. Equation of time is NOT applied (schools differ).
    */
   useTrueSolarTime?: boolean;
@@ -171,12 +172,34 @@ export function computeSaju(input: SajuInput): SajuResult {
     dayBoundary = '23:00',
   } = input;
 
+  if (![year, month, day, hour, minute, tzOffsetMinutes].every(Number.isFinite)) {
+    throw new RangeError('Saju input must contain finite numbers.');
+  }
+  if (!Number.isInteger(year) || year < 1000 || year > 9999 ||
+      !Number.isInteger(month) || month < 1 || month > 12 ||
+      !Number.isInteger(day) || day < 1 || day > 31) {
+    throw new RangeError('Invalid birth date.');
+  }
+  const dateCheck = new Date(Date.UTC(year, month - 1, day));
+  if (dateCheck.getUTCFullYear() !== year || dateCheck.getUTCMonth() !== month - 1 || dateCheck.getUTCDate() !== day) {
+    throw new RangeError('Invalid calendar date.');
+  }
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59) {
+    throw new RangeError('Invalid birth time.');
+  }
+  if (tzOffsetMinutes < -14 * 60 || tzOffsetMinutes > 14 * 60) {
+    throw new RangeError('Invalid time-zone offset.');
+  }
+  if (longitude !== undefined && (!Number.isFinite(longitude) || longitude < -180 || longitude > 180)) {
+    throw new RangeError('Invalid longitude.');
+  }
+
   // Absolute instant (drives year & month pillars). Unknown time → assume local noon,
   // which is safe unless birth is on a term-boundary day (flag that in the UI).
   const localMs = Date.UTC(year, month - 1, day, timeUnknown ? 12 : hour, timeUnknown ? 0 : minute);
   const utcMs = localMs - tzOffsetMinutes * 60000;
 
-  // Adjusted local clock for day/hour pillars (true solar time is a *local* correction).
+  // Adjusted local clock for day/hour pillars (longitude-based local correction).
   let adjMs = localMs;
   if (useTrueSolarTime && !timeUnknown && longitude !== undefined) {
     adjMs += (longitude * 4 - tzOffsetMinutes) * 60000;

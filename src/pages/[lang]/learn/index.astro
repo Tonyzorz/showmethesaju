@@ -6,16 +6,52 @@ export function getStaticPaths() { return LOCALES.map((l) => ({ params: { lang: 
 const { lang } = Astro.params;
 ---
 <Base lang={lang} title={t(lang, 'meta.learn.title')} path="learn">
-  <section class="card learn-page">
+  <section class="learn-hero">
     <div class="learn-symbols" aria-hidden="true"><span>陰</span><span>陽</span></div>
-    <h1>{t(lang, 'nav.learn')}</h1>
-    <p>{t(lang, 'learn.comingSoon')}</p>
+    <h1>{t(lang, 'learn.title')}</h1>
+    <p>{t(lang, 'learn.intro')}</p>
+  </section>
+
+  <section class="lesson-grid">
+    {([
+      ['pillars', '四柱'], ['dayMaster', '日干'], ['elements', '五行'],
+      ['tenGods', '十神'], ['solarTerms', '節氣'], ['tradition', '韓'],
+    ] as const).map(([key, mark], index) => (
+      <article class="card lesson reveal" style={`--reveal-i:${index}`}>
+        <span class="lesson-mark" aria-hidden="true">{mark}</span>
+        <h2>{t(lang, `learn.${key}.title`)}</h2>
+        <p>{t(lang, `learn.${key}.body`)}</p>
+      </article>
+    ))}
+  </section>
+
+  <aside class="card learn-note">
+    <h2>{t(lang, 'learn.responsible.title')}</h2>
+    <p>{t(lang, 'learn.responsible.body')}</p>
+  </aside>
+
+  <section class="sources">
+    <h2>{t(lang, 'learn.sources')}</h2>
+    <a href="https://www.korea.net/koreanet/fileDownload?fileUrl=pdfdata%2F2015%2F01%2FFactsAboutKorea_en_0116.pdf" rel="noopener" target="_blank">Korea.net — Facts About Korea ↗</a>
+    <a href="https://astro.kasi.re.kr/" rel="noopener" target="_blank">Korea Astronomy and Space Science Institute ↗</a>
   </section>
   <style>
-    .learn-page { max-width: 55rem; min-height: 26rem; display: grid; align-content: center; padding: clamp(2rem, 7vw, 5rem); background: linear-gradient(145deg, var(--paper-raised), var(--jade-pale)); }
-    .learn-page p { max-width: var(--container-text); color: var(--ink-soft); font-size: var(--text-lg); }
+    .learn-hero { max-width: 55rem; margin-bottom: var(--space-16); }
+    .learn-hero p { max-width: var(--container-text); color: var(--ink-soft); font-size: var(--text-lg); }
     .learn-symbols { display: flex; gap: .65rem; margin-bottom: var(--space-8); }
     .learn-symbols span { display: grid; inline-size: 3rem; block-size: 3rem; place-items: center; border-radius: 50%; color: white; background: var(--ink); font-family: var(--font-display); }
     .learn-symbols span + span { color: var(--ink); background: white; border: 1px solid var(--line); }
+    .lesson-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); }
+    .lesson { padding: clamp(1.5rem, 4vw, 2.5rem); }
+    .lesson-mark { display: inline-block; margin-bottom: var(--space-10); color: var(--vermilion); font-family: var(--font-display); font-size: var(--text-2xl); }
+    .lesson h2 { font-size: var(--text-xl); }
+    .lesson p { margin: 0; color: var(--ink-soft); }
+    .learn-note { max-width: 55rem; margin-block: var(--space-16); padding: clamp(1.5rem, 5vw, 3rem); border-inline-start: 5px solid var(--gold); }
+    .learn-note h2 { font-size: var(--text-xl); }
+    .learn-note p { margin: 0; color: var(--ink-soft); }
+    .sources { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-6); padding-top: var(--space-8); border-top: 1px solid var(--line); }
+    .sources h2 { width: 100%; font-size: var(--text-lg); }
+    .sources a { font-size: var(--text-sm); font-weight: 700; text-decoration: none; }
+    @media (max-width: 680px) { .lesson-grid { grid-template-columns: 1fr; } }
   </style>
 </Base>

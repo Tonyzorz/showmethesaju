@@ -21,10 +21,11 @@ const { lang } = Astro.params;
     </div>
 
     <form id="birth-form" class="card birth-form" data-lang={lang}
-      data-err-future={t(lang, 'form.errFuture')} data-err-lunar={t(lang, 'form.errLunarRange')}>
+      data-err-future={t(lang, 'form.errFuture')} data-err-lunar={t(lang, 'form.errLunarRange')}
+      data-err-solar-city={t(lang, 'form.errSolarCity')}>
       <div class="grid">
         <label>{t(lang, 'form.date')}
-          <input class="field" type="date" name="date" required max="2030-12-31" />
+          <input class="field" type="date" name="date" required min="1900-01-01" />
         </label>
         <label>{t(lang, 'form.time')}
           <input class="field" type="time" name="time" value="12:00" />
@@ -32,17 +33,12 @@ const { lang } = Astro.params;
       </div>
       <label class="check"><input type="checkbox" name="timeUnknown" /> {t(lang, 'form.timeUnknown')}</label>
 
-      <div class="grid">
+      <div class="grid grid--calendar">
         <fieldset>
           <legend>{t(lang, 'form.calendar')}</legend>
           <label class="check"><input type="radio" name="cal" value="solar" checked /> {t(lang, 'form.solar')}</label>
           <label class="check"><input type="radio" name="cal" value="lunar" /> {t(lang, 'form.lunar')}</label>
           <label class="check lunar-only" hidden><input type="checkbox" name="leap" /> {t(lang, 'form.lunarLeap')}</label>
-        </fieldset>
-        <fieldset>
-          <legend>{t(lang, 'form.gender')}</legend>
-          <label class="check"><input type="radio" name="gender" value="f" checked /> {t(lang, 'form.genderF')}</label>
-          <label class="check"><input type="radio" name="gender" value="m" /> {t(lang, 'form.genderM')}</label>
         </fieldset>
       </div>
 
@@ -79,12 +75,7 @@ const { lang } = Astro.params;
   <section class="card waitlist">
     <h2>{t(lang, 'waitlist.title')}</h2>
     <p>{t(lang, 'waitlist.body')}</p>
-    <!-- TODO: replace action with your Formspree/Buttondown endpoint -->
-    <form action="https://formspree.io/f/REPLACE_ME" method="POST" class="waitlist-form">
-      <label class="visually-hidden" for="wl-email">{t(lang, 'waitlist.email')}</label>
-      <input id="wl-email" class="field" type="email" name="email" placeholder={t(lang, 'waitlist.email')} required />
-      <button class="btn-secondary" type="submit">{t(lang, 'waitlist.cta')}</button>
-    </form>
+    <a class="btn-secondary" href="https://pf.kakao.com/" rel="noopener" target="_blank">{t(lang, 'footer.booking')} <span aria-hidden="true">↗</span></a>
   </section>
 
   <script>
@@ -93,8 +84,13 @@ const { lang } = Astro.params;
     import { withBase } from '../../lib/paths';
 
     const form = document.getElementById('birth-form') as HTMLFormElement;
+    const dateInput = form.elements.namedItem('date') as HTMLInputElement;
     const lunarOnly = form.querySelector('.lunar-only') as HTMLElement;
     const errEl = form.querySelector('.form-error') as HTMLElement;
+
+    // Keep the static site current without requiring a rebuild each day.
+    const today = new Date();
+    dateInput.max = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-');
 
     form.querySelectorAll('input[name="cal"]').forEach((r) =>
       r.addEventListener('change', () => {
@@ -117,15 +113,21 @@ const { lang } = Astro.params;
         if (y < 1900 || y > 2050) { errEl.textContent = form.dataset.errLunar!; errEl.hidden = false; return; }
         try {
           const cal = new KoreanLunarCalendar();
-          cal.setLunarDate(y, m, d, f.get('leap') === 'on');
+          if (!cal.setLunarDate(y, m, d, f.get('leap') === 'on')) throw new Error('Invalid lunar date');
           const s = cal.getSolarCalendar();
           y = s.year; m = s.month; d = s.day;
         } catch { errEl.textContent = form.dataset.errLunar!; errEl.hidden = false; return; }
       }
 
       const citySel = form.elements.namedItem('city') as HTMLSelectElement;
-      const tz = citySel.value || Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const lon = citySel.value ? Number(citySel.selectedOptions[0].dataset.lon) : 126.98;
+      if (f.get('trueSolar') === 'on' && !citySel.value) {
+        errEl.textContent = form.dataset.errSolarCity!;
+        errEl.hidden = false;
+        citySel.focus();
+        return;
+      }
+      const tz = citySel.value || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+      const lon = citySel.value ? Number(citySel.selectedOptions[0].dataset.lon) : 0;
       const tzMin = tzOffsetMinutes(tz, y, m, d, h, mi);
 
       const q = new URLSearchParams({
@@ -134,7 +136,6 @@ const { lang } = Astro.params;
         tu: timeUnknown ? '1' : '0',
         tz: String(tzMin), lon: String(lon),
         ts: f.get('trueSolar') === 'on' ? '1' : '0',
-        g: String(f.get('gender')),
       });
       location.href = withBase(`/${form.dataset.lang}/reading/`) + `?${q}`;
     });
@@ -159,6 +160,7 @@ const { lang } = Astro.params;
     .birth-form { position: relative; padding: clamp(1.5rem, 4vw, 2.25rem); display: grid; gap: var(--space-5); box-shadow: var(--shadow-float); }
     .birth-form::before { content: ''; position: absolute; inset: 0 0 auto; height: .35rem; background: linear-gradient(90deg, var(--el-wood), var(--el-fire), var(--el-earth), var(--el-metal), var(--el-water)); }
     .birth-form .grid { display: grid; gap: var(--space-4); grid-template-columns: 1fr 1fr; }
+    .birth-form .grid--calendar { grid-template-columns: 1fr; }
     .birth-form label { display: grid; gap: .4rem; font-size: var(--text-sm); font-weight: 650; }
     .birth-form .check { display: flex; align-items: center; gap: var(--space-2); }
     fieldset { border: 1px solid var(--line); border-radius: var(--radius); display: grid; gap: var(--space-2); padding: var(--space-4); background: rgb(239 238 232 / .42); }
@@ -180,17 +182,14 @@ const { lang } = Astro.params;
     .waitlist::after { content: '四柱'; position: absolute; inset: auto 1.5rem -2rem auto; color: rgb(255 255 255 / .055); font-family: var(--font-display); font-size: 9rem; line-height: 1; pointer-events: none; }
     .waitlist h2 { position: relative; margin-bottom: var(--space-4); }
     .waitlist p { position: relative; max-width: 34rem; margin-inline: auto; color: rgb(255 255 255 / .76); }
-    .waitlist-form { display: flex; gap: var(--space-2); justify-content: center; flex-wrap: wrap; }
-    .waitlist-form .field { max-width: 22rem; border-color: rgb(255 255 255 / .24); background: rgb(255 255 255 / .12); color: white; }
-    .waitlist-form .field::placeholder { color: rgb(255 255 255 / .62); }
-    .waitlist-form .btn-secondary { border-color: white; color: var(--ink); background: white; }
+    .waitlist > .btn-secondary { position: relative; border-color: white; color: var(--ink); background: white; }
     .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
     @media (max-width: 560px) {
       .hero { margin-block-end: var(--space-20); }
       .hero-symbols span { inline-size: 1.85rem; block-size: 1.85rem; }
       .birth-form .grid { grid-template-columns: 1fr; }
       .trust-line { border-radius: var(--radius); }
-      .waitlist-form .field, .waitlist-form .btn-secondary { width: 100%; max-width: none; }
+      .waitlist > .btn-secondary { width: 100%; }
     }
   </style>
 </Base>
