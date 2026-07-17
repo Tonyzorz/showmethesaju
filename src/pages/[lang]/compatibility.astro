@@ -33,40 +33,95 @@ const personFields = [
     <span class="feature-mark" aria-hidden="true">合</span>
     <h1>{t(lang, 'compat.headline')}</h1>
     <p>{t(lang, 'compat.body')}</p>
+    <p class="trust-line">{t(lang, 'gunghap.formNote')}</p>
   </section>
 
   <form id="gunghap-form" class="card gform" data-lang={lang}>
-    <div class="gform-head">
-      <h2>{t(lang, 'gunghap.formTitle')}</h2>
-      <p class="soft">{t(lang, 'gunghap.formNote')}</p>
-    </div>
+    <h2 class="gform-title">{t(lang, 'gunghap.formTitle')}</h2>
     <div class="gform-grid">
       {personFields.map((person) => (
-        <fieldset class="person">
-          <legend>{person.label}</legend>
-          <label>{t(lang, 'form.date')}
-            <input class="field" type="date" name={`${person.key}-date`} required max="2030-12-31" />
-          </label>
-          <label>{t(lang, 'form.time')}
-            <input class="field" type="time" name={`${person.key}-time`} value="12:00" />
-          </label>
-          <label class="check"><input type="checkbox" name={`${person.key}-tu`} /> {t(lang, 'form.timeUnknown')}</label>
-          <div class="cal-row">
-            <label class="check"><input type="radio" name={`${person.key}-cal`} value="solar" checked /> {t(lang, 'form.solar')}</label>
-            <label class="check"><input type="radio" name={`${person.key}-cal`} value="lunar" /> {t(lang, 'form.lunar')}</label>
-            <label class="check lunar-only" hidden><input type="checkbox" name={`${person.key}-leap`} /> {t(lang, 'form.lunarLeap')}</label>
+        <section class="person" data-person={person.key}>
+          <header class="person-head">
+            <span class="person-badge">{person.key === 'a' ? '甲' : '乙'}</span>
+            <h3>{person.label}</h3>
+          </header>
+
+          <div class="input-step" data-input-step={`${person.key}-date`}>
+            <div class="input-step__heading">
+              <span class="input-step__number">01</span>
+              <label for={`${person.key}-date`}>{t(lang, 'form.date')}</label>
+              <span class="input-step__check" aria-hidden="true">✓</span>
+            </div>
+            <div class="field-shell">
+              <span class="field-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M7 3v3m10-3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" /></svg>
+              </span>
+              <input id={`${person.key}-date`} class="field" type="date" name={`${person.key}-date`} required min="1900-01-01" />
+            </div>
+            <fieldset class="choice-field">
+              <legend>{t(lang, 'form.calendar')}</legend>
+              <div class="choice-grid">
+                <label class="choice-tile"><input type="radio" name={`${person.key}-cal`} value="solar" checked /><span>{t(lang, 'form.solar')}</span></label>
+                <label class="choice-tile"><input type="radio" name={`${person.key}-cal`} value="lunar" /><span>{t(lang, 'form.lunar')}</span></label>
+              </div>
+              <label class="choice-tile choice-tile--wide lunar-only" hidden><input type="checkbox" name={`${person.key}-leap`} /><span>{t(lang, 'form.lunarLeap')}</span></label>
+            </fieldset>
           </div>
-          <label>{t(lang, 'form.place')}
-            <select class="field" name={`${person.key}-city`}>
-              <option value="">— {t(lang, 'form.place')} (auto) —</option>
-              {CITIES.map((c) => <option value={c.tz} data-lon={c.lon}>{c.name}</option>)}
-            </select>
-          </label>
-        </fieldset>
+
+          <div class="input-step" data-input-step={`${person.key}-time`}>
+            <div class="input-step__heading">
+              <span class="input-step__number">02</span>
+              <label for={`${person.key}-time`}>{t(lang, 'form.time')}</label>
+              <span class="input-step__check" aria-hidden="true">✓</span>
+            </div>
+            <div class="field-shell">
+              <span class="field-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+              </span>
+              <input id={`${person.key}-time`} class="field" type="time" name={`${person.key}-time`} value="12:00" />
+            </div>
+            <label class="switch-row">
+              <span>{t(lang, 'form.timeUnknown')}</span>
+              <span class="switch-control"><input type="checkbox" name={`${person.key}-tu`} /><i aria-hidden="true"></i></span>
+            </label>
+          </div>
+
+          <div class="input-step" data-input-step={`${person.key}-gender`}>
+            <div class="input-step__heading">
+              <span class="input-step__number">03</span>
+              <span class="input-step__label">{t(lang, 'form.gender')}</span>
+              <span class="input-step__check" aria-hidden="true">✓</span>
+            </div>
+            <fieldset class="choice-field">
+              <legend class="visually-hidden">{t(lang, 'form.gender')}</legend>
+              <div class="choice-grid">
+                <label class="choice-tile choice-tile--gender"><input type="radio" name={`${person.key}-gender`} value="f" required /><span><b aria-hidden="true">♀</b>{t(lang, 'form.genderF')}</span></label>
+                <label class="choice-tile choice-tile--gender"><input type="radio" name={`${person.key}-gender`} value="m" /><span><b aria-hidden="true">♂</b>{t(lang, 'form.genderM')}</span></label>
+              </div>
+            </fieldset>
+          </div>
+
+          <div class="input-step" data-input-step={`${person.key}-place`}>
+            <div class="input-step__heading">
+              <span class="input-step__number">04</span>
+              <label for={`${person.key}-city`}>{t(lang, 'form.place')}</label>
+              <span class="input-step__check" aria-hidden="true">✓</span>
+            </div>
+            <div class="field-shell">
+              <span class="field-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></svg>
+              </span>
+              <select id={`${person.key}-city`} class="field" name={`${person.key}-city`}>
+                <option value="">— {t(lang, 'form.place')} (auto) —</option>
+                {CITIES.map((c) => <option value={c.tz} data-lon={c.lon}>{c.name}</option>)}
+              </select>
+            </div>
+          </div>
+        </section>
       ))}
     </div>
     <p class="form-error" role="alert" hidden></p>
-    <button class="btn-primary" type="submit">{t(lang, 'gunghap.cta')}</button>
+    <button class="btn-primary" type="submit"><span>{t(lang, 'gunghap.cta')}</span><span class="button-arrow" aria-hidden="true">→</span></button>
   </form>
 
   <section id="gunghap-result" hidden>
@@ -114,8 +169,51 @@ const personFields = [
       Object.entries(vars).reduce((text, [k, v]) => text.replaceAll(`{${k}}`, String(v)), template);
     const form = document.getElementById('gunghap-form') as HTMLFormElement;
     const errEl = form.querySelector('.form-error') as HTMLElement;
+    const steps = Array.from(form.querySelectorAll<HTMLElement>('[data-input-step]'));
 
-    // Lunar checkbox visibility per person.
+    // Same interaction model as the main birth form: dynamic max date,
+    // step completion marks, error highlighting on the offending step.
+    const today = new Date();
+    const maxDate = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-');
+    form.querySelectorAll<HTMLInputElement>('input[type="date"]').forEach((input) => { input.max = maxDate; });
+
+    const stepByName = (name: string) => form.querySelector<HTMLElement>(`[data-input-step="${name}"]`);
+    function clearError() {
+      errEl.hidden = true;
+      steps.forEach((step) => step.classList.remove('has-error'));
+    }
+    function showError(message: string, stepName: string, focusEl?: HTMLElement | null) {
+      errEl.textContent = message;
+      errEl.hidden = false;
+      stepByName(stepName)?.classList.add('has-error');
+      focusEl?.focus();
+    }
+
+    function updateSteps() {
+      for (const key of ['a', 'b']) {
+        const date = (form.elements.namedItem(`${key}-date`) as HTMLInputElement).value;
+        const tu = (form.elements.namedItem(`${key}-tu`) as HTMLInputElement).checked;
+        const time = (form.elements.namedItem(`${key}-time`) as HTMLInputElement);
+        const gender = form.querySelector<HTMLInputElement>(`input[name="${key}-gender"]:checked`);
+        time.disabled = tu;
+        time.closest('.field-shell')?.classList.toggle('is-disabled', tu);
+        stepByName(`${key}-date`)?.classList.toggle('is-complete', Boolean(date));
+        stepByName(`${key}-time`)?.classList.toggle('is-complete', tu || Boolean(time.value));
+        stepByName(`${key}-gender`)?.classList.toggle('is-complete', Boolean(gender));
+        stepByName(`${key}-place`)?.classList.toggle('is-complete', Boolean(stepByName(`${key}-place`)?.classList.contains('is-touched')));
+      }
+    }
+    steps.forEach((step) => {
+      step.addEventListener('focusin', () => step.classList.add('is-active'));
+      step.addEventListener('focusout', () => requestAnimationFrame(() => {
+        if (!step.contains(document.activeElement)) step.classList.remove('is-active');
+      }));
+      ['input', 'change'].forEach((eventName) => step.addEventListener(eventName, () => {
+        step.classList.add('is-touched');
+        clearError();
+        updateSteps();
+      }));
+    });
     (['a', 'b'] as const).forEach((key, personIndex) => {
       form.querySelectorAll(`input[name="${key}-cal"]`).forEach((radio) =>
         radio.addEventListener('change', () => {
@@ -124,43 +222,50 @@ const personFields = [
         })
       );
     });
+    updateSteps();
 
     type PersonParams = Record<string, string>;
-    function readPerson(f: FormData, key: string): PersonParams | { error: string } {
+    function readPerson(f: FormData, key: string): PersonParams | { error: string; step: string } {
       let [y, m, d] = String(f.get(`${key}-date`) || '').split('-').map(Number);
-      if (!y) return { error: S['errBothRequired'] };
+      if (!y) return { error: S['errBothRequired'], step: `${key}-date` };
       const tu = f.get(`${key}-tu`) === 'on';
       const [h, mi] = tu ? [12, 0] : String(f.get(`${key}-time`) || '12:00').split(':').map(Number);
-      if (new Date(y, m - 1, d) > new Date()) return { error: S['errFuture'] };
+      if (new Date(y, m - 1, d) > new Date()) return { error: S['errFuture'], step: `${key}-date` };
       if (f.get(`${key}-cal`) === 'lunar') {
-        if (y < 1900 || y > 2050) return { error: S['errLunarRange'] };
+        if (y < 1900 || y > 2050) return { error: S['errLunarRange'], step: `${key}-date` };
         try {
           const cal = new KoreanLunarCalendar();
-          cal.setLunarDate(y, m, d, f.get(`${key}-leap`) === 'on');
+          if (!cal.setLunarDate(y, m, d, f.get(`${key}-leap`) === 'on')) throw new Error('invalid');
           const s = cal.getSolarCalendar();
           y = s.year; m = s.month; d = s.day;
-        } catch { return { error: S['errLunarRange'] }; }
+        } catch { return { error: S['errLunarRange'], step: `${key}-date` }; }
       }
       const citySel = form.elements.namedItem(`${key}-city`) as HTMLSelectElement;
-      const tz = citySel.value || Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const lon = citySel.value ? Number(citySel.selectedOptions[0].dataset.lon) : 126.98;
+      const tz = citySel.value || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+      const lon = citySel.value ? Number(citySel.selectedOptions[0].dataset.lon) : 0;
       const tzMin = tzOffsetMinutes(tz, y, m, d, h, mi);
       return {
         [`${key}y`]: String(y), [`${key}m`]: String(m), [`${key}d`]: String(d),
         [`${key}h`]: String(h), [`${key}i`]: String(mi), [`${key}u`]: tu ? '1' : '0',
         [`${key}z`]: String(tzMin), [`${key}l`]: String(lon),
+        [`${key}g`]: String(f.get(`${key}-gender`) || ''),
       };
     }
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      errEl.hidden = true;
+      clearError();
       const f = new FormData(form);
       const a = readPerson(f, 'a');
       const b = readPerson(f, 'b');
       const bad = ('error' in a && a) || ('error' in b && b);
-      if (bad) { errEl.textContent = (bad as { error: string }).error; errEl.hidden = false; return; }
+      if (bad) {
+        showError(bad.error, bad.step, stepByName(bad.step)?.querySelector<HTMLElement>('input') ?? null);
+        trackEvent('gunghap_form_error', { language: document.documentElement.lang });
+        return;
+      }
       const q = new URLSearchParams({ ...(a as PersonParams), ...(b as PersonParams) });
+      trackEvent('gunghap_submit', { language: document.documentElement.lang });
       location.href = `${location.pathname}?${q}`;
     });
 
@@ -172,18 +277,24 @@ const personFields = [
         hour: +q.get(`${key}h`)!, minute: +q.get(`${key}i`)!,
         timeUnknown: q.get(`${key}u`) === '1',
         tzOffsetMinutes: +q.get(`${key}z`)!, longitude: +q.get(`${key}l`)!,
+        gender: q.get(`${key}g`) === 'f' ? 'female' : q.get(`${key}g`) === 'm' ? 'male' : undefined,
       });
-      const g: GunghapResult = computeGunghap(input('a'), input('b'));
-      render(g);
-      form.hidden = true;
-      document.getElementById('gunghap-result')!.hidden = false;
-      trackEvent('gunghap_view', { language: document.documentElement.lang });
+      try {
+        const g: GunghapResult = computeGunghap(input('a'), input('b'));
+        render(g);
+        form.hidden = true;
+        document.getElementById('gunghap-result')!.hidden = false;
+        trackEvent('gunghap_view', { language: document.documentElement.lang });
+      } catch {
+        // Malformed/legacy querystring: fall back to the empty form.
+      }
     }
 
     function miniChart(r: SajuResult, label: string): string {
+      const symbol = r.gender === 'female' ? '♀' : r.gender === 'male' ? '♂' : '';
       const roles = [[r.hour, S['pillarHour']], [r.day, S['pillarDay']], [r.month, S['pillarMonth']], [r.year, S['pillarYear']]] as const;
       return `<div class="card mini-chart">
-        <h3>${label} · <span lang="ko">${r.dayMaster.hanja}(${r.dayMaster.ko})</span></h3>
+        <h3>${label} ${symbol} · <span lang="ko">${r.dayMaster.hanja}(${r.dayMaster.ko})</span></h3>
         <div class="mini-pillars">${roles.map(([p, roleLabel]) => p
           ? `<div class="mini-pillar"><small>${roleLabel}</small><strong class="element-text--${p.stemElement}" lang="ko">${p.hanja}</strong><span>${p.stemKo}${p.branchKo}</span></div>`
           : `<div class="mini-pillar"><small>${roleLabel}</small><span>—</span></div>`).join('')}
@@ -237,17 +348,66 @@ const personFields = [
     .compat-hero { position: relative; max-width: 58rem; margin-block-end: var(--space-8); overflow: hidden; padding-block: var(--space-8); }
     .compat-hero p { color: var(--ink-soft); font-size: var(--text-lg); max-width: var(--container-text); }
     .feature-mark { position: absolute; inset: -2rem -1rem auto auto; color: var(--jade-pale, var(--paper-sunken)); font-family: var(--font-display); font-size: 12rem; line-height: 1; z-index: -1; }
-    .gform { padding: var(--space-6); display: grid; gap: var(--space-4); margin-block-end: var(--space-12); }
-    .gform-head h2 { margin: 0 0 var(--space-1); font-size: var(--text-xl); }
-    .gform-head p { margin: 0; font-size: var(--text-sm); }
+    .trust-line { display: inline-flex; align-items: center; gap: .55rem; margin-top: var(--space-3); padding: .6rem .85rem; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-soft); background: rgb(255 255 255 / .55); font-size: var(--text-xs); font-weight: 650; }
+    .trust-line::before { content: '✓'; display: grid; inline-size: 1.2rem; block-size: 1.2rem; place-items: center; border-radius: 50%; color: white; background: var(--indigo); font-size: .68rem; }
+
+    /* ── form: same component language as the main birth form ── */
+    .gform { position: relative; padding: clamp(1.1rem, 3vw, 1.6rem); display: grid; gap: var(--space-3); margin-block-end: var(--space-12); box-shadow: var(--shadow-float, var(--shadow-card)); overflow: hidden; }
+    .gform::before { content: ''; position: absolute; inset: 0 0 auto; height: .35rem; background: linear-gradient(90deg, var(--el-wood), var(--el-fire), var(--el-earth), var(--el-metal), var(--el-water)); }
+    .gform-title { margin: .4rem 0 0; font-size: var(--text-xl); }
     .gform-grid { display: grid; gap: var(--space-4); grid-template-columns: 1fr 1fr; }
-    @media (max-width: 720px) { .gform-grid { grid-template-columns: 1fr; } }
-    .person { border: 1px solid var(--line); border-radius: var(--radius-sm); display: grid; gap: var(--space-3); padding: var(--space-4); }
-    .person legend { font-family: var(--font-display); font-weight: 700; padding-inline: var(--space-1); }
-    .person label { display: grid; gap: var(--space-1); font-size: var(--text-sm); }
-    .person .check { display: flex; align-items: center; gap: var(--space-2); }
-    .cal-row { display: flex; gap: var(--space-4); flex-wrap: wrap; }
-    .form-error { color: var(--vermilion); font-size: var(--text-sm); margin: 0; }
+    @media (max-width: 780px) { .gform-grid { grid-template-columns: 1fr; } }
+    .person { display: grid; gap: .8rem; align-content: start; }
+    .person-head { display: flex; align-items: center; gap: .6rem; }
+    .person-head h3 { margin: 0; font-size: var(--text-base); }
+    .person-badge { display: grid; inline-size: 2rem; block-size: 2rem; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--vermilion); background: rgb(255 255 255 / .68); font-family: var(--font-display); font-weight: 750; }
+    .input-step { position: relative; display: grid; gap: .8rem; padding: 1rem; border: 1px solid color-mix(in srgb, var(--line) 88%, transparent); border-radius: var(--radius); background: color-mix(in srgb, var(--paper-raised) 72%, transparent); box-shadow: 0 5px 18px rgb(35 53 44 / .035); transition: transform var(--dur-fast) var(--ease-reveal), border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast); }
+    .input-step::before { content: ''; position: absolute; inset: .8rem auto .8rem 0; inline-size: 3px; border-radius: 0 3px 3px 0; background: var(--line); transition: background var(--dur-fast), transform var(--dur-fast); transform: scaleY(.45); }
+    .input-step:hover { border-color: #cbd2cd; background: rgb(255 255 255 / .8); }
+    .input-step.is-active, .input-step:focus-within { z-index: 1; border-color: color-mix(in srgb, var(--indigo) 52%, var(--line)); background: rgb(255 255 255 / .94); box-shadow: 0 13px 30px rgb(36 84 66 / .11); transform: translateY(-2px); }
+    .input-step.is-active::before, .input-step:focus-within::before { background: var(--vermilion); transform: scaleY(1); }
+    .input-step.is-complete::before { background: var(--indigo); }
+    .input-step.has-error { border-color: color-mix(in srgb, var(--vermilion) 62%, var(--line)); background: color-mix(in srgb, #fff4ef 68%, white); }
+    .input-step__heading { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .65rem; }
+    .input-step__heading label, .input-step__label { font-size: var(--text-sm); font-weight: 800; cursor: pointer; }
+    .input-step__number { color: var(--vermilion); font-family: var(--font-mono); font-size: .68rem; font-weight: 850; letter-spacing: .08em; }
+    .input-step__check { display: grid; inline-size: 1.35rem; block-size: 1.35rem; place-items: center; border-radius: 50%; color: white; background: var(--indigo); font-size: .72rem; opacity: 0; transform: scale(.72); transition: opacity var(--dur-fast), transform var(--dur-fast); }
+    .input-step.is-complete .input-step__check { opacity: 1; transform: scale(1); }
+    .field-shell { position: relative; }
+    .field-shell .field { width: 100%; min-height: 3.25rem; padding-inline-start: 2.9rem; border-color: color-mix(in srgb, var(--line) 88%, transparent); background: color-mix(in srgb, var(--paper-sunken) 45%, white); font-weight: 650; }
+    .field-shell .field:focus { background: white; }
+    .field-icon { position: absolute; z-index: 1; inset: 50% auto auto .9rem; display: grid; inline-size: 1.2rem; block-size: 1.2rem; place-items: center; color: var(--ink-soft); pointer-events: none; transform: translateY(-50%); transition: color var(--dur-fast), transform var(--dur-fast); }
+    .field-icon svg { inline-size: 100%; block-size: 100%; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+    .field-shell:focus-within .field-icon { color: var(--indigo); transform: translateY(-50%) scale(1.08); }
+    .field-shell.is-disabled { opacity: .48; }
+    .field-shell.is-disabled .field { cursor: not-allowed; }
+    .choice-field { min-width: 0; margin: 0; padding: 0; border: 0; }
+    .choice-field legend { margin-block-end: .45rem; padding: 0; color: var(--ink-soft); font-size: .7rem; font-weight: 750; }
+    .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+    .choice-tile { position: relative; cursor: pointer; }
+    .choice-tile input { position: absolute; inline-size: 1px; block-size: 1px; opacity: 0; pointer-events: none; }
+    .choice-tile > span { display: flex; min-height: 2.45rem; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: .75rem; padding: .5rem .75rem; color: var(--ink-soft); background: rgb(255 255 255 / .62); font-size: var(--text-xs); font-weight: 750; transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast), transform var(--dur-fast); }
+    .choice-tile:hover > span { border-color: #aebdb5; transform: translateY(-1px); }
+    .choice-tile input:checked + span { color: var(--indigo); border-color: color-mix(in srgb, var(--indigo) 52%, white); background: color-mix(in srgb, #dcebe2 68%, white); box-shadow: inset 0 0 0 1px rgb(36 84 66 / .08); }
+    .choice-tile input:focus-visible + span { outline: 3px solid color-mix(in srgb, var(--indigo) 68%, white); outline-offset: 2px; }
+    .choice-tile--wide { display: block; margin-top: .5rem; }
+    .choice-tile--gender > span { gap: .55rem; min-height: 3rem; }
+    .choice-tile--gender b { display: grid; inline-size: 1.45rem; block-size: 1.45rem; place-items: center; border-radius: 50%; color: var(--vermilion); background: var(--peach-pale, var(--paper-sunken)); font-size: .95rem; }
+    .choice-tile--gender input:checked + span b { color: white; background: var(--indigo); }
+    .switch-row { display: flex; min-height: 2rem; align-items: center; justify-content: space-between; gap: 1rem; color: var(--ink-soft); font-size: var(--text-xs); font-weight: 700; cursor: pointer; }
+    .switch-control { position: relative; flex: 0 0 auto; inline-size: 2.75rem; block-size: 1.55rem; }
+    .switch-control input { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; margin: 0; opacity: 0; cursor: pointer; }
+    .switch-control i { display: block; inline-size: 100%; block-size: 100%; border: 1px solid #c8ceca; border-radius: 999px; background: #e7e8e4; transition: border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast); }
+    .switch-control i::after { content: ''; position: absolute; inline-size: 1.1rem; block-size: 1.1rem; inset: .225rem auto auto .25rem; border-radius: 50%; background: white; box-shadow: 0 2px 6px rgb(35 53 44 / .22); transition: transform var(--dur-fast) var(--ease-reveal); }
+    .switch-control input:checked + i { border-color: var(--indigo); background: var(--indigo); }
+    .switch-control input:checked + i::after { transform: translateX(1.18rem); }
+    .switch-control input:focus-visible + i { outline: 3px solid color-mix(in srgb, var(--indigo) 68%, white); outline-offset: 2px; }
+    .form-error { margin: .2rem 0 0; padding: .7rem .85rem; border-radius: var(--radius-sm); color: #9f3226; background: #fff0eb; font-size: var(--text-xs); font-weight: 700; }
+    .gform .btn-primary { width: 100%; margin-top: .2rem; display: inline-flex; align-items: center; justify-content: center; }
+    .button-arrow { display: grid; inline-size: 1.65rem; block-size: 1.65rem; margin-inline-start: .25rem; place-items: center; border-radius: 50%; background: rgb(255 255 255 / .16); font-size: 1rem; transition: transform var(--dur-fast); }
+    .gform .btn-primary:hover .button-arrow { transform: translateX(3px); }
+
+    /* ── results ── */
     .result-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
     .result-head h2 { margin: 0; }
     .result-note { max-width: var(--container-text); }
@@ -280,5 +440,9 @@ const personFields = [
     .waitband { padding: var(--space-8); text-align: center; }
     .waitlist-form { display: flex; gap: var(--space-2); justify-content: center; flex-wrap: wrap; }
     .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    @media (max-width: 560px) { .gform { padding: 1rem; } .input-step { padding: .9rem; } }
+    @media (prefers-reduced-motion: reduce) {
+      .input-step, .input-step::before, .field-icon, .input-step__check, .choice-tile > span, .switch-control i, .switch-control i::after, .button-arrow { transition: none; }
+    }
   </style>
 </Base>
