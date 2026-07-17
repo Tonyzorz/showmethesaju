@@ -59,6 +59,16 @@ npm run preview   # serve dist/ locally
   tags per page; language switcher preserves sub-path.
 
 ## Current state (update this section as phases complete)
-- Phases 0–4 scaffolded and building (79 pages). Learn (§6.3 content collections) = Phase 5, pending.
-- Open TODOs: form endpoints (REPLACE_ME), Smart Store/Kakao URLs, About content,
-  reading.dm.* texts, self-hosted fonts, OG images, analytics, KASI verification.
+- Phases 0–5 building (85 pages). Learn collection live with 3 en+ko articles (§6.3);
+  day-master profile articles still owner-written/pending.
+- Reading page: 13 panels incl. 지장간/12운성/신살/대운/세운/월운, 격국, 신강약+희기신,
+  조후용신, 태원/명궁, 삼재 (extras in src/lib/saju-extras.ts — engine untouched).
+- Done: self-hosted fonts (scripts/fetch-fonts.mjs), favicon/OG/robots, GA4 consent
+  analytics, share cards v2 (square+story+Web Share), engine test harness
+  (`npm run test:engine`, 6 anchors green).
+- TEMP: deployed to github.io preview (base '/showmethesaju', CNAME removed).
+  Cutover = drop `base` in astro.config.mjs + restore public/CNAME (showmethesaju.com).
+- Open TODOs (owner): KASI-CHECKLIST.md verification (launch gate), reading.dm.* texts,
+  About content/photo, waitlist endpoint, Smart Store/Kakao URLs.
+- Note: article pages hreflang only en+ko (Base `altLocales`), so the "12 hreflang tags"
+  smoke test applies to non-article pages.
