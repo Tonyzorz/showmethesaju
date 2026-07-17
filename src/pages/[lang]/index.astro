@@ -14,7 +14,7 @@ const { lang } = Astro.params;
     <div class="hero-copy">
       <h1>{t(lang, 'hero.headline')}</h1>
       <p class="hero-sub">{t(lang, 'hero.sub')}</p>
-      <p class="trust-line">Free · No sign-up · Your birth data never leaves your device</p>
+      <p class="trust-line">{t(lang, 'hero.trust')}</p>
     </div>
 
     <form id="birth-form" class="card birth-form" data-lang={lang}
@@ -51,7 +51,7 @@ const { lang } = Astro.params;
       </label>
 
       <details class="advanced">
-        <summary>Advanced</summary>
+        <summary>{t(lang, 'form.advanced')}</summary>
         <label class="check"><input type="checkbox" name="trueSolar" /> {t(lang, 'form.trueSolar')}</label>
         <p class="hint">{t(lang, 'form.trueSolarHint')}</p>
       </details>

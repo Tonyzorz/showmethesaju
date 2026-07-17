@@ -8,5 +8,5 @@ const { lang } = Astro.params;
 <Base lang={lang} title={t(lang, 'meta.learn.title')} path="learn">
   <h1>{t(lang, 'nav.learn')}</h1>
   <!-- Phase 5: replace with a content collection (see PLAN.md §6.3). -->
-  <p style="color: var(--ink-soft);">Articles coming soon. First up: your Day Master, saju vs astrology, and why Koreans check gunghap.</p>
+  <p style="color: var(--ink-soft);">{t(lang, 'learn.comingSoon')}</p>
 </Base>

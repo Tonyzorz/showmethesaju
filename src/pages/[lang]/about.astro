@@ -9,12 +9,12 @@ const { lang } = Astro.params;
   <h1>{t(lang, 'nav.about')}</h1>
   <section class="card" style="padding: var(--space-8); max-width: var(--container-text);">
     <!-- TODO: mom's photo, name, years of practice, lineage, how she reads. -->
-    <h2>Our Master</h2>
-    <p>[Mom's story goes here — original text, reviewed by her.]</p>
+    <h2>{t(lang, 'about.masterHeading')}</h2>
+    <p>{t(lang, 'about.story')}</p>
     <p>
       <a class="btn-primary" href="https://pf.kakao.com/" rel="noopener" target="_blank">{t(lang, 'footer.booking')}</a>
       <a class="btn-secondary" href="https://smartstore.naver.com/" rel="noopener" target="_blank">{t(lang, 'footer.shop')}</a>
     </p>
-    <p style="color: var(--ink-soft); font-size: var(--text-sm);">Readings are a tradition of self-reflection — not medical, financial, or legal advice.</p>
+    <p style="color: var(--ink-soft); font-size: var(--text-sm);">{t(lang, 'reading.disclaimer')}</p>
   </section>
 </Base>

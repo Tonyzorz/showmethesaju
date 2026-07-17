@@ -36,10 +36,10 @@ const strings = { ...ns(lang, 'reading'), cta: t(lang, 'hero.cta'), siteName: t(
 
     <div class="actions">
       <button id="share-url" class="btn-secondary" type="button">{t(lang, 'reading.share')}</button>
-      <button id="share-png" class="btn-primary" type="button">PNG ↓</button>
+      <button id="share-png" class="btn-primary" type="button">{t(lang, 'reading.sharePng')}</button>
       <a class="btn-secondary" href={`/${lang}/learn/`}>{t(lang, 'reading.learnMore')}</a>
     </div>
-    <p class="disclaimer">Saju is a tradition of self-reflection — not medical, financial, or legal advice.</p>
+    <p class="disclaimer">{t(lang, 'reading.disclaimer')}</p>
   </section>
 
   <section id="no-query" hidden>

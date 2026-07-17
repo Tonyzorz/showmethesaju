@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { LOCALES } from '../../i18n/locales';
+import { t } from '../../i18n/t';
 import { TERMS } from '../../lib/glossary';
 
 export function getStaticPaths() {
@@ -16,9 +17,9 @@ const faqLd = {
   })),
 };
 ---
-<Base lang={lang} title={`Glossary — Show Me the Saju`} description="Every saju term explained: Day Master, Ten Gods, Five Elements, and more." path="glossary">
+<Base lang={lang} title={t(lang, 'meta.glossary.title')} description={t(lang, 'meta.glossary.description')} path="glossary">
   <script type="application/ld+json" set:html={JSON.stringify(faqLd)} />
-  <h1>Glossary</h1>
+  <h1>{t(lang, 'glossary.title')}</h1>
   <div class="terms">
     {TERMS.map((tm) => (
       <article class="card term" id={tm.key}>

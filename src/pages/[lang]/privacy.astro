@@ -8,8 +8,8 @@ const { lang } = Astro.params;
 <Base lang={lang} title={`${t(lang, 'footer.privacy')} — ${t(lang, 'meta.siteName')}`} path="privacy">
   <h1>{t(lang, 'footer.privacy')}</h1>
   <div style="max-width: var(--container-text);">
-    <p><strong>Your birth data never leaves your device.</strong> The saju chart is computed entirely in your browser. We do not collect, transmit, or store birth dates, times, or chart results.</p>
-    <p>If you join the waitlist, your email is processed by our form provider solely to notify you about new features. Anonymous, cookieless visit statistics may be collected via a privacy-focused analytics service.</p>
+    <p><strong>{t(lang, 'privacy.leadStrong')}</strong> {t(lang, 'privacy.body1')}</p>
+    <p>{t(lang, 'privacy.body2')}</p>
     <!-- TODO: name the actual form + analytics providers before launch. -->
   </div>
 </Base>

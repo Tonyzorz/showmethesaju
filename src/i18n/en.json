@@ -6,19 +6,23 @@
     "reading.title": "Your Saju Chart — Show Me the Saju",
     "learn.title": "Learn Saju — Show Me the Saju",
     "compat.title": "Saju Compatibility — Show Me the Saju",
-    "about.title": "About — Show Me the Saju"
+    "about.title": "About — Show Me the Saju",
+    "glossary.title": "Saju Glossary — Show Me the Saju",
+    "glossary.description": "Every saju term explained: Day Master, Ten Gods, Five Elements, and more."
   },
   "nav": {
     "reading": "Saju Reading",
     "compatibility": "Compatibility",
     "learn": "Learn",
     "about": "About",
+    "glossary": "Glossary",
     "language": "Language"
   },
   "hero": {
     "headline": "1,000 years of Korean destiny reading. Yours in 10 seconds.",
     "sub": "Enter your birth details to reveal your Four Pillars — free, no sign-up.",
-    "cta": "Show me my saju"
+    "cta": "Show me my saju",
+    "trust": "Free · No sign-up · Your birth data never leaves your device"
   },
   "form": {
     "date": "Date of birth",
@@ -35,7 +39,8 @@
     "trueSolar": "Use true solar time",
     "trueSolarHint": "Adjusts for your birthplace's longitude (Seoul ≈ −32 min).",
     "errFuture": "Birth date can't be in the future.",
-    "errLunarRange": "Lunar dates are supported from 1900 to 2050."
+    "errLunarRange": "Lunar dates are supported from 1900 to 2050.",
+    "advanced": "Advanced options"
   },
   "reading": {
     "yourPillars": "Your Four Pillars",
@@ -55,6 +60,8 @@
     "share": "Copy link to this chart",
     "shared": "Link copied",
     "learnMore": "Read about your Day Master",
+    "sharePng": "Download card (PNG)",
+    "disclaimer": "Saju readings are a tradition of self-reflection — not medical, financial, or legal advice.",
     "termBoundaryNote": "You were born near a seasonal boundary — your exact birth time matters. Double-check it for an accurate chart.",
     "dm.0": "PLACEHOLDER — 甲 Yang Wood day master interpretation (write from original material)",
     "dm.1": "PLACEHOLDER — 乙 Yin Wood",
@@ -68,7 +75,20 @@
     "dm.9": "PLACEHOLDER — 癸 Yin Water"
   },
   "glossary": {
+    "title": "Glossary",
     "moreLink": "Open in glossary"
+  },
+  "about": {
+    "masterHeading": "Our Master",
+    "story": "[Mom's story goes here — original text, reviewed by her.]"
+  },
+  "learn": {
+    "comingSoon": "Articles coming soon. First up: your Day Master, saju vs astrology, and why Koreans check gunghap."
+  },
+  "privacy": {
+    "leadStrong": "Your birth data never leaves your device.",
+    "body1": "The saju chart is computed entirely in your browser. We do not collect, transmit, or store birth dates, times, or chart results.",
+    "body2": "If you join the waitlist, your email is processed by our form provider solely to notify you about new features. Anonymous, cookieless visit statistics may be collected via a privacy-focused analytics service."
   },
   "explainer": {
     "title": "What is Saju?",
