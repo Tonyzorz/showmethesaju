@@ -44,8 +44,20 @@ export type TenGod =
 export type Gender = 'female' | 'male';
 export type PillarRole = 'year' | 'month' | 'day' | 'hour';
 export type HiddenQiPhase = 'residual' | 'middle' | 'main';
-export type BranchRelationType = 'punishment' | 'clash' | 'break' | 'harm';
-export type ShinsalName = 'cheonEul' | 'munChang' | 'peachBlossom' | 'travelHorse' | 'flowerCanopy' | 'gongMang';
+export type BranchRelationType =
+  | 'combination' | 'halfHarmony' | 'seasonalHarmony'
+  | 'punishment' | 'clash' | 'break' | 'harm' | 'grudge' | 'ghostGate';
+export type StemRelationType = 'combination' | 'clash';
+export type HarmonyType = 'trine' | 'seasonal';
+export type TwelveStage =
+  | 'birth' | 'bath' | 'attire' | 'office' | 'peak' | 'decline'
+  | 'illness' | 'death' | 'tomb' | 'extinction' | 'conception' | 'nurture';
+export type TwelveShinsalName =
+  | 'land' | 'year' | 'month' | 'loss' | 'general' | 'saddle'
+  | 'horse' | 'sixHarm' | 'canopy' | 'robbery' | 'calamity' | 'heaven';
+export type ShinsalName =
+  | 'cheonEul' | 'munChang' | 'peachBlossom' | 'travelHorse' | 'flowerCanopy' | 'gongMang'
+  | 'cheonDeok' | 'wolDeok' | 'yangIn' | 'geonRok' | 'hyeonChim' | 'goRan' | 'baekHo' | 'gwaeGang';
 
 // ───────────────────────────── types ─────────────────────────────
 
@@ -102,6 +114,29 @@ export interface BranchRelation {
   rightBranch: number;
 }
 
+export interface StemRelation {
+  type: StemRelationType;
+  leftRole: PillarRole;
+  rightRole: PillarRole;
+  leftStem: number;
+  rightStem: number;
+}
+
+export interface BranchHarmony {
+  type: HarmonyType;
+  element: Element;
+  roles: PillarRole[];
+  branches: number[];
+  complete: boolean;
+}
+
+export interface Nayin {
+  index: number;
+  hanja: string;
+  ko: string;
+  element: Element;
+}
+
 export interface LuckRelation {
   type: BranchRelationType;
   natalRole: PillarRole;
@@ -119,6 +154,9 @@ export interface LuckCycle {
   pillar: Pillar;
   relations: LuckRelation[];
   shinsal: ShinsalName[];
+  twelveStage: TwelveStage;
+  nayin: Nayin;
+  twelveShinsal: { yearBasis: TwelveShinsalName; dayBasis: TwelveShinsalName };
 }
 
 export interface DaeunCycle extends LuckCycle {
@@ -150,6 +188,8 @@ export interface SajuResult {
   /** Korean 월률분야 convention, ordered 여기 → 중기 → 정기. */
   hiddenStems: Record<PillarRole, HiddenStem[]>;
   relations: BranchRelation[];
+  stemRelations: StemRelation[];
+  harmonies: BranchHarmony[];
   shinsal: ShinsalOccurrence[];
   /** Null for legacy/shared links that do not contain gender. */
   daeun: DaeunResult | null;
@@ -265,21 +305,41 @@ export function hiddenStemsForBranch(branch: number, dayStem: number): HiddenSte
 }
 
 const relationPair = (a: number, b: number) => a < b ? `${a}-${b}` : `${b}-${a}`;
+const COMBINATION_PAIRS = new Set(['0-1', '2-11', '3-10', '4-9', '5-8', '6-7']);
 const CLASH_PAIRS = new Set(['0-6', '1-7', '2-8', '3-9', '4-10', '5-11']);
 const HARM_PAIRS = new Set(['0-7', '1-6', '2-5', '3-4', '8-11', '9-10']);
 const BREAK_PAIRS = new Set(['0-9', '1-4', '2-11', '3-6', '5-8', '7-10']);
 const PUNISHMENT_PAIRS = new Set(['0-3', '1-7', '1-10', '2-5', '2-8', '5-8', '7-10']);
 const SELF_PUNISHMENT = new Set([4, 6, 9, 11]);
+const GRUDGE_PAIRS = new Set(['0-7', '1-6', '2-9', '3-8', '4-11', '5-10']);
+const GHOST_GATE_PAIRS = new Set(['0-9', '1-6', '2-7', '3-8', '4-11', '5-10']);
+const TRINE_GROUPS = [
+  { branches: [8, 0, 4], element: 'water' },
+  { branches: [11, 3, 7], element: 'wood' },
+  { branches: [2, 6, 10], element: 'fire' },
+  { branches: [5, 9, 1], element: 'metal' },
+] as const;
+const SEASONAL_GROUPS = [
+  { branches: [2, 3, 4], element: 'wood' },
+  { branches: [5, 6, 7], element: 'fire' },
+  { branches: [8, 9, 10], element: 'metal' },
+  { branches: [11, 0, 1], element: 'water' },
+] as const;
 
-/** All 형·충·파·해 relationships that apply to a branch pair. */
+/** All configured branch relationships that apply to a pair. */
 export function branchRelationTypes(a: number, b: number): BranchRelationType[] {
   if (![a, b].every((n) => Number.isInteger(n) && n >= 0 && n <= 11)) throw new RangeError('Invalid earthly branch.');
   const pair = relationPair(a, b);
   const types: BranchRelationType[] = [];
+  if (COMBINATION_PAIRS.has(pair)) types.push('combination');
+  if (a !== b && TRINE_GROUPS.some((group) => group.branches.includes(a as never) && group.branches.includes(b as never))) types.push('halfHarmony');
+  if (a !== b && SEASONAL_GROUPS.some((group) => group.branches.includes(a as never) && group.branches.includes(b as never))) types.push('seasonalHarmony');
   if ((a === b && SELF_PUNISHMENT.has(a)) || PUNISHMENT_PAIRS.has(pair)) types.push('punishment');
   if (CLASH_PAIRS.has(pair)) types.push('clash');
   if (BREAK_PAIRS.has(pair)) types.push('break');
   if (HARM_PAIRS.has(pair)) types.push('harm');
+  if (GRUDGE_PAIRS.has(pair)) types.push('grudge');
+  if (GHOST_GATE_PAIRS.has(pair)) types.push('ghostGate');
   return types;
 }
 
@@ -302,6 +362,41 @@ function natalRelations(pillars: { year: Pillar; month: Pillar; day: Pillar; hou
   return output;
 }
 
+const STEM_COMBINATION_PAIRS = new Set(['0-5', '1-6', '2-7', '3-8', '4-9']);
+const STEM_CLASH_PAIRS = new Set(['0-6', '1-7', '2-8', '3-9']);
+
+function natalStemRelations(pillars: { year: Pillar; month: Pillar; day: Pillar; hour: Pillar | null }): StemRelation[] {
+  const entries = pillarEntries(pillars);
+  const output: StemRelation[] = [];
+  for (let left = 0; left < entries.length; left++) {
+    for (let right = left + 1; right < entries.length; right++) {
+      const [leftRole, leftPillar] = entries[left];
+      const [rightRole, rightPillar] = entries[right];
+      const pair = relationPair(leftPillar.stem, rightPillar.stem);
+      if (STEM_COMBINATION_PAIRS.has(pair)) output.push({ type: 'combination', leftRole, rightRole, leftStem: leftPillar.stem, rightStem: rightPillar.stem });
+      if (STEM_CLASH_PAIRS.has(pair)) output.push({ type: 'clash', leftRole, rightRole, leftStem: leftPillar.stem, rightStem: rightPillar.stem });
+    }
+  }
+  return output;
+}
+
+function natalHarmonies(pillars: { year: Pillar; month: Pillar; day: Pillar; hour: Pillar | null }): BranchHarmony[] {
+  const entries = pillarEntries(pillars);
+  const collect = (groups: typeof TRINE_GROUPS | typeof SEASONAL_GROUPS, type: HarmonyType) => groups.flatMap((group) => {
+    const matches = entries.filter(([, pillar]) => group.branches.includes(pillar.branch as never));
+    const uniqueBranches = [...new Set(matches.map(([, pillar]) => pillar.branch))];
+    if (uniqueBranches.length < 2) return [];
+    return [{
+      type,
+      element: group.element,
+      roles: matches.map(([role]) => role),
+      branches: uniqueBranches,
+      complete: uniqueBranches.length === 3,
+    } satisfies BranchHarmony];
+  });
+  return [...collect(TRINE_GROUPS, 'trine'), ...collect(SEASONAL_GROUPS, 'seasonal')];
+}
+
 const CHEON_EUL_BRANCHES: number[][] = [
   [1, 7], [0, 8], [11, 9], [11, 9], [1, 7],
   [0, 8], [1, 7], [6, 2], [5, 3], [5, 3],
@@ -321,6 +416,104 @@ const cycleIndexFromPillar = (stem: number, branch: number) => {
   throw new RangeError('Stem and branch do not form a sexagenary-cycle pillar.');
 };
 
+const TWELVE_STAGES: TwelveStage[] = [
+  'birth', 'bath', 'attire', 'office', 'peak', 'decline',
+  'illness', 'death', 'tomb', 'extinction', 'conception', 'nurture',
+];
+const TWELVE_STAGE_START_BRANCH = [11, 6, 2, 9, 2, 9, 5, 0, 8, 3];
+
+/** Classical 12운성. Yang stems advance from 장생; yin stems move in reverse. */
+export function twelveStageForStemBranch(stem: number, branch: number): TwelveStage {
+  if (!Number.isInteger(stem) || stem < 0 || stem > 9 || !Number.isInteger(branch) || branch < 0 || branch > 11) {
+    throw new RangeError('Invalid stem or branch for Twelve Stages.');
+  }
+  const start = TWELVE_STAGE_START_BRANCH[stem];
+  const stageIndex = stem % 2 === 0 ? mod(branch - start, 12) : mod(start - branch, 12);
+  return TWELVE_STAGES[stageIndex];
+}
+
+const NAYIN_TABLE: Omit<Nayin, 'index'>[] = [
+  { hanja: '海中金', ko: '해중금', element: 'metal' }, { hanja: '爐中火', ko: '노중화', element: 'fire' },
+  { hanja: '大林木', ko: '대림목', element: 'wood' }, { hanja: '路傍土', ko: '노방토', element: 'earth' },
+  { hanja: '劍鋒金', ko: '검봉금', element: 'metal' }, { hanja: '山頭火', ko: '산두화', element: 'fire' },
+  { hanja: '澗下水', ko: '간하수', element: 'water' }, { hanja: '城頭土', ko: '성두토', element: 'earth' },
+  { hanja: '白蠟金', ko: '백랍금', element: 'metal' }, { hanja: '楊柳木', ko: '양류목', element: 'wood' },
+  { hanja: '泉中水', ko: '천중수', element: 'water' }, { hanja: '屋上土', ko: '옥상토', element: 'earth' },
+  { hanja: '霹靂火', ko: '벽력화', element: 'fire' }, { hanja: '松柏木', ko: '송백목', element: 'wood' },
+  { hanja: '長流水', ko: '장류수', element: 'water' }, { hanja: '沙中金', ko: '사중금', element: 'metal' },
+  { hanja: '山下火', ko: '산하화', element: 'fire' }, { hanja: '平地木', ko: '평지목', element: 'wood' },
+  { hanja: '壁上土', ko: '벽상토', element: 'earth' }, { hanja: '金箔金', ko: '금박금', element: 'metal' },
+  { hanja: '覆燈火', ko: '복등화', element: 'fire' }, { hanja: '天河水', ko: '천하수', element: 'water' },
+  { hanja: '大驛土', ko: '대역토', element: 'earth' }, { hanja: '釵釧金', ko: '차천금', element: 'metal' },
+  { hanja: '桑柘木', ko: '상자목', element: 'wood' }, { hanja: '大溪水', ko: '대계수', element: 'water' },
+  { hanja: '沙中土', ko: '사중토', element: 'earth' }, { hanja: '天上火', ko: '천상화', element: 'fire' },
+  { hanja: '石榴木', ko: '석류목', element: 'wood' }, { hanja: '大海水', ko: '대해수', element: 'water' },
+];
+
+/** Thirty Naeum pairs across the 60-pillar cycle. */
+export function nayinForPillar(stem: number, branch: number): Nayin {
+  const index = Math.floor(cycleIndexFromPillar(stem, branch) / 2);
+  return { index, ...NAYIN_TABLE[index] };
+}
+
+export function voidBranchesForPillar(stem: number, branch: number): number[] {
+  const cycleIndex = cycleIndexFromPillar(stem, branch);
+  return [...GONG_MANG_BY_XUN[Math.floor(cycleIndex / 10)]];
+}
+
+export function cheonEulBranchesForDayStem(dayStem: number): number[] {
+  if (!Number.isInteger(dayStem) || dayStem < 0 || dayStem > 9) throw new RangeError('Invalid day stem.');
+  return [...CHEON_EUL_BRANCHES[dayStem]];
+}
+
+const TWELVE_SHINSAL: TwelveShinsalName[] = [
+  'robbery', 'calamity', 'heaven', 'land', 'year', 'month',
+  'loss', 'general', 'saddle', 'horse', 'sixHarm', 'canopy',
+];
+
+const twelveShinsalRobberyStart = (basis: number) => {
+  if ([8, 0, 4].includes(basis)) return 5;  // 申子辰 → 巳
+  if ([2, 6, 10].includes(basis)) return 11; // 寅午戌 → 亥
+  if ([5, 9, 1].includes(basis)) return 2;  // 巳酉丑 → 寅
+  return 8;                                  // 亥卯未 → 申
+};
+
+/** 12신살 from a year/day branch trine group to a target branch. */
+export function twelveShinsalForBranch(basisBranch: number, targetBranch: number): TwelveShinsalName {
+  if (![basisBranch, targetBranch].every((n) => Number.isInteger(n) && n >= 0 && n <= 11)) {
+    throw new RangeError('Invalid branch for Twelve Shinsal.');
+  }
+  const robberyStart = twelveShinsalRobberyStart(basisBranch);
+  return TWELVE_SHINSAL[mod(targetBranch - robberyStart, 12)];
+}
+
+const CHEON_DEOK_TARGETS: Array<{ kind: 'stem' | 'branch'; index: number }> = [
+  { kind: 'branch', index: 5 }, { kind: 'stem', index: 6 }, { kind: 'stem', index: 3 },
+  { kind: 'branch', index: 8 }, { kind: 'stem', index: 8 }, { kind: 'stem', index: 7 },
+  { kind: 'branch', index: 11 }, { kind: 'stem', index: 0 }, { kind: 'stem', index: 9 },
+  { kind: 'branch', index: 2 }, { kind: 'stem', index: 2 }, { kind: 'stem', index: 1 },
+];
+const WOL_DEOK_STEM_BY_BRANCH = [8, 6, 2, 0, 8, 6, 2, 0, 8, 6, 2, 0];
+const YANG_IN_BRANCH_BY_STEM = [3, 2, 6, 5, 6, 5, 9, 8, 0, 11];
+const GEON_ROK_BRANCH_BY_STEM = [2, 3, 5, 6, 5, 6, 8, 9, 11, 0];
+const GO_RAN_PILLARS = new Set(['甲寅', '乙巳', '丙午', '丁巳', '戊申', '辛亥', '壬子']);
+const BAEK_HO_PILLARS = new Set(['甲辰', '乙未', '丙戌', '丁丑', '戊辰', '壬戌', '癸丑']);
+const GWAE_GANG_PILLARS = new Set(['戊戌', '庚辰', '庚戌', '壬辰']);
+
+export function specialShinsalNamesForPillar(dayStem: number, monthBranch: number, pillar: Pillar): ShinsalName[] {
+  const names = new Set<ShinsalName>();
+  const cheonDeok = CHEON_DEOK_TARGETS[monthBranch];
+  if ((cheonDeok.kind === 'stem' ? pillar.stem : pillar.branch) === cheonDeok.index) names.add('cheonDeok');
+  if (pillar.stem === WOL_DEOK_STEM_BY_BRANCH[monthBranch]) names.add('wolDeok');
+  if (pillar.branch === YANG_IN_BRANCH_BY_STEM[dayStem]) names.add('yangIn');
+  if (pillar.branch === GEON_ROK_BRANCH_BY_STEM[dayStem]) names.add('geonRok');
+  if ([0, 7].includes(pillar.stem) || [3, 6, 8].includes(pillar.branch)) names.add('hyeonChim');
+  if (GO_RAN_PILLARS.has(pillar.hanja)) names.add('goRan');
+  if (BAEK_HO_PILLARS.has(pillar.hanja)) names.add('baekHo');
+  if (GWAE_GANG_PILLARS.has(pillar.hanja)) names.add('gwaeGang');
+  return [...names];
+}
+
 export function shinsalNamesForBranch(dayStem: number, dayBranch: number, yearBranch: number, targetBranch: number): ShinsalName[] {
   const names = new Set<ShinsalName>();
   if (CHEON_EUL_BRANCHES[dayStem].includes(targetBranch)) names.add('cheonEul');
@@ -337,10 +530,13 @@ export function shinsalNamesForBranch(dayStem: number, dayBranch: number, yearBr
 }
 
 function natalShinsal(pillars: { year: Pillar; month: Pillar; day: Pillar; hour: Pillar | null }): ShinsalOccurrence[] {
-  return pillarEntries(pillars).flatMap(([targetRole, pillar]) =>
-    shinsalNamesForBranch(pillars.day.stem, pillars.day.branch, pillars.year.branch, pillar.branch)
-      .map((name) => ({ name, targetRole, targetBranch: pillar.branch }))
-  );
+  return pillarEntries(pillars).flatMap(([targetRole, pillar]) => {
+    const names = new Set<ShinsalName>([
+      ...shinsalNamesForBranch(pillars.day.stem, pillars.day.branch, pillars.year.branch, pillar.branch),
+      ...specialShinsalNamesForPillar(pillars.day.stem, pillars.month.branch, pillar),
+    ]);
+    return [...names].map((name) => ({ name, targetRole, targetBranch: pillar.branch }));
+  });
 }
 
 function relationsWithNatal(
@@ -365,7 +561,16 @@ const luckCycle = (
   index,
   pillar,
   relations: relationsWithNatal(pillar.branch, pillars),
-  shinsal: shinsalNamesForBranch(pillars.day.stem, pillars.day.branch, pillars.year.branch, pillar.branch),
+  shinsal: [...new Set([
+    ...shinsalNamesForBranch(pillars.day.stem, pillars.day.branch, pillars.year.branch, pillar.branch),
+    ...specialShinsalNamesForPillar(pillars.day.stem, pillars.month.branch, pillar),
+  ])],
+  twelveStage: twelveStageForStemBranch(pillars.day.stem, pillar.branch),
+  nayin: nayinForPillar(pillar.stem, pillar.branch),
+  twelveShinsal: {
+    yearBasis: twelveShinsalForBranch(pillars.year.branch, pillar.branch),
+    dayBasis: twelveShinsalForBranch(pillars.day.branch, pillar.branch),
+  },
 });
 
 const DAY_MS = 86_400_000;
@@ -548,6 +753,8 @@ export function computeSaju(input: SajuInput): SajuResult {
     utcMs,
     hiddenStems,
     relations: natalRelations(pillars),
+    stemRelations: natalStemRelations(pillars),
+    harmonies: natalHarmonies(pillars),
     shinsal: natalShinsal(pillars),
     daeun: computeDaeun(input, utcMs, pillars),
   };

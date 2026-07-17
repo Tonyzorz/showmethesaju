@@ -28,8 +28,13 @@ for (const locale of locales) {
   assert(html.includes('id="loading-state"'), `${locale}: missing non-blank loading fallback`);
   assert(html.includes('id="render-error"'), `${locale}: missing visible render error`);
   assert(html.includes('id="element-radar"'), `${locale}: missing Five Elements chart`);
+  assert(html.includes('class="card chart-matrix-panel"') && html.includes('id="chart-facts"'),
+    `${locale}: missing detailed original-chart matrix or fact grid`);
+  assert((html.match(/data-layer-toggle=/g) || []).length === 4,
+    `${locale}: original-chart matrix must expose four detail-layer controls`);
   assert(html.includes('id="hidden-stems"'), `${locale}: missing hidden-stem panel`);
-  assert(html.includes('id="branch-relations"') && html.includes('id="shinsal-list"'), `${locale}: missing relation or shinsal panel`);
+  assert(html.includes('id="branch-relations"') && html.includes('id="stem-relations"') && html.includes('id="harmony-groups"') && html.includes('id="shinsal-list"'),
+    `${locale}: missing branch, stem, harmony, or Shinsal panel`);
   assert(html.includes('id="daeun-list"') && html.includes('id="seun-list"'), `${locale}: missing Daeun or annual-luck panel`);
   assert(html.includes('id="analytics-consent"'), `${locale}: missing consent controls`);
   assert(html.includes("window.gtag('consent', 'default'"), `${locale}: consent default is not in the document head`);
@@ -56,6 +61,9 @@ assert(homeBundle.source.includes('gender'), 'Birth-form bundle does not carry g
 
 assert(readingBundle.source.includes('hidden-stems') && readingBundle.source.includes('daeun-list') && readingBundle.source.includes('seun-list'),
   'Reading bundle is missing advanced 만세력 rendering behavior');
+assert(readingBundle.source.includes('chart_layer_toggle') && readingBundle.source.includes('pillar-stage-layer') &&
+  readingBundle.source.includes('pillar-nayin-layer') && readingBundle.source.includes('twelveShinsal'),
+  'Reading bundle is missing chart-layer analytics or advanced pillar detail behavior');
 
 const analyticsBundle = bundles.find(({ source }) => source.includes('google-analytics-script'));
 assert(analyticsBundle, 'Could not identify the built analytics bundle');
@@ -64,4 +72,4 @@ assert(analyticsBundle.source.includes('location.origin') && analyticsBundle.sou
   'Analytics page locations are not built from the query-free origin and path');
 assert(!analyticsBundle.source.includes('location.search'), 'Analytics bundle must not read or send URL query parameters');
 
-console.log(`Smoke-tested ${locales.length} home and reading pages, interactive birth cards, rendering order, consent defaults, and query-free GA4 wiring.`);
+console.log(`Smoke-tested ${locales.length} home and reading pages, rich chart layers, interactive birth cards, rendering order, consent defaults, and query-free GA4 wiring.`);

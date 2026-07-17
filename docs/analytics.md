@@ -22,6 +22,7 @@ Measurement ID: `G-RMFH4E7NGS`
 | `chart_form_error` | Birth form validation failure | `error_type`, `language` |
 | `chart_error` | Unexpected chart rendering failure | `error_type`, `language` |
 | `luck_cycle_select` | A Daeun or Seun card is selected | `cycle_type`, `cycle_index`, `language` |
+| `chart_layer_toggle` | A visitor shows or hides Ten Gods, Hidden Stems, 12 Life Stages, or Shinsal in the original-chart matrix | `layer_name`, `layer_state`, `language` |
 | `share` | Copy-link or PNG action | `method`, `content_type`, `language` |
 | `glossary_open` | A visitor opens a glossary explanation | `term`, `language` |
 | `navigation_click` | Internal navigation link | `destination`, `link_area`, `language` |
@@ -39,7 +40,7 @@ These settings live in Google Analytics and cannot be configured by repository c
 1. In **Admin → Data streams → Web**, confirm that the stream uses measurement ID `G-RMFH4E7NGS`.
 2. Under **Enhanced measurement → Page views → Show advanced settings**, disable browser-history page-change measurement if the site later becomes a single-page app. The current site uses full page loads and sends one controlled `page_view`.
 3. In **Admin → Data collection and modification → Data retention**, choose the shortest retention period that meets the reporting need.
-4. Create event-scoped custom dimensions for the safe parameters you want in Explorations, especially `language`, `destination`, `link_area`, `calendar_type`, `pillar_status`, `solar_correction`, `cycle_type`, `cycle_index`, `error_type`, and `term`.
+4. Create event-scoped custom dimensions for the safe parameters you want in Explorations, especially `language`, `destination`, `link_area`, `calendar_type`, `pillar_status`, `solar_correction`, `cycle_type`, `cycle_index`, `layer_name`, `layer_state`, `error_type`, and `term`.
 5. Mark `booking_click` as a key event. Mark `shop_click` as a key event if store traffic is a business conversion.
 6. Test in **Realtime** after accepting analytics. Use Google Tag Assistant to confirm the default denied state, the granted update, one query-free `page_view`, and the expected event names.
 

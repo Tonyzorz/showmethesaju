@@ -35,7 +35,24 @@ const strings = {
       <div class="element-ribbon" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
     </header>
     <p id="boundary-note" class="note" hidden></p>
-    <div id="pillars" class="pillars"></div>
+
+    <section class="card chart-matrix-panel">
+      <div class="chart-matrix-heading">
+        <div>
+          <p class="panel-overline">ORIGINAL CHART</p>
+          <h2>{t(lang, 'reading.originalChart')}</h2>
+          <p>{t(lang, 'reading.originalChartContext')}</p>
+        </div>
+        <div class="chart-layer-controls" role="group" aria-label={t(lang, 'reading.displayLayers')}>
+          <button type="button" data-layer-toggle="ten-gods" aria-pressed="true">{t(lang, 'reading.showTenGods')}</button>
+          <button type="button" data-layer-toggle="hidden" aria-pressed="true">{t(lang, 'reading.showHiddenStems')}</button>
+          <button type="button" data-layer-toggle="stages" aria-pressed="true">{t(lang, 'reading.showTwelveStage')}</button>
+          <button type="button" data-layer-toggle="stars" aria-pressed="true">{t(lang, 'reading.showShinsal')}</button>
+        </div>
+      </div>
+      <div id="pillars" class="pillars"></div>
+      <div id="chart-facts" class="chart-facts"></div>
+    </section>
 
     <h2 class="section-title">{t(lang, 'reading.chartAtGlance')}</h2>
     <div class="insight-grid">
@@ -121,10 +138,12 @@ const strings = {
     <div class="analysis-grid">
       <section class="card panel relations-panel">
         <div class="panel-heading">
-          <h2>{t(lang, 'reading.branchRelations')}</h2>
+          <h2>{t(lang, 'reading.allRelations')}</h2>
           <span class="panel-index" aria-hidden="true">06</span>
         </div>
-        <div id="branch-relations" class="relation-list"></div>
+        <div class="relation-section"><h3>{t(lang, 'reading.branchRelations')}</h3><div id="branch-relations" class="relation-list"></div></div>
+        <div class="relation-section"><h3>{t(lang, 'reading.stemRelations')}</h3><div id="stem-relations" class="relation-list"></div></div>
+        <div class="relation-section"><h3>{t(lang, 'reading.harmonies')}</h3><div id="harmony-groups" class="harmony-list"></div></div>
         <p class="soft context-note">{t(lang, 'reading.relationsContext')}</p>
       </section>
       <section class="card panel shinsal-panel">
@@ -202,18 +221,27 @@ const strings = {
   <GlossaryTooltip lang={lang} />
 
   <script>
+    import KoreanLunarCalendar from 'korean-lunar-calendar';
     import {
       BRANCHES_HANJA,
+      STEMS_HANJA,
+      cheonEulBranchesForDayStem,
       computeAnnualLuck,
       computeSaju,
       hiddenStemsForBranch,
       ipchunUtcMs,
+      nayinForPillar,
+      twelveShinsalForBranch,
+      twelveStageForStemBranch,
+      voidBranchesForPillar,
       type AnnualLuck,
       type LuckCycle,
       type Pillar,
       type PillarRole,
       type SajuResult,
       type ShinsalName,
+      type TwelveShinsalName,
+      type TwelveStage,
     } from '../../lib/saju-engine';
     import { trackEvent } from '../../lib/analytics';
 
@@ -222,6 +250,8 @@ const strings = {
     const fmt = (template: string, vars: Record<string, string | number>) =>
       Object.entries(vars).reduce((text, [key, value]) => text.replaceAll(`{${key}}`, String(value)), template);
     const tenGodLabel = (name: string | null) => name ? (S[`tg.${name}`] ?? name) : S['notApplicable'];
+    const stageLabel = (stage: TwelveStage) => S[`stage.${stage}`] ?? stage;
+    const twelveShinsalLabel = (name: TwelveShinsalName) => S[`twelve.${name}`] ?? name;
 
     const values = {
       year: Number(q.get('y')), month: Number(q.get('m')), day: Number(q.get('d')),
@@ -237,23 +267,43 @@ const strings = {
       values.tzOffsetMinutes >= -840 && values.tzOffsetMinutes <= 840 &&
       values.longitude >= -180 && values.longitude <= 180;
 
-    function pillarCard(p: Pillar | null, label: string, i: number): string {
+    function pillarCard(p: Pillar | null, label: string, role: PillarRole, i: number, r: SajuResult): string {
       if (!p) return `<article class="pillar pillar-empty reveal" style="--reveal-i:${i}">
         <header class="pillar-top"><span class="pillar-label">${label}</span></header>
         <p class="hint">${S['hourUnknown']}</p>
       </article>`;
-      const tg = `<span class="ten-god">${tenGodLabel(p.tenGod)}</span>`;
-      return `<article class="pillar pillar--${p.stemElement} reveal" style="--reveal-i:${i}">
-        <header class="pillar-top"><span class="pillar-label">${label}</span>${tg}</header>
+      const stemGod = role === 'day' ? S['daySelf'] : tenGodLabel(p.tenGod);
+      const branchGod = r.hiddenStems[role].at(-1)?.tenGod ?? null;
+      const dayStage = twelveStageForStemBranch(r.day.stem, p.branch);
+      const pillarStage = twelveStageForStemBranch(p.stem, p.branch);
+      const nayin = nayinForPillar(p.stem, p.branch);
+      const yearStar = twelveShinsalForBranch(r.year.branch, p.branch);
+      const dayStar = twelveShinsalForBranch(r.day.branch, p.branch);
+      const stars = r.shinsal.filter((item) => item.targetRole === role).map((item) => item.name);
+      const hidden = r.hiddenStems[role].map((item) =>
+        `<span><small>${S[`qi.${item.phase}`]}</small><strong class="element-text--${item.element}" lang="ko">${item.stemHanja}</strong><i>${tenGodLabel(item.tenGod)}</i></span>`
+      ).join('');
+      return `<article class="pillar pillar--${p.stemElement} ${role === 'day' ? 'pillar--day' : ''} reveal" data-pillar-role="${role}" style="--reveal-i:${i}">
+        <header class="pillar-top"><span class="pillar-label">${label}</span><span class="ten-god" data-layer="ten-gods">${stemGod}</span></header>
         <div class="glyph-stack" lang="ko">
-          <span class="pillar-glyph element-text--${p.stemElement}">${p.stemHanja}</span>
+          <span class="matrix-glyph-label" data-layer="ten-gods">${S['stemTenGod']} · ${stemGod}</span>
+          <span class="pillar-glyph glyph-tile element-bg-soft--${p.stemElement} element-text--${p.stemElement}">${p.stemHanja}</span>
           <span class="glyph-bridge" aria-hidden="true"></span>
-          <span class="pillar-glyph element-text--${p.branchElement}">${p.branchHanja}</span>
+          <span class="pillar-glyph glyph-tile element-bg-soft--${p.branchElement} element-text--${p.branchElement}">${p.branchHanja}</span>
+          <span class="matrix-glyph-label" data-layer="ten-gods">${S['branchTenGod']} · ${tenGodLabel(branchGod)}</span>
         </div>
-        <footer class="pillar-bottom">
-          <strong>${p.stemKo}${p.branchKo}</strong>
-          <span class="element-pair"><i class="element-dot element-bg--${p.stemElement}"></i>${S[`el.${p.stemElement}`]}<b>·</b><i class="element-dot element-bg--${p.branchElement}"></i>${S[`el.${p.branchElement}`]}</span>
-        </footer>
+        <div class="pillar-layer pillar-hidden-layer" data-layer="hidden"><b>${S['hiddenStems']}</b><div>${hidden}</div></div>
+        <div class="pillar-layer pillar-stage-layer" data-layer="stages">
+          <span><small>${S['twelveStageDay']}</small><strong>${stageLabel(dayStage)}</strong></span>
+          <span><small>${S['twelveStagePillar']}</small><strong>${stageLabel(pillarStage)}</strong></span>
+        </div>
+        <div class="pillar-layer pillar-nayin-layer"><small>${S['nayin']}</small><strong lang="ko">${nayin.hanja}</strong><span>${document.documentElement.lang === 'ko' ? nayin.ko : S[`el.${nayin.element}`]}</span></div>
+        <div class="pillar-layer pillar-star-layer" data-layer="stars">
+          <div><span>${S['yearBasis']}</span><strong>${twelveShinsalLabel(yearStar)}</strong></div>
+          <div><span>${S['dayBasis']}</span><strong>${twelveShinsalLabel(dayStar)}</strong></div>
+          ${stars.length ? `<p>${[...new Set(stars)].map((name) => shinsalLabel(name)).join(' · ')}</p>` : ''}
+        </div>
+        <footer class="pillar-bottom"><strong>${p.stemKo}${p.branchKo}</strong><span class="element-pair"><i class="element-dot element-bg--${p.stemElement}"></i>${S[`el.${p.stemElement}`]}<b>·</b><i class="element-dot element-bg--${p.branchElement}"></i>${S[`el.${p.branchElement}`]}</span></footer>
       </article>`;
     }
 
@@ -321,6 +371,54 @@ const strings = {
       ).join('');
     }
 
+    function renderChartFacts(r: SajuResult) {
+      const locale = document.documentElement.lang || 'en';
+      const solarDate = new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeZone: 'UTC' })
+        .format(new Date(Date.UTC(values.year, values.month - 1, values.day)));
+      const calendar = new KoreanLunarCalendar();
+      let lunarDate = S['notApplicable'];
+      if (calendar.setSolarDate(values.year, values.month, values.day)) {
+        const lunar = calendar.getLunarCalendar();
+        lunarDate = fmt(S['lunarDateFormat'], {
+          year: lunar.year,
+          month: lunar.month,
+          day: lunar.day,
+        });
+        if (lunar.intercalation) lunarDate += ` · ${S['leapMonthShort']}`;
+      }
+      const today = new Date();
+      let age = today.getFullYear() - values.year;
+      if (today.getMonth() + 1 < values.month || (today.getMonth() + 1 === values.month && today.getDate() < values.day)) age--;
+      const monthCommander = r.hiddenStems.month.at(-1);
+      const branchText = (branches: number[]) => branches.map((branch) => BRANCHES_HANJA[branch]).join(' · ');
+      const facts = [
+        [S['solarBirth'], solarDate, '陽'],
+        [S['lunarBirth'], lunarDate, '陰'],
+        [S['currentAge'], age >= 0 ? fmt(S['ageYears'], { age }) : S['notApplicable'], '今'],
+        [S['monthCommander'], monthCommander ? `${monthCommander.stemHanja} · ${tenGodLabel(monthCommander.tenGod)}` : S['notApplicable'], '令'],
+        [S['dayVoid'], branchText(voidBranchesForPillar(r.day.stem, r.day.branch)), '空'],
+        [S['yearVoid'], branchText(voidBranchesForPillar(r.year.stem, r.year.branch)), '旬'],
+        [S['cheonEulBranches'], branchText(cheonEulBranchesForDayStem(r.day.stem)), '貴'],
+        [S['daeunDirection'], r.daeun ? S[r.daeun.direction] : S['genderRequired'], '運'],
+      ];
+      document.getElementById('chart-facts')!.innerHTML = facts.map(([label, value, mark]) =>
+        `<article><span aria-hidden="true">${mark}</span><small>${label}</small><strong>${value}</strong></article>`
+      ).join('');
+    }
+
+    function setupLayerControls() {
+      const board = document.querySelector('.chart-matrix-panel')!;
+      document.querySelectorAll<HTMLButtonElement>('[data-layer-toggle]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const layer = button.dataset.layerToggle!;
+          const next = button.getAttribute('aria-pressed') !== 'true';
+          button.setAttribute('aria-pressed', String(next));
+          board.classList.toggle(`hide-layer--${layer}`, !next);
+          trackEvent('chart_layer_toggle', { layer_name: layer, layer_state: next ? 'shown' : 'hidden', language: document.documentElement.lang });
+        });
+      });
+    }
+
     function renderRelations(r: SajuResult) {
       const target = document.getElementById('branch-relations')!;
       target.innerHTML = r.relations.length ? r.relations.map((relation) =>
@@ -330,6 +428,22 @@ const strings = {
           <small>${roleLabels[relation.leftRole]} · ${roleLabels[relation.rightRole]}</small>
         </div>`
       ).join('') : `<p class="empty-state">${S['relationNone']}</p>`;
+
+      document.getElementById('stem-relations')!.innerHTML = r.stemRelations.length ? r.stemRelations.map((relation) =>
+        `<div class="relation-item">
+          <span class="relation-badge relation-badge--${relation.type}">${S[`stemRel.${relation.type}`]}</span>
+          <strong lang="ko">${STEMS_HANJA[relation.leftStem]} ↔ ${STEMS_HANJA[relation.rightStem]}</strong>
+          <small>${roleLabels[relation.leftRole]} · ${roleLabels[relation.rightRole]}</small>
+        </div>`
+      ).join('') : `<p class="empty-state">${S['stemRelationNone']}</p>`;
+
+      document.getElementById('harmony-groups')!.innerHTML = r.harmonies.length ? r.harmonies.map((harmony) =>
+        `<article class="harmony-item harmony-item--${harmony.complete ? 'complete' : 'partial'}">
+          <span>${S[`harmony.${harmony.type}`]}</span>
+          <strong lang="ko">${harmony.branches.map((branch) => BRANCHES_HANJA[branch]).join(' · ')}</strong>
+          <small>${S[`el.${harmony.element}`]} · ${harmony.complete ? S['harmonyComplete'] : S['harmonyPartial']}</small>
+        </article>`
+      ).join('') : `<p class="empty-state">${S['harmonyNone']}</p>`;
     }
 
     function renderShinsal(r: SajuResult) {
@@ -339,7 +453,11 @@ const strings = {
         group.push(occurrence);
         grouped.set(occurrence.name, group);
       }
-      const order: ShinsalName[] = ['cheonEul', 'munChang', 'peachBlossom', 'travelHorse', 'flowerCanopy', 'gongMang'];
+      const order: ShinsalName[] = [
+        'cheonEul', 'cheonDeok', 'wolDeok', 'munChang', 'geonRok', 'yangIn',
+        'peachBlossom', 'travelHorse', 'flowerCanopy', 'gongMang',
+        'hyeonChim', 'goRan', 'baekHo', 'gwaeGang',
+      ];
       const cards = order.filter((name) => grouped.has(name)).map((name) => {
         const occurrences = grouped.get(name)!;
         return `<article class="shinsal-item">
@@ -363,6 +481,12 @@ const strings = {
           <small>${title}</small>
           <strong class="element-text--${cycle.pillar.stemElement}" lang="ko">${cycle.pillar.hanja}</strong>
           <span>${tenGodLabel(cycle.pillar.tenGod)}</span>
+          <div class="luck-cycle-meta">
+            <b>${stageLabel(cycle.twelveStage)}</b>
+            <b lang="ko">${cycle.nayin.hanja}</b>
+            <b>${S['yearBasis']} ${twelveShinsalLabel(cycle.twelveShinsal.yearBasis)}</b>
+            <b>${S['dayBasis']} ${twelveShinsalLabel(cycle.twelveShinsal.dayBasis)}</b>
+          </div>
         </div>
         <div class="luck-detail__group"><h3>${S['hiddenStems']}</h3><div class="hidden-inline">${hiddenStemMarkup(cycle.pillar.branch, r)}</div></div>
         <div class="luck-detail__group"><h3>${S['branchRelations']}</h3><div class="detail-badges">${relationBadges}</div></div>
@@ -384,6 +508,7 @@ const strings = {
           <small>${labels[index]}</small>
           <strong class="element-text--${cycle.pillar.stemElement}" lang="ko">${cycle.pillar.hanja}</strong>
           <span>${sublabels[index]}</span>
+          <em>${stageLabel(cycle.twelveStage)}</em>
           <i aria-hidden="true">${cycle.relations.length + cycle.shinsal.length}</i>
         </button>`
       ).join('');
@@ -456,11 +581,12 @@ const strings = {
 
       // Pillars, traditional right-to-left order: 시 일 월 년 — but web reading order wins: hour…year reversed.
       document.getElementById('pillars')!.innerHTML = [
-        pillarCard(r.hour, S['pillarHour'], 0),
-        pillarCard(r.day, S['pillarDay'], 1),
-        pillarCard(r.month, S['pillarMonth'], 2),
-        pillarCard(r.year, S['pillarYear'], 3),
+        pillarCard(r.hour, S['pillarHour'], 'hour', 0, r),
+        pillarCard(r.day, S['pillarDay'], 'day', 1, r),
+        pillarCard(r.month, S['pillarMonth'], 'month', 2, r),
+        pillarCard(r.year, S['pillarYear'], 'year', 3, r),
       ].join('');
+      renderChartFacts(r);
 
       // Day master
       document.getElementById('dm-char')!.textContent = r.dayMaster.hanja;
@@ -596,6 +722,7 @@ const strings = {
 
     // Run only after every helper and const above has been initialized.
     // Keeping this at the end prevents a temporal-dead-zone failure in the bundled module.
+    setupLayerControls();
     if (!validQuery) {
       document.getElementById('loading-state')!.hidden = true;
       document.getElementById('no-query')!.hidden = false;
@@ -702,20 +829,38 @@ const strings = {
     .element-ribbon i:nth-child(4) { background: #aeb3b1; }
     .element-ribbon i:nth-child(5) { background: var(--el-water); }
 
+    .chart-matrix-panel {
+      position: relative;
+      overflow: hidden;
+      margin-block: clamp(2rem, 5vw, 4rem);
+      padding: clamp(1.1rem, 3.5vw, 2rem);
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--jade-pale) 35%, white), rgb(255 255 255 / .92) 42%),
+        var(--paper-raised);
+    }
+    .chart-matrix-panel::before { content: ''; position: absolute; inline-size: 18rem; aspect-ratio: 1; inset: -10rem -7rem auto auto; border: 1px solid rgb(36 84 66 / .08); border-radius: 50%; box-shadow: 0 0 0 3rem rgb(36 84 66 / .025), 0 0 0 6rem rgb(36 84 66 / .018); pointer-events: none; }
+    .chart-matrix-heading { position: relative; display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-5); }
+    .chart-matrix-heading h2 { margin: 0; font-size: clamp(1.5rem, 3vw, 2rem); }
+    .chart-matrix-heading p:not(.panel-overline) { max-inline-size: 42rem; margin: .5rem 0 0; color: var(--ink-soft); font-size: var(--text-sm); }
+    .chart-layer-controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .45rem; }
+    .chart-layer-controls button { min-height: 2.35rem; padding: .5rem .72rem; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-soft); background: rgb(255 255 255 / .7); font-size: .68rem; font-weight: 760; cursor: pointer; transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast); }
+    .chart-layer-controls button[aria-pressed="true"] { border-color: var(--indigo); color: white; background: var(--indigo); box-shadow: 0 5px 14px rgb(36 84 66 / .16); }
+    .hide-layer--ten-gods [data-layer="ten-gods"], .hide-layer--hidden [data-layer="hidden"], .hide-layer--stages [data-layer="stages"], .hide-layer--stars [data-layer="stars"] { display: none !important; }
+
     .pillars {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: clamp(.75rem, 2vw, 1.25rem);
-      margin-block: clamp(2rem, 5vw, 4rem);
+      margin-block: clamp(1.5rem, 4vw, 2.5rem);
     }
     .pillar {
       position: relative;
       display: flex;
       min-width: 0;
-      min-height: 23rem;
+      min-height: 0;
       flex-direction: column;
-      justify-content: space-between;
-      gap: var(--space-5);
+      justify-content: flex-start;
+      gap: .8rem;
       overflow: hidden;
       padding: clamp(1rem, 2.5vw, 1.5rem);
       border: 1px solid color-mix(in srgb, var(--pillar-color, var(--ink)) 20%, var(--line));
@@ -743,7 +888,9 @@ const strings = {
       border: 1px solid color-mix(in srgb, var(--pillar-color, var(--ink)) 25%, transparent);
       border-radius: 50%;
     }
-    .pillar:hover { transform: translateY(-5px); border-color: color-mix(in srgb, var(--pillar-color, var(--ink)) 38%, var(--line)); box-shadow: 0 24px 55px rgb(35 53 44 / .14); }
+    .pillar:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--pillar-color, var(--ink)) 38%, var(--line)); box-shadow: 0 24px 55px rgb(35 53 44 / .14); }
+    .pillar--day { border-color: color-mix(in srgb, var(--indigo) 48%, var(--line)); box-shadow: 0 18px 48px rgb(36 84 66 / .16), inset 0 0 0 1px rgb(36 84 66 / .08); }
+    .pillar--day::before { block-size: .58rem; background: linear-gradient(90deg, var(--indigo), #3e8b6c); }
     .pillar-top { display: flex; min-height: 2rem; align-items: center; justify-content: space-between; gap: var(--space-2); }
     .pillar-label { color: var(--ink-soft); font-size: var(--text-sm); font-weight: 750; }
     .ten-god {
@@ -761,9 +908,34 @@ const strings = {
       white-space: nowrap;
     }
     .glyph-stack { display: grid; justify-items: center; align-content: center; }
-    .pillar-glyph { font-family: var(--font-display); font-size: clamp(3.7rem, 7vw, 5.2rem); font-weight: 700; line-height: .95; }
-    .glyph-bridge { inline-size: 1px; block-size: 1.25rem; margin-block: .45rem; background: linear-gradient(var(--pillar-color), transparent); opacity: .38; }
-    .pillar-bottom { display: grid; justify-items: center; gap: .35rem; text-align: center; }
+    .matrix-glyph-label { margin-block: .28rem; color: var(--ink-soft); font-family: var(--font-body); font-size: .62rem; font-weight: 760; }
+    .pillar-glyph { font-family: var(--font-display); font-size: clamp(3.2rem, 5.5vw, 4.5rem); font-weight: 700; line-height: .95; }
+    .glyph-tile { display: grid; inline-size: clamp(4.5rem, 7.5vw, 6rem); aspect-ratio: 1; place-items: center; border: 1px solid color-mix(in srgb, currentColor 30%, var(--line)); border-radius: clamp(.8rem, 2vw, 1.2rem); box-shadow: inset 0 0 0 .25rem rgb(255 255 255 / .45), 0 8px 18px rgb(35 53 44 / .08); }
+    .glyph-bridge { inline-size: 1px; block-size: .8rem; margin-block: .25rem; background: linear-gradient(var(--pillar-color), transparent); opacity: .38; }
+    .pillar-layer { position: relative; z-index: 1; min-width: 0; border: 1px solid var(--line); border-radius: .78rem; background: rgb(255 255 255 / .62); }
+    .pillar-hidden-layer { padding: .55rem; }
+    .pillar-hidden-layer > b { display: block; margin-bottom: .45rem; color: var(--ink-soft); font-size: .62rem; }
+    .pillar-hidden-layer > div { display: grid; gap: .3rem; }
+    .pillar-hidden-layer span { display: grid; grid-template-columns: 2.25rem auto 1fr; align-items: center; gap: .38rem; padding: .3rem .4rem; border-radius: .5rem; background: color-mix(in srgb, var(--paper-sunken) 60%, white); }
+    .pillar-hidden-layer small { color: var(--ink-soft); font-size: .55rem; }
+    .pillar-hidden-layer strong { font-family: var(--font-display); font-size: 1.05rem; }
+    .pillar-hidden-layer i { overflow: hidden; color: var(--ink-soft); font-size: .58rem; font-style: normal; font-weight: 720; text-overflow: ellipsis; white-space: nowrap; }
+    .pillar-stage-layer { display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; }
+    .pillar-stage-layer span { display: grid; gap: .2rem; padding: .55rem .35rem; text-align: center; }
+    .pillar-stage-layer span + span { border-inline-start: 1px solid var(--line); }
+    .pillar-stage-layer small, .pillar-nayin-layer small { color: var(--ink-soft); font-size: .55rem; }
+    .pillar-stage-layer strong { color: var(--indigo); font-size: .72rem; }
+    .pillar-nayin-layer { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: .2rem .5rem; padding: .55rem .65rem; }
+    .pillar-nayin-layer small { grid-column: 1 / -1; }
+    .pillar-nayin-layer strong { font-family: var(--font-display); font-size: .82rem; }
+    .pillar-nayin-layer span { color: var(--ink-soft); font-size: .58rem; font-weight: 700; }
+    .pillar-star-layer { display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; }
+    .pillar-star-layer > div { display: grid; gap: .18rem; padding: .5rem .35rem; text-align: center; }
+    .pillar-star-layer > div + div { border-inline-start: 1px solid var(--line); }
+    .pillar-star-layer span { color: var(--ink-soft); font-size: .55rem; }
+    .pillar-star-layer strong { color: #8d4b31; font-size: .65rem; }
+    .pillar-star-layer p { grid-column: 1 / -1; margin: 0; padding: .5rem; border-top: 1px solid var(--line); color: var(--indigo); font-size: .58rem; font-weight: 720; line-height: 1.45; text-align: center; }
+    .pillar-bottom { display: grid; justify-items: center; gap: .35rem; margin-top: auto; text-align: center; }
     .pillar-bottom > strong { font-family: var(--font-display); font-size: var(--text-lg); }
     .element-pair {
       display: flex;
@@ -779,6 +951,12 @@ const strings = {
     .element-dot { display: inline-block; flex: 0 0 auto; inline-size: .55rem; block-size: .55rem; border-radius: 50%; }
     .pillar-empty { align-items: center; justify-content: flex-start; }
     .pillar-empty .hint { margin: auto; text-align: center; }
+
+    .chart-facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .6rem; }
+    .chart-facts article { position: relative; display: grid; min-height: 5.4rem; align-content: center; gap: .3rem; overflow: hidden; padding: .75rem .85rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: rgb(255 255 255 / .64); }
+    .chart-facts article > span { position: absolute; inset: auto .35rem -.55rem auto; color: rgb(36 84 66 / .07); font-family: var(--font-display); font-size: 3.5rem; line-height: 1; }
+    .chart-facts small { position: relative; color: var(--ink-soft); font-size: .6rem; font-weight: 750; }
+    .chart-facts strong { position: relative; overflow-wrap: anywhere; font-size: .75rem; line-height: 1.4; }
 
     .element-text--wood { color: var(--el-wood); }
     .element-text--fire { color: var(--el-fire); }
@@ -900,7 +1078,9 @@ const strings = {
     .hidden-chip > span { overflow: hidden; font-size: .68rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 
     .analysis-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); }
-    .relation-list, .shinsal-list { display: grid; gap: .65rem; }
+    .relation-section + .relation-section { margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--line); }
+    .relation-section h3 { margin: 0 0 .7rem; color: var(--ink-soft); font-size: .7rem; }
+    .relation-list, .shinsal-list, .harmony-list { display: grid; gap: .65rem; }
     .relation-item { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: .65rem; padding: .7rem .8rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: rgb(255 255 255 / .58); }
     .relation-item strong { font-family: var(--font-display); font-size: var(--text-lg); }
     .relation-item small { color: var(--ink-soft); font-size: .68rem; text-align: end; }
@@ -909,6 +1089,15 @@ const strings = {
     .relation-badge--clash { color: #9f3226; background: #ffebe5; }
     .relation-badge--break { color: #725b17; background: #f7f0d7; }
     .relation-badge--harm { color: #514683; background: #ede9f8; }
+    .relation-badge--combination { color: #1f6048; background: #e2f1e9; }
+    .relation-badge--halfHarmony, .relation-badge--seasonalHarmony { color: #2c5772; background: #e4f0f5; }
+    .relation-badge--grudge, .relation-badge--ghostGate { color: #6c456f; background: #f0e7f1; }
+    .harmony-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .harmony-item { display: grid; gap: .25rem; padding: .75rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: rgb(255 255 255 / .58); }
+    .harmony-item > span { color: var(--ink-soft); font-size: .6rem; font-weight: 750; }
+    .harmony-item strong { color: var(--indigo); font-family: var(--font-display); font-size: 1.15rem; }
+    .harmony-item small { color: var(--ink-soft); font-size: .62rem; }
+    .harmony-item--complete { border-color: color-mix(in srgb, var(--indigo) 32%, var(--line)); background: color-mix(in srgb, var(--jade-pale) 45%, white); }
     .shinsal-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .shinsal-item { display: grid; gap: .25rem; padding: .8rem; border: 1px solid color-mix(in srgb, var(--indigo) 16%, var(--line)); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--jade-pale) 48%, white); }
     .shinsal-item strong { color: var(--indigo); font-family: var(--font-display); }
@@ -927,6 +1116,7 @@ const strings = {
     .luck-card small { color: var(--ink-soft); font-family: var(--font-mono); font-size: .65rem; }
     .luck-card strong { font-family: var(--font-display); font-size: 2rem; line-height: 1; }
     .luck-card span { max-width: 100%; overflow: hidden; color: var(--ink-soft); font-size: .65rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .luck-card em { padding: .2rem .42rem; border-radius: 999px; color: var(--indigo); background: var(--jade-pale); font-size: .58rem; font-style: normal; font-weight: 760; }
     .luck-card i { position: absolute; inset: .45rem .45rem auto auto; display: grid; min-inline-size: 1.25rem; block-size: 1.25rem; place-items: center; border-radius: 50%; color: white; background: var(--vermilion); font-family: var(--font-mono); font-size: .58rem; font-style: normal; }
     .luck-detail { display: grid; grid-template-columns: minmax(7rem, .62fr) repeat(3, minmax(0, 1fr)); gap: 1px; overflow: hidden; margin-top: var(--space-4); border: 1px solid var(--line); border-radius: var(--radius); background: var(--line); }
     .luck-detail > div { min-width: 0; padding: var(--space-4); background: rgb(255 255 255 / .84); }
@@ -934,6 +1124,8 @@ const strings = {
     .luck-detail__pillar small { color: var(--ink-soft); font-family: var(--font-mono); font-size: .65rem; }
     .luck-detail__pillar strong { font-family: var(--font-display); font-size: 2.6rem; line-height: 1; }
     .luck-detail__pillar > span { color: var(--ink-soft); font-size: .7rem; font-weight: 750; }
+    .luck-cycle-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: .3rem; margin-top: .35rem; }
+    .luck-cycle-meta b { padding: .24rem .38rem; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-soft); background: rgb(255 255 255 / .68); font-size: .54rem; font-weight: 720; }
     .luck-detail__group h3 { margin: 0 0 .7rem; color: var(--ink-soft); font-size: .7rem; }
     .hidden-inline, .detail-badges { display: flex; flex-wrap: wrap; gap: .4rem; }
     .hidden-inline .hidden-chip { grid-template-columns: auto auto; flex: 1 1 5rem; padding: .38rem .45rem; }
@@ -971,9 +1163,11 @@ const strings = {
     }
 
     @media (max-width: 900px) {
+      .chart-matrix-heading { align-items: flex-start; flex-direction: column; }
+      .chart-layer-controls { justify-content: flex-start; }
       .pillars { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .pillar { min-height: 20rem; }
-      .pillar-glyph { font-size: clamp(3.4rem, 12vw, 5rem); }
+      .pillar-glyph { font-size: clamp(3.4rem, 9vw, 4.8rem); }
+      .chart-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .insight-grid { grid-template-columns: 1fr; }
       .element-dashboard { grid-template-columns: 1fr; }
       .radar-wrap { max-inline-size: 30rem; inline-size: 100%; margin-inline: auto; }
@@ -986,11 +1180,15 @@ const strings = {
       .result-hero { padding: 2rem 1.35rem 2.4rem; }
       .result-kicker { font-size: .66rem; }
       .birth-summary { align-items: flex-start; border-radius: var(--radius-sm); font-size: .7rem; line-height: 1.5; }
-      .pillars { gap: .7rem; margin-block: var(--space-8); }
-      .pillar { min-height: 17.5rem; padding: 1rem .75rem; border-radius: var(--radius); }
+      .chart-matrix-panel { padding-inline: 1rem; }
+      .chart-layer-controls { flex-wrap: nowrap; inline-size: calc(100% + 2rem); overflow-x: auto; margin-inline: -1rem; padding-inline: 1rem; scrollbar-width: none; }
+      .chart-layer-controls::-webkit-scrollbar { display: none; }
+      .chart-layer-controls button { flex: 0 0 auto; }
+      .pillars { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(14.5rem, 78vw); gap: .7rem; overflow-x: auto; margin-inline: -1rem; padding: .25rem 1rem 1rem; scroll-snap-type: x mandatory; scrollbar-width: thin; }
+      .pillar { padding: 1rem .75rem; border-radius: var(--radius); scroll-snap-align: center; }
       .pillar-label { font-size: var(--text-xs); }
       .ten-god { max-inline-size: 62%; padding-inline: .42rem; font-size: .64rem; }
-      .pillar-glyph { font-size: clamp(3rem, 17vw, 4.2rem); }
+      .pillar-glyph { font-size: clamp(3rem, 15vw, 4.2rem); }
       .pillar-bottom > strong { font-size: var(--text-base); }
       .element-pair { flex-wrap: wrap; font-size: .6rem; }
       .panel { padding: 1.25rem; }
@@ -1013,6 +1211,7 @@ const strings = {
       .hidden-pillar > div { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .hidden-chip { grid-template-columns: 1fr; justify-items: center; text-align: center; }
       .shinsal-list { grid-template-columns: 1fr; }
+      .harmony-list { grid-template-columns: 1fr; }
       .relation-item { grid-template-columns: auto auto; }
       .relation-item small { grid-column: 1 / -1; text-align: start; }
       .luck-strip { margin-inline: -1.25rem; padding-inline: 1.25rem; }
@@ -1023,9 +1222,7 @@ const strings = {
       .actions > * { flex: 1 1 10rem; }
     }
     @media (max-width: 390px) {
-      .pillar { min-height: 16.5rem; }
       .pillar-glyph { font-size: 2.85rem; }
-      .element-pair { display: none; }
       .tengods tbody { grid-template-columns: 1fr; }
     }
   </style>

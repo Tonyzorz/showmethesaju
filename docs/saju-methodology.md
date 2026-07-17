@@ -51,15 +51,44 @@ The result detects all pairwise natal relations and repeats the comparison for e
 
 Pairwise display means a three-branch punishment can appear before all three members are present. Interpretation should consider the complete chart.
 
+The detailed result also reports:
+
+- Six Combination, half of a Three Harmony, and pairs inside a seasonal Directional Combination.
+- Wonjin (grudge) and Ghost Gate pairs as separate traditional reference layers.
+- The five Heavenly-Stem combinations and the four commonly used opposing stem pairs.
+- Complete and partial Three Harmony and Directional Combination groups. A group is complete only when all three distinct branches are present; duplicate branches do not complete it.
+
+Several relation types can legitimately apply to the same pair. The UI therefore keeps every matched type instead of choosing one label.
+
+## Twelve Life Stages
+
+The chart displays two rows because Korean Manseryeok products commonly expose both conventions:
+
+- **Day-stem basis:** the natal day stem is applied to every pillar branch.
+- **Pillar-stem basis:** each pillar's own stem is applied to its branch.
+
+Yang stems advance from Changsheng and yin stems run in reverse. The sequence is Changsheng, Bath, Attire, Office, Peak, Decline, Illness, Death, Tomb, Extinction, Conception, and Nurture. For example, the reference chart `癸未 · 乙亥 · 辛亥 · 丁卯` produces pillar-stem stages `養 · 死 · 沐浴 · 病` from hour through year.
+
+## Nayin Five Elements
+
+Each valid stem-branch pillar maps to one of the traditional thirty Nayin pairs. The implementation stores the complete 60-pillar table as thirty adjacent pairs and shows the classical Chinese name. Korean also shows its Korean reading; other languages show the resulting Five Element so the untranslated proper name remains identifiable.
+
+## Void, month commander, and Heavenly Noble branches
+
+- Day-pillar and year-pillar Void branches are calculated independently from their ten-day xun.
+- Month commander is the main qi (the final hidden stem in the Korean residual-middle-main ordering) of the month branch, with its Ten God relative to the day stem.
+- Heavenly Noble branches are shown from the day-stem table even when neither branch appears in the natal four pillars.
+
 ## Shinsal
 
-The first release includes six widely used markers:
+The chart separates two related layers:
 
-- Cheon-eul Nobleman and Munchang use the day stem.
-- Peach Blossom, Traveling Horse, and Flower Canopy use both the day-branch and year-branch trine groups.
-- Gongmang uses the ten-day xun containing the day pillar.
+1. The full Twelve Shinsal sequence is calculated twice for every natal or luck branch: once from the year-branch trine group and once from the day-branch trine group. The sequence from Robbery is Robbery, Calamity, Heaven, Land, Year, Month, Loss, General, Saddle, Traveling Horse, Six Harm, and Flower Canopy.
+2. Supplementary markers include Cheon-eul Nobleman, Munchang, Peach Blossom, Traveling Horse, Flower Canopy, Gongmang, Heavenly Virtue, Monthly Virtue, Yang Blade, Prosperity, Needle Star, Solitary Phoenix, White Tiger, and Strong Leader.
 
-Shinsal naming and bases vary more than the core pillar arithmetic, so the UI labels these as reference indicators rather than deterministic conclusions.
+Cheon-eul Nobleman and Munchang use the day stem. Peach Blossom, Traveling Horse, and Flower Canopy use both day-branch and year-branch trine groups. Gongmang uses the day-pillar xun. Heavenly and Monthly Virtue use the natal month branch; Yang Blade and Prosperity use the day stem; the remaining pillar-specific markers use explicit traditional stem, branch, or sexagenary-pillar sets.
+
+Shinsal tables and names vary more by school than the core pillar arithmetic. These are deliberately presented as filterable reference indicators, never as deterministic predictions. The exact implemented tables are pinned by automated fixtures so later changes must be intentional.
 
 ## Seun (annual cycles)
 
@@ -71,4 +100,4 @@ Annual pillars follow the sexagenary year beginning at each Ipchun. The selected
 - ILI Korean Myeongri lecture material used for Daeun direction, Jie-distance conversion, and Korean hidden-stem convention: https://www.ili.or.kr/upfiledata/Board/%EB%AA%85%EB%A6%AC%EC%8B%AC%EB%A6%AC%EC%83%81%EB%8B%B4%EC%82%AC_%EC%A0%84%EC%A0%95%ED%9B%88_%EA%B0%95%EC%9D%98%EA%B5%90%EC%95%88%EB%AA%A8%EC%9D%8C%5B1%5D.pdf
 - `만세력 천을귀인` was used as a feature-coverage reference, not as a copied calculation source: https://play.google.com/store/apps/details?id=com.gooddaytoday.mynobleman
 
-The automated validation suite pins representative hidden-stem tables, relation pairs, Shinsal rules, opposite Daeun directions by gender, and known annual pillars.
+The automated validation suite pins representative hidden-stem tables, branch and stem relations, both Twelve Life Stage conventions, Nayin pairs, Void and Heavenly Noble branches, Twelve Shinsal rules, supplementary Shinsal, opposite Daeun directions by gender, known annual pillars, and the `1987-11-22 14:30` reference chart shown in the product brief.

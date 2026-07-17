@@ -5,12 +5,17 @@ import { fileURLToPath } from 'node:url';
 import KoreanLunarCalendar from 'korean-lunar-calendar';
 import {
   branchRelationTypes,
+  cheonEulBranchesForDayStem,
   computeAnnualLuck,
   computeSaju,
   hiddenStemsForBranch,
   ipchunUtcMs,
+  nayinForPillar,
   shinsalNamesForBranch,
   sunApparentLongitude,
+  twelveShinsalForBranch,
+  twelveStageForStemBranch,
+  voidBranchesForPillar,
 } from '../src/lib/saju-engine.ts';
 import { CITIES, tzOffsetMinutes } from '../src/lib/cities.ts';
 import { TERMS } from '../src/lib/glossary.ts';
@@ -81,8 +86,28 @@ assert.deepEqual(hiddenStemsForBranch(6, 0).map((item) => item.stemHanja), ['丙
 assert.ok(branchRelationTypes(0, 6).includes('clash'), '子午 should form a clash.');
 assert.ok(branchRelationTypes(2, 5).includes('punishment') && branchRelationTypes(2, 5).includes('harm'), '寅巳 should form punishment and harm.');
 assert.ok(branchRelationTypes(5, 8).includes('punishment') && branchRelationTypes(5, 8).includes('break'), '巳申 should form punishment and break.');
+assert.ok(branchRelationTypes(5, 8).includes('combination'), '巳申 should also form a Six Combination.');
+assert.ok(branchRelationTypes(11, 3).includes('halfHarmony'), '亥卯 should be recognized as a trine-group half combination.');
 assert.ok(shinsalNamesForBranch(0, 0, 4, 1).includes('cheonEul'), '甲 day should recognize 丑 as 천을귀인.');
 assert.ok(shinsalNamesForBranch(0, 0, 4, 11).includes('gongMang'), '甲子 day should recognize 戌亥 공망.');
+assert.equal(twelveStageForStemBranch(1, 7), 'nurture', '乙 over 未 should be 养 in the day-stem Twelve Stages.');
+assert.equal(twelveStageForStemBranch(1, 11), 'death', '乙 over 亥 should be 死.');
+assert.equal(twelveStageForStemBranch(7, 11), 'bath', '辛亥 should be 沐浴 by the pillar-stem method.');
+assert.equal(nayinForPillar(9, 7).hanja, '楊柳木', '癸未 Naeum should be 楊柳木.');
+assert.equal(nayinForPillar(7, 11).hanja, '釵釧金', '辛亥 Naeum should be 釵釧金.');
+assert.deepEqual(voidBranchesForPillar(3, 3), [10, 11], '丁卯 year pillar should have 戌亥 void.');
+assert.deepEqual(voidBranchesForPillar(1, 11), [8, 9], '乙亥 day pillar should have 申酉 void.');
+assert.deepEqual(cheonEulBranchesForDayStem(1), [0, 8], '乙 day stem should have 子申 as Cheon-eul branches.');
+assert.equal(twelveShinsalForBranch(3, 7), 'canopy', '亥卯未 basis should assign 未 as Flower Canopy.');
+assert.equal(twelveShinsalForBranch(3, 11), 'land', '亥卯未 basis should assign 亥 as Land Star.');
+assert.equal(twelveShinsalForBranch(3, 3), 'general', '亥卯未 basis should assign 卯 as General Star.');
+
+const referenceChart = computeSaju({ year: 1987, month: 11, day: 22, hour: 14, minute: 30, gender: 'female', tzOffsetMinutes: 540, longitude: 127.5, useTrueSolarTime: true });
+assert.deepEqual([referenceChart.hour?.hanja, referenceChart.day.hanja, referenceChart.month.hanja, referenceChart.year.hanja], ['癸未', '乙亥', '辛亥', '丁卯'], 'Reference screenshot pillars should match after longitude correction.');
+assert.ok(referenceChart.shinsal.some((item) => item.name === 'cheonDeok' && item.targetRole === 'day'), '亥 month should place Cheon-deok on 乙 day stem.');
+assert.ok(referenceChart.shinsal.some((item) => item.name === 'hyeonChim' && item.targetRole === 'month'), '辛 month stem should mark Hyeonchim.');
+assert.ok(referenceChart.shinsal.some((item) => item.name === 'goRan' && item.targetRole === 'month'), '辛亥 month pillar should mark Goran under the selected convention.');
+assert.ok(referenceChart.shinsal.some((item) => item.name === 'geonRok' && item.targetRole === 'year'), '乙 day stem should mark 卯 as Geonrok.');
 
 const yangYearMale = computeSaju({ year: 2024, month: 7, day: 2, hour: 12, gender: 'male', tzOffsetMinutes: 540 });
 const yangYearFemale = computeSaju({ year: 2024, month: 7, day: 2, hour: 12, gender: 'female', tzOffsetMinutes: 540 });
