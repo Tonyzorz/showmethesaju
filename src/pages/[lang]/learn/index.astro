@@ -1,0 +1,12 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { LOCALES } from '../../../i18n/locales';
+import { t } from '../../../i18n/t';
+export function getStaticPaths() { return LOCALES.map((l) => ({ params: { lang: l.code } })); }
+const { lang } = Astro.params;
+---
+<Base lang={lang} title={t(lang, 'meta.learn.title')} path="learn">
+  <h1>{t(lang, 'nav.learn')}</h1>
+  <!-- Phase 5: replace with a content collection (see PLAN.md §6.3). -->
+  <p style="color: var(--ink-soft);">Articles coming soon. First up: your Day Master, saju vs astrology, and why Koreans check gunghap.</p>
+</Base>

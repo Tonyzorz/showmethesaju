@@ -1,0 +1,199 @@
+---
+import Base from '../../layouts/Base.astro';
+import { LOCALES } from '../../i18n/locales';
+import { t, ns } from '../../i18n/t';
+
+export function getStaticPaths() {
+  return LOCALES.map((l) => ({ params: { lang: l.code } }));
+}
+const { lang } = Astro.params;
+const strings = { ...ns(lang, 'reading'), cta: t(lang, 'hero.cta'), siteName: t(lang, 'meta.siteName') };
+---
+<Base lang={lang} title={t(lang, 'meta.reading.title')} path="reading" noindex>
+  <script type="application/json" id="i18n-reading" set:html={JSON.stringify(strings)} />
+
+  <section id="result" hidden>
+    <h1>{t(lang, 'reading.yourPillars')}</h1>
+    <p id="boundary-note" class="note" hidden></p>
+    <div id="pillars" class="pillars"></div>
+
+    <div class="panel-grid">
+      <section class="card panel">
+        <h2>{t(lang, 'reading.dayMaster')} <span id="dm-char" class="dm-char"></span></h2>
+        <p id="dm-text"></p>
+      </section>
+      <section class="card panel">
+        <h2>{t(lang, 'reading.elements')}</h2>
+        <div id="element-bars" class="element-bars"></div>
+      </section>
+    </div>
+
+    <section class="card panel">
+      <h2>{t(lang, 'reading.tenGods')}</h2>
+      <table id="tengods" class="tengods"></table>
+    </section>
+
+    <div class="actions">
+      <button id="share-url" class="btn-secondary" type="button">{t(lang, 'reading.share')}</button>
+      <button id="share-png" class="btn-primary" type="button">PNG ↓</button>
+      <a class="btn-secondary" href={`/${lang}/learn/`}>{t(lang, 'reading.learnMore')}</a>
+    </div>
+    <p class="disclaimer">Saju is a tradition of self-reflection — not medical, financial, or legal advice.</p>
+  </section>
+
+  <section id="no-query" hidden>
+    <h1>{t(lang, 'reading.yourPillars')}</h1>
+    <p><a class="btn-primary" href={`/${lang}/`}>{t(lang, 'hero.cta')}</a></p>
+  </section>
+
+  <script>
+    import { computeSaju, type Pillar, type SajuResult } from '../../lib/saju-engine';
+
+    const S: Record<string, string> = JSON.parse(document.getElementById('i18n-reading')!.textContent!);
+    const q = new URLSearchParams(location.search);
+    const lang = document.documentElement.lang.toLowerCase();
+
+    if (!q.has('y')) {
+      document.getElementById('no-query')!.hidden = false;
+    } else {
+      const timeUnknown = q.get('tu') === '1';
+      const res: SajuResult = computeSaju({
+        year: +q.get('y')!, month: +q.get('m')!, day: +q.get('d')!,
+        hour: +q.get('h')!, minute: +q.get('mi')!,
+        timeUnknown,
+        tzOffsetMinutes: +q.get('tz')!,
+        longitude: +q.get('lon')!,
+        useTrueSolarTime: q.get('ts') === '1',
+      });
+      render(res, timeUnknown);
+      document.getElementById('result')!.hidden = false;
+    }
+
+    function pillarCard(p: Pillar | null, label: string, i: number): string {
+      if (!p) return `<div class="pillar reveal" style="--reveal-i:${i}"><span class="reading">${label}</span><p class="hint">${S['hourUnknown']}</p></div>`;
+      const tg = p.tenGod ? `<span class="reading">${p.tenGod}</span>` : '<span class="reading">日主</span>';
+      return `<div class="pillar pillar--${p.stemElement} reveal" style="--reveal-i:${i}">
+        <span class="reading">${label}</span>
+        <span class="hanja" lang="ko">${p.stemHanja}${p.branchHanja}</span>
+        <span class="reading">${p.stemKo}${p.branchKo}</span>${tg}
+      </div>`;
+    }
+
+    function render(r: SajuResult, timeUnknown: boolean) {
+      // Pillars, traditional right-to-left order: 시 일 월 년 — but web reading order wins: hour…year reversed.
+      document.getElementById('pillars')!.innerHTML = [
+        pillarCard(r.hour, S['pillarHour'], 0),
+        pillarCard(r.day, S['pillarDay'], 1),
+        pillarCard(r.month, S['pillarMonth'], 2),
+        pillarCard(r.year, S['pillarYear'], 3),
+      ].join('');
+
+      // Day master
+      document.getElementById('dm-char')!.textContent = `${r.dayMaster.hanja} (${r.dayMaster.ko})`;
+      document.getElementById('dm-text')!.textContent = S[`dm.${r.day.stem}`] ?? '';
+
+      // Element bars
+      const total = Object.values(r.elementCounts).reduce((a, b) => a + b, 0) || 1;
+      document.getElementById('element-bars')!.innerHTML = (
+        ['wood', 'fire', 'earth', 'metal', 'water'] as const
+      ).map((el) => {
+        const n = r.elementCounts[el];
+        return `<div class="ebar"><span class="ebar-label">${S[`el.${el}`]}</span>
+          <span class="ebar-track"><span class="ebar-fill" style="width:${(n / total) * 100}%; background: var(--el-${el})"></span></span>
+          <span class="ebar-n">${n}</span></div>`;
+      }).join('');
+
+      // Ten gods table
+      const rows = [
+        [S['pillarHour'], r.hour], [S['pillarDay'], r.day], [S['pillarMonth'], r.month], [S['pillarYear'], r.year],
+      ] as const;
+      document.getElementById('tengods')!.innerHTML =
+        `<thead><tr><th></th><th>天干</th><th>十星</th></tr></thead><tbody>` +
+        rows.map(([label, p]) => p
+          ? `<tr><th scope="row">${label}</th><td lang="ko">${p.stemHanja} ${p.stemKo}</td><td>${p.tenGod ?? '日主'}</td></tr>`
+          : `<tr><th scope="row">${label}</th><td colspan="2">—</td></tr>`
+        ).join('') + `</tbody>`;
+
+      // Term-boundary warning: within ~0.15° of a 30° boundary (≈ a few hours), or time unknown near one.
+      const off = ((r.solarLongitude - 315) % 30 + 30) % 30;
+      if (Math.min(off, 30 - off) < 0.15) {
+        const note = document.getElementById('boundary-note')!;
+        note.textContent = S['termBoundaryNote'];
+        note.hidden = false;
+      }
+
+      // Share: copy URL
+      document.getElementById('share-url')!.addEventListener('click', async (e) => {
+        await navigator.clipboard.writeText(location.href);
+        (e.currentTarget as HTMLElement).textContent = S['shared'];
+      });
+
+      // Share: PNG card (square 1080). Fonts must be loaded before drawing hanja.
+      document.getElementById('share-png')!.addEventListener('click', async () => {
+        await (document as any).fonts?.ready;
+        const c = document.createElement('canvas');
+        c.width = 1080; c.height = 1080;
+        const ctx = c.getContext('2d')!;
+        const css = getComputedStyle(document.documentElement);
+        const v = (n: string) => css.getPropertyValue(n).trim();
+        ctx.fillStyle = v('--paper'); ctx.fillRect(0, 0, 1080, 1080);
+        ctx.fillStyle = v('--ink');
+        ctx.font = '700 56px "Gowun Batang", serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(S['yourPillars'], 540, 130);
+        const ps = [r.year, r.month, r.day, r.hour];
+        ps.forEach((p, i) => {
+          const x = 180 + i * 240;
+          ctx.strokeStyle = v('--line'); ctx.lineWidth = 2;
+          ctx.strokeRect(x - 90, 220, 180, 520);
+          if (!p) return;
+          ctx.fillStyle = v(`--el-${p.stemElement}`);
+          ctx.fillRect(x - 90, 220, 180, 10);
+          ctx.font = '700 110px "Gowun Batang", serif';
+          ctx.fillText(p.stemHanja, x, 400);
+          ctx.fillText(p.branchHanja, x, 560);
+          ctx.fillStyle = v('--ink-soft');
+          ctx.font = '400 34px "IBM Plex Mono", monospace';
+          ctx.fillText(p.stemKo + p.branchKo, x, 660);
+        });
+        // seal
+        ctx.save();
+        ctx.translate(910, 900); ctx.rotate(-0.07);
+        ctx.strokeStyle = v('--vermilion'); ctx.lineWidth = 6;
+        ctx.strokeRect(-70, -70, 140, 140);
+        ctx.fillStyle = v('--vermilion');
+        ctx.font = '700 44px "Gowun Batang", serif';
+        ctx.fillText('쇼미', 0, -8); ctx.fillText('사주', 0, 44);
+        ctx.restore();
+        ctx.fillStyle = v('--ink-soft');
+        ctx.font = '400 30px "IBM Plex Mono", monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText('showmethesaju.com', 60, 1010);
+        const a = document.createElement('a');
+        a.download = 'my-saju.png';
+        a.href = c.toDataURL('image/png');
+        a.click();
+      });
+    }
+  </script>
+
+  <style>
+    .pillars { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); margin-block: var(--space-8); }
+    @media (max-width: 600px) { .pillars { grid-template-columns: repeat(2, 1fr); } }
+    .panel-grid { display: grid; gap: var(--space-4); grid-template-columns: 1fr; }
+    @media (min-width: 800px) { .panel-grid { grid-template-columns: 1fr 1fr; } }
+    .panel { padding: var(--space-6); margin-block-end: var(--space-4); }
+    .dm-char { font-family: var(--font-display); color: var(--indigo); }
+    .element-bars { display: grid; gap: var(--space-2); }
+    .ebar { display: grid; grid-template-columns: 5rem 1fr 2rem; align-items: center; gap: var(--space-2); font-size: var(--text-sm); }
+    .ebar-track { background: var(--paper-sunken); border-radius: 99px; height: 0.75rem; overflow: hidden; display: block; }
+    .ebar-fill { display: block; height: 100%; border-radius: 99px; }
+    .ebar-n { font-family: var(--font-mono); text-align: right; }
+    .tengods { width: 100%; border-collapse: collapse; }
+    .tengods th, .tengods td { text-align: left; padding: var(--space-2); border-bottom: 1px solid var(--line); }
+    .actions { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-block: var(--space-8); }
+    .note { background: var(--paper-sunken); border-left: 4px solid var(--gold); padding: var(--space-3) var(--space-4); border-radius: var(--radius-sm); }
+    .disclaimer { color: var(--ink-soft); font-size: var(--text-xs); }
+    .hint { font-size: var(--text-xs); color: var(--ink-soft); }
+  </style>
+</Base>

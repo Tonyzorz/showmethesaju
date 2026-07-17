@@ -1,0 +1,102 @@
+{
+  "meta": {
+    "siteName": "Show Me the Saju",
+    "home.title": "Show Me the Saju — Your Korean Four Pillars Reading, Free",
+    "home.description": "Discover your saju (사주), the Korean art of the Four Pillars of Destiny. Get your free chart in seconds — no sign-up.",
+    "reading.title": "Your Saju Chart — Show Me the Saju",
+    "learn.title": "Learn Saju — Show Me the Saju",
+    "compat.title": "Saju Compatibility — Show Me the Saju",
+    "about.title": "About — Show Me the Saju"
+  },
+  "nav": {
+    "reading": "Saju Reading",
+    "compatibility": "Compatibility",
+    "learn": "Learn",
+    "about": "About",
+    "language": "Language"
+  },
+  "hero": {
+    "headline": "1,000 years of Korean destiny reading. Yours in 10 seconds.",
+    "sub": "Enter your birth details to reveal your Four Pillars — free, no sign-up.",
+    "cta": "Show me my saju"
+  },
+  "form": {
+    "date": "Date of birth",
+    "time": "Time of birth",
+    "timeUnknown": "I don't know my birth time",
+    "gender": "Gender",
+    "genderF": "Female",
+    "genderM": "Male",
+    "calendar": "Calendar",
+    "solar": "Solar (양력)",
+    "lunar": "Lunar (음력)",
+    "lunarLeap": "Leap month",
+    "place": "Birth city",
+    "trueSolar": "Use true solar time",
+    "trueSolarHint": "Adjusts for your birthplace's longitude (Seoul ≈ −32 min).",
+    "errFuture": "Birth date can't be in the future.",
+    "errLunarRange": "Lunar dates are supported from 1900 to 2050."
+  },
+  "reading": {
+    "yourPillars": "Your Four Pillars",
+    "pillarYear": "Year",
+    "pillarMonth": "Month",
+    "pillarDay": "Day",
+    "pillarHour": "Hour",
+    "hourUnknown": "Hour pillar unavailable without a birth time.",
+    "dayMaster": "Your Day Master",
+    "elements": "Five Elements Balance",
+    "el.wood": "Wood",
+    "el.fire": "Fire",
+    "el.earth": "Earth",
+    "el.metal": "Metal",
+    "el.water": "Water",
+    "tenGods": "Ten Gods",
+    "share": "Copy link to this chart",
+    "shared": "Link copied",
+    "learnMore": "Read about your Day Master",
+    "termBoundaryNote": "You were born near a seasonal boundary — your exact birth time matters. Double-check it for an accurate chart.",
+    "dm.0": "PLACEHOLDER — 甲 Yang Wood day master interpretation (write from original material)",
+    "dm.1": "PLACEHOLDER — 乙 Yin Wood",
+    "dm.2": "PLACEHOLDER — 丙 Yang Fire",
+    "dm.3": "PLACEHOLDER — 丁 Yin Fire",
+    "dm.4": "PLACEHOLDER — 戊 Yang Earth",
+    "dm.5": "PLACEHOLDER — 己 Yin Earth",
+    "dm.6": "PLACEHOLDER — 庚 Yang Metal",
+    "dm.7": "PLACEHOLDER — 辛 Yin Metal",
+    "dm.8": "PLACEHOLDER — 壬 Yang Water",
+    "dm.9": "PLACEHOLDER — 癸 Yin Water"
+  },
+  "explainer": {
+    "title": "What is Saju?",
+    "step1.title": "Four Pillars",
+    "step1.body": "Your birth year, month, day, and hour each form a pillar — two characters drawn from a 60-unit cycle used in Korea for over a millennium.",
+    "step2.title": "Five Elements",
+    "step2.body": "Each character carries an element — wood, fire, earth, metal, or water. Their balance shapes your temperament and tendencies.",
+    "step3.title": "Your Reading",
+    "step3.body": "Interpreting how the pillars interact reveals your strengths, relationships, and timing. Think of it as Korea's answer to the natal chart."
+  },
+  "waitlist": {
+    "title": "AI-powered deep readings are coming.",
+    "body": "Be first to try personalized interpretations in your language.",
+    "email": "Email address",
+    "cta": "Join the waitlist",
+    "done": "You're on the list."
+  },
+  "compat": {
+    "headline": "Gunghap (궁합) — Korean compatibility reading",
+    "body": "For centuries, Korean families checked gunghap before a marriage. Our compatibility engine is in the works.",
+    "cta": "Notify me"
+  },
+  "footer": {
+    "shop": "Amulets & Gemstone Goods",
+    "booking": "Book a live reading",
+    "privacy": "Privacy",
+    "rights": "© {year} Show Me the Saju"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "This path isn't in your destiny. Try the homepage.",
+    "cta": "Back home"
+  }
+}

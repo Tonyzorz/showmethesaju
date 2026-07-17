@@ -1,0 +1,36 @@
+---
+import Base from '../../layouts/Base.astro';
+import { LOCALES } from '../../i18n/locales';
+import { TERMS } from '../../lib/glossary';
+
+export function getStaticPaths() {
+  return LOCALES.map((l) => ({ params: { lang: l.code } }));
+}
+const { lang } = Astro.params;
+const L = lang === 'ko' ? 'ko' : 'en';
+const faqLd = {
+  '@context': 'https://schema.org', '@type': 'FAQPage',
+  mainEntity: TERMS.map((tm) => ({
+    '@type': 'Question', name: `What is ${tm.name.en}?`,
+    acceptedAnswer: { '@type': 'Answer', text: tm.def.en },
+  })),
+};
+---
+<Base lang={lang} title={`Glossary — Show Me the Saju`} description="Every saju term explained: Day Master, Ten Gods, Five Elements, and more." path="glossary">
+  <script type="application/ld+json" set:html={JSON.stringify(faqLd)} />
+  <h1>Glossary</h1>
+  <div class="terms">
+    {TERMS.map((tm) => (
+      <article class="card term" id={tm.key}>
+        <h2>{tm.name[L]} <span class="meta" lang="ko">{tm.hanja}</span> <span class="meta">{tm.roman}</span></h2>
+        <p>{tm.def[L]}</p>
+      </article>
+    ))}
+  </div>
+  <style>
+    .terms { display: grid; gap: var(--space-4); grid-template-columns: 1fr; max-width: var(--container-text); }
+    .term { padding: var(--space-6); }
+    .term h2 { margin-top: 0; font-size: var(--text-lg); }
+    .meta { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--ink-soft); font-weight: 400; margin-inline-start: var(--space-2); }
+  </style>
+</Base>

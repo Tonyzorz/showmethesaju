@@ -1,0 +1,10 @@
+---
+import Base from '../layouts/Base.astro';
+import { t } from '../i18n/t';
+const lang = 'en';
+---
+<Base lang={lang} title={t(lang, 'notFound.title')} path="404" noindex>
+  <h1>{t(lang, 'notFound.title')}</h1>
+  <p>{t(lang, 'notFound.body')}</p>
+  <a class="btn-primary" href="/en/">{t(lang, 'notFound.cta')}</a>
+</Base>

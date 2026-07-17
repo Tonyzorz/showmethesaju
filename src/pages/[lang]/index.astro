@@ -1,0 +1,161 @@
+---
+import Base from '../../layouts/Base.astro';
+import { LOCALES } from '../../i18n/locales';
+import { t } from '../../i18n/t';
+import { CITIES } from '../../lib/cities';
+
+export function getStaticPaths() {
+  return LOCALES.map((l) => ({ params: { lang: l.code } }));
+}
+const { lang } = Astro.params;
+---
+<Base lang={lang} title={t(lang, 'meta.home.title')} description={t(lang, 'meta.home.description')} path="">
+  <section class="hero">
+    <div class="hero-copy">
+      <h1>{t(lang, 'hero.headline')}</h1>
+      <p class="hero-sub">{t(lang, 'hero.sub')}</p>
+      <p class="trust-line">Free · No sign-up · Your birth data never leaves your device</p>
+    </div>
+
+    <form id="birth-form" class="card birth-form" data-lang={lang}
+      data-err-future={t(lang, 'form.errFuture')} data-err-lunar={t(lang, 'form.errLunarRange')}>
+      <div class="grid">
+        <label>{t(lang, 'form.date')}
+          <input class="field" type="date" name="date" required max="2030-12-31" />
+        </label>
+        <label>{t(lang, 'form.time')}
+          <input class="field" type="time" name="time" value="12:00" />
+        </label>
+      </div>
+      <label class="check"><input type="checkbox" name="timeUnknown" /> {t(lang, 'form.timeUnknown')}</label>
+
+      <div class="grid">
+        <fieldset>
+          <legend>{t(lang, 'form.calendar')}</legend>
+          <label class="check"><input type="radio" name="cal" value="solar" checked /> {t(lang, 'form.solar')}</label>
+          <label class="check"><input type="radio" name="cal" value="lunar" /> {t(lang, 'form.lunar')}</label>
+          <label class="check lunar-only" hidden><input type="checkbox" name="leap" /> {t(lang, 'form.lunarLeap')}</label>
+        </fieldset>
+        <fieldset>
+          <legend>{t(lang, 'form.gender')}</legend>
+          <label class="check"><input type="radio" name="gender" value="f" checked /> {t(lang, 'form.genderF')}</label>
+          <label class="check"><input type="radio" name="gender" value="m" /> {t(lang, 'form.genderM')}</label>
+        </fieldset>
+      </div>
+
+      <label>{t(lang, 'form.place')}
+        <select class="field" name="city">
+          <option value="">— {t(lang, 'form.place')} (auto) —</option>
+          {CITIES.map((c) => <option value={c.tz} data-lon={c.lon}>{c.name}</option>)}
+        </select>
+      </label>
+
+      <details class="advanced">
+        <summary>Advanced</summary>
+        <label class="check"><input type="checkbox" name="trueSolar" /> {t(lang, 'form.trueSolar')}</label>
+        <p class="hint">{t(lang, 'form.trueSolarHint')}</p>
+      </details>
+
+      <p class="form-error" role="alert" hidden></p>
+      <button class="btn-primary" type="submit">{t(lang, 'hero.cta')}</button>
+    </form>
+  </section>
+
+  <section class="explainer">
+    <h2>{t(lang, 'explainer.title')}</h2>
+    <div class="steps">
+      {[1, 2, 3].map((i) => (
+        <div class="card step">
+          <h3>{t(lang, `explainer.step${i}.title`)}</h3>
+          <p>{t(lang, `explainer.step${i}.body`)}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="card waitlist">
+    <h2>{t(lang, 'waitlist.title')}</h2>
+    <p>{t(lang, 'waitlist.body')}</p>
+    <!-- TODO: replace action with your Formspree/Buttondown endpoint -->
+    <form action="https://formspree.io/f/REPLACE_ME" method="POST" class="waitlist-form">
+      <label class="visually-hidden" for="wl-email">{t(lang, 'waitlist.email')}</label>
+      <input id="wl-email" class="field" type="email" name="email" placeholder={t(lang, 'waitlist.email')} required />
+      <button class="btn-secondary" type="submit">{t(lang, 'waitlist.cta')}</button>
+    </form>
+  </section>
+
+  <script>
+    import KoreanLunarCalendar from 'korean-lunar-calendar';
+    import { tzOffsetMinutes } from '../../lib/cities';
+
+    const form = document.getElementById('birth-form') as HTMLFormElement;
+    const lunarOnly = form.querySelector('.lunar-only') as HTMLElement;
+    const errEl = form.querySelector('.form-error') as HTMLElement;
+
+    form.querySelectorAll('input[name="cal"]').forEach((r) =>
+      r.addEventListener('change', () => {
+        lunarOnly.hidden = (form.elements.namedItem('cal') as RadioNodeList).value !== 'lunar';
+      })
+    );
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      errEl.hidden = true;
+      const f = new FormData(form);
+      let [y, m, d] = String(f.get('date')).split('-').map(Number);
+      const timeUnknown = f.get('timeUnknown') === 'on';
+      const [h, mi] = timeUnknown ? [12, 0] : String(f.get('time') || '12:00').split(':').map(Number);
+
+      if (new Date(y, m - 1, d) > new Date()) { errEl.textContent = form.dataset.errFuture!; errEl.hidden = false; return; }
+
+      // Lunar → solar conversion happens here, once, at the input layer.
+      if (f.get('cal') === 'lunar') {
+        if (y < 1900 || y > 2050) { errEl.textContent = form.dataset.errLunar!; errEl.hidden = false; return; }
+        try {
+          const cal = new KoreanLunarCalendar();
+          cal.setLunarDate(y, m, d, f.get('leap') === 'on');
+          const s = cal.getSolarCalendar();
+          y = s.year; m = s.month; d = s.day;
+        } catch { errEl.textContent = form.dataset.errLunar!; errEl.hidden = false; return; }
+      }
+
+      const citySel = form.elements.namedItem('city') as HTMLSelectElement;
+      const tz = citySel.value || Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const lon = citySel.value ? Number(citySel.selectedOptions[0].dataset.lon) : 126.98;
+      const tzMin = tzOffsetMinutes(tz, y, m, d, h, mi);
+
+      const q = new URLSearchParams({
+        y: String(y), m: String(m), d: String(d),
+        h: String(h), mi: String(mi),
+        tu: timeUnknown ? '1' : '0',
+        tz: String(tzMin), lon: String(lon),
+        ts: f.get('trueSolar') === 'on' ? '1' : '0',
+        g: String(f.get('gender')),
+      });
+      location.href = `/${form.dataset.lang}/reading/?${q}`;
+    });
+  </script>
+
+  <style>
+    .hero { display: grid; gap: var(--space-8); grid-template-columns: 1fr; margin-block-end: var(--space-16); }
+    @media (min-width: 860px) { .hero { grid-template-columns: 1.1fr 1fr; align-items: start; } }
+    .hero h1 { font-size: var(--text-hero); margin: 0 0 var(--space-4); }
+    .hero-sub { font-size: var(--text-lg); color: var(--ink-soft); }
+    .trust-line { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: var(--space-3); }
+    .birth-form { padding: var(--space-6); display: grid; gap: var(--space-4); }
+    .birth-form .grid { display: grid; gap: var(--space-4); grid-template-columns: 1fr 1fr; }
+    .birth-form label { display: grid; gap: var(--space-1); font-size: var(--text-sm); }
+    .birth-form .check { display: flex; align-items: center; gap: var(--space-2); }
+    fieldset { border: 1px solid var(--line); border-radius: var(--radius-sm); display: grid; gap: var(--space-2); }
+    legend { font-size: var(--text-sm); padding-inline: var(--space-1); }
+    .advanced summary { cursor: pointer; font-size: var(--text-sm); color: var(--indigo); }
+    .hint { font-size: var(--text-xs); color: var(--ink-soft); margin: var(--space-1) 0 0; }
+    .form-error { color: var(--vermilion); font-size: var(--text-sm); margin: 0; }
+    .explainer .steps { display: grid; gap: var(--space-4); grid-template-columns: 1fr; }
+    @media (min-width: 720px) { .explainer .steps { grid-template-columns: repeat(3, 1fr); } }
+    .step { padding: var(--space-6); }
+    .waitlist { margin-block-start: var(--space-16); padding: var(--space-8); text-align: center; }
+    .waitlist-form { display: flex; gap: var(--space-2); justify-content: center; flex-wrap: wrap; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  </style>
+</Base>

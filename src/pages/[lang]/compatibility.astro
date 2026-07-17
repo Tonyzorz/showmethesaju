@@ -1,0 +1,15 @@
+---
+import Base from '../../layouts/Base.astro';
+import { LOCALES } from '../../i18n/locales';
+import { t } from '../../i18n/t';
+export function getStaticPaths() { return LOCALES.map((l) => ({ params: { lang: l.code } })); }
+const { lang } = Astro.params;
+---
+<Base lang={lang} title={t(lang, 'meta.compat.title')} path="compatibility">
+  <h1>{t(lang, 'compat.headline')}</h1>
+  <p style="max-width: var(--container-text)">{t(lang, 'compat.body')}</p>
+  <form action="https://formspree.io/f/REPLACE_ME" method="POST" style="display:flex; gap:var(--space-2); flex-wrap:wrap;">
+    <input class="field" type="email" name="email" placeholder={t(lang, 'waitlist.email')} required />
+    <button class="btn-primary" type="submit">{t(lang, 'compat.cta')}</button>
+  </form>
+</Base>

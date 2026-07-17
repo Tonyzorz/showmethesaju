@@ -1,0 +1,102 @@
+{
+  "meta": {
+    "siteName": "쇼미더사주",
+    "home.title": "쇼미더사주 — 무료 사주팔자, 10초 만에",
+    "home.description": "회원가입 없이 10초 만에 내 사주명식을 확인하세요. 사주팔자, 오행, 십성까지 무료로.",
+    "reading.title": "내 사주명식 — 쇼미더사주",
+    "learn.title": "사주 배우기 — 쇼미더사주",
+    "compat.title": "궁합 — 쇼미더사주",
+    "about.title": "소개 — 쇼미더사주"
+  },
+  "nav": {
+    "reading": "사주 보기",
+    "compatibility": "궁합",
+    "learn": "배우기",
+    "about": "소개",
+    "language": "언어"
+  },
+  "hero": {
+    "headline": "천 년의 명리학, 내 사주는 10초면 나옵니다.",
+    "sub": "생년월일시만 입력하면 사주팔자가 바로 — 무료, 가입 없음.",
+    "cta": "내 사주 보기"
+  },
+  "form": {
+    "date": "생년월일",
+    "time": "태어난 시간",
+    "timeUnknown": "태어난 시간을 몰라요",
+    "gender": "성별",
+    "genderF": "여성",
+    "genderM": "남성",
+    "calendar": "달력",
+    "solar": "양력",
+    "lunar": "음력",
+    "lunarLeap": "윤달",
+    "place": "태어난 도시",
+    "trueSolar": "진태양시 적용",
+    "trueSolarHint": "출생지 경도 기준으로 보정합니다 (서울 약 −32분).",
+    "errFuture": "미래 날짜는 입력할 수 없어요.",
+    "errLunarRange": "음력은 1900년~2050년까지 지원해요."
+  },
+  "reading": {
+    "yourPillars": "나의 사주팔자",
+    "pillarYear": "연주",
+    "pillarMonth": "월주",
+    "pillarDay": "일주",
+    "pillarHour": "시주",
+    "hourUnknown": "태어난 시간이 없으면 시주는 표시되지 않아요.",
+    "dayMaster": "나의 일간",
+    "elements": "오행 분포",
+    "el.wood": "목(木)",
+    "el.fire": "화(火)",
+    "el.earth": "토(土)",
+    "el.metal": "금(金)",
+    "el.water": "수(水)",
+    "tenGods": "십성",
+    "share": "내 사주 링크 복사",
+    "shared": "복사되었습니다",
+    "learnMore": "내 일간 자세히 보기",
+    "termBoundaryNote": "절기 경계 부근에 태어나셨어요. 정확한 사주를 위해 출생 시각을 다시 확인해 주세요.",
+    "dm.0": "PLACEHOLDER — 갑목(甲) 일간 해석 (엄마 자료 기반, 반드시 새로 집필)",
+    "dm.1": "PLACEHOLDER — 을목(乙)",
+    "dm.2": "PLACEHOLDER — 병화(丙)",
+    "dm.3": "PLACEHOLDER — 정화(丁)",
+    "dm.4": "PLACEHOLDER — 무토(戊)",
+    "dm.5": "PLACEHOLDER — 기토(己)",
+    "dm.6": "PLACEHOLDER — 경금(庚)",
+    "dm.7": "PLACEHOLDER — 신금(辛)",
+    "dm.8": "PLACEHOLDER — 임수(壬)",
+    "dm.9": "PLACEHOLDER — 계수(癸)"
+  },
+  "explainer": {
+    "title": "사주란?",
+    "step1.title": "네 개의 기둥",
+    "step1.body": "태어난 연·월·일·시가 각각 하나의 기둥이 되어, 육십갑자에서 뽑힌 여덟 글자가 됩니다.",
+    "step2.title": "오행",
+    "step2.body": "여덟 글자는 각각 목·화·토·금·수의 기운을 지니고, 그 균형이 타고난 기질을 만듭니다.",
+    "step3.title": "해석",
+    "step3.body": "기둥들이 서로 어떻게 작용하는지 읽으면 성향, 관계, 시기의 흐름이 보입니다."
+  },
+  "waitlist": {
+    "title": "AI 심층 풀이가 준비 중입니다.",
+    "body": "내 언어로 보는 맞춤 해석, 가장 먼저 만나보세요.",
+    "email": "이메일 주소",
+    "cta": "알림 신청",
+    "done": "신청 완료!"
+  },
+  "compat": {
+    "headline": "궁합 — 준비 중",
+    "body": "혼인 전 궁합을 보던 오랜 전통, 곧 서비스로 만나요.",
+    "cta": "출시 알림 받기"
+  },
+  "footer": {
+    "shop": "부적 · 원석 굿즈",
+    "booking": "상담 예약",
+    "privacy": "개인정보처리방침",
+    "rights": "© {year} 쇼미더사주"
+  },
+  "notFound": {
+    "title": "페이지를 찾을 수 없어요",
+    "body": "이 길은 사주에 없네요. 홈으로 돌아가 볼까요?",
+    "cta": "홈으로"
+  }
+}
