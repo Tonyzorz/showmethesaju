@@ -178,7 +178,11 @@ const READING_FOCUSES = [
           <h3><button class="gloss" data-gloss="yongsin" type="button">{t(lang, 'reading.favorableTitle')}</button></h3>
           <div id="favorable-list" class="favorable-list"></div>
         </div>
-        <p class="soft context-note">{t(lang, 'reading.strengthContext')}</p>
+        <div class="relation-section">
+          <h3><button class="gloss" data-gloss="johu" type="button">{t(lang, 'reading.johuTitle')}</button></h3>
+          <div id="johu-list" class="favorable-list"></div>
+        </div>
+        <p class="soft context-note">{t(lang, 'reading.strengthContext')} {t(lang, 'reading.johuContext')}</p>
       </section>
       <section id="palace-analysis" class="card panel palace-panel">
         <div class="panel-heading">
@@ -322,8 +326,8 @@ const READING_FOCUSES = [
       type TwelveStage,
     } from '../../lib/saju-engine';
     import {
-      extraShinsal, favorableElements, gyeokguk, myeonggungPillar, samjae,
-      strengthAnalysis, taewonPillar,
+      extraShinsal, favorableElements, gyeokguk, johuYongsin, myeonggungPillar,
+      samjae, strengthAnalysis, taewonPillar,
       type MiniPillar,
     } from '../../lib/saju-extras';
     import { trackEvent } from '../../lib/analytics';
@@ -619,6 +623,14 @@ const READING_FOCUSES = [
         ? `<p class="soft">${S['favorableBalanced']}</p>`
         : `<div class="favorable-row"><span class="favorable-label">${S['favorable']}</span><span class="favorable-chips">${fav.favorable.map(chip).join('')}</span></div>
            <div class="favorable-row"><span class="favorable-label">${S['unfavorable']}</span><span class="favorable-chips">${fav.unfavorable.map(chip).join('')}</span></div>`;
+
+      // 조후용신 (궁통보감 참고): primary + supporting stems for day × month.
+      const johu = johuYongsin(r);
+      const johuChip = (s: { hanja: string; element: string }) =>
+        `<span class="element-chip element-bg-soft--${s.element} element-text--${s.element}" lang="ko">${s.hanja} <small>${S[`el.${s.element}`]}</small></span>`;
+      document.getElementById('johu-list')!.innerHTML =
+        `<div class="favorable-row"><span class="favorable-label">${S['johuPrimary']}</span><span class="favorable-chips">${johuChip(johu.primary)}</span></div>
+         <div class="favorable-row"><span class="favorable-label">${S['johuSecondary']}</span><span class="favorable-chips">${johu.secondary.length ? johu.secondary.map(johuChip).join('') : `<span class="soft">—</span>`}</span></div>`;
 
       // 태원 · 명궁 auxiliary pillars.
       const palaceCard = (label: string, p: MiniPillar | null, hint: string) => `

@@ -207,6 +207,59 @@ export function samjae(birthYearBranch: number, sajuYear: number): SamjaeResult 
   };
 }
 
+// ───────────────────────── 조후용신 (climate adjustment) ─────────────────────────
+
+/**
+ * 궁통보감-lineage 조후용신 lookup (아베타이잔전집 제6권 조후용신간법 table):
+ * day stem × month branch → primary 조후용신 + supporting stems.
+ * Month order 인묘진사오미신유술해자축 (offset 0 = 인월).
+ */
+const JOHU_PRIMARY: string[][] = [
+  ['丙', '庚', '庚', '癸', '癸', '癸', '庚', '庚', '庚', '庚', '丁', '丁'], // 甲
+  ['丙', '丙', '癸', '癸', '癸', '癸', '丙', '癸', '癸', '丙', '丙', '丙'], // 乙
+  ['壬', '壬', '壬', '壬', '壬', '壬', '壬', '壬', '甲', '甲', '壬', '壬'], // 丙
+  ['甲', '庚', '甲', '甲', '壬', '甲', '甲', '甲', '甲', '甲', '甲', '甲'], // 丁
+  ['丙', '丙', '甲', '甲', '壬', '癸', '丙', '丙', '甲', '丙', '丙', '丙'], // 戊
+  ['丙', '甲', '丙', '癸', '癸', '癸', '丙', '丙', '甲', '丙', '丙', '丙'], // 己
+  ['戊', '丁', '甲', '壬', '壬', '丁', '丁', '丁', '甲', '丁', '丁', '丙'], // 庚
+  ['己', '壬', '壬', '壬', '壬', '壬', '壬', '壬', '壬', '壬', '丙', '丙'], // 辛
+  ['庚', '戊', '甲', '壬', '癸', '辛', '戊', '甲', '甲', '戊', '戊', '丙'], // 壬
+  ['辛', '庚', '丙', '辛', '庚', '庚', '丁', '辛', '辛', '庚', '丙', '丙'], // 癸
+];
+const JOHU_SECONDARY: string[][] = [
+  ['癸', '丙丁戊己', '丁壬', '丁庚', '丁庚', '丁庚', '丁壬', '丙丁', '甲丁壬癸', '丁丙戊', '庚丙', '庚丙'],
+  ['癸', '癸', '丙戊', '庚辛', '丙', '丙', '癸己', '丙丁', '辛', '戊', '', ''],
+  ['庚', '己', '甲', '庚癸', '庚', '庚', '戊', '癸', '壬', '戊庚壬', '戊己', '甲'],
+  ['庚', '甲', '庚', '庚', '庚癸', '壬庚', '庚丙戊', '庚丙戊', '庚戊', '庚', '庚', '庚'],
+  ['甲癸', '甲癸', '丙癸', '丙癸', '甲丙', '甲丙', '甲癸', '癸', '丙癸', '丙', '甲', '甲'],
+  ['庚甲', '丙癸', '甲癸', '丙', '丙', '丙', '癸', '癸', '丙癸', '甲戊', '甲戊', '甲戊'],
+  ['甲壬丙丁', '甲庚丙', '丁壬癸', '戊丙丁', '癸', '甲', '甲', '甲丙', '壬', '丙', '甲丙', '丁甲'],
+  ['壬庚', '甲', '甲', '甲癸', '己癸', '庚甲', '甲戊', '甲', '甲', '丙', '戊壬甲', '壬戊己'],
+  ['丙戊', '辛庚', '庚', '辛庚癸', '庚辛', '甲', '丁', '庚', '丙', '丙庚', '丙', '丁甲'],
+  ['丙', '辛', '辛甲', '', '辛壬癸', '辛壬癸', '', '丙', '甲壬癸', '辛戊丁', '辛', '丁'],
+];
+
+const STEM_HANJA_ELEMENT: Record<string, Element> = {
+  '甲': 'wood', '乙': 'wood', '丙': 'fire', '丁': 'fire', '戊': 'earth',
+  '己': 'earth', '庚': 'metal', '辛': 'metal', '壬': 'water', '癸': 'water',
+};
+
+export interface JohuResult {
+  primary: { hanja: string; element: Element };
+  secondary: { hanja: string; element: Element }[];
+}
+
+/** 조후용신 for the chart's day stem × month branch. */
+export function johuYongsin(r: SajuResult): JohuResult {
+  const m = (r.month.branch - 2 + 12) % 12;
+  const primary = JOHU_PRIMARY[r.day.stem][m];
+  const secondary = [...(JOHU_SECONDARY[r.day.stem][m] ?? '')];
+  return {
+    primary: { hanja: primary, element: STEM_HANJA_ELEMENT[primary] },
+    secondary: secondary.map((h) => ({ hanja: h, element: STEM_HANJA_ELEMENT[h] })),
+  };
+}
+
 // ───────────────────────── extra 신살 (홍염·암록·금여·천의) ─────────────────────────
 
 export type ExtraShinsalName = 'hongYeom' | 'amNok' | 'geumYeo' | 'cheonUi';

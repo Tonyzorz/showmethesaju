@@ -127,6 +127,10 @@
     "favorable": "Favorable (huisin)",
     "unfavorable": "Challenging (gisin)",
     "favorableBalanced": "This chart sits near balance, so no single element stands out — read the chart as a whole.",
+    "johuTitle": "Climate View (johu)",
+    "johuPrimary": "Primary",
+    "johuSecondary": "Supporting",
+    "johuContext": "The climate (johu) stems follow the classical Gungtong-bogam lineage table for your day stem and birth month — a second, temperature-based lens that can differ from the strength-based one.",
     "strengthContext": "A simplified eokbu reference: each visible stem and each branch's main qi counts 1 point, the month branch 2. Schools weigh charts differently — treat this as a starting point, not a verdict.",
     "taewonLabel": "Taewon",
     "myeonggungLabel": "Myeonggung",
@@ -320,7 +324,8 @@
       "singang": { "name": "Singang / Sinyak (Strength)", "def": "Whether the chart's supporters make the Day Master strong (singang) or weak (sinyak). This verdict is the starting point for choosing which elements help the chart." },
       "yongsin": { "name": "Yongsin (Useful God)", "def": "The element a chart most needs. Elements that assist it are huisin (favorable); those that work against it are gisin (challenging). Schools differ on how to select them." },
       "gyeokguk": { "name": "Gyeokguk (Chart Structure)", "def": "The chart's overall structure, one of ten classical types, named after the ten god of the month branch's defining hidden stem. It frames how the rest of the chart is read." },
-      "samjae": { "name": "Samjae (Three Calamities)", "def": "A folk cycle: every 12 years, three consecutive years are considered cautionary for your birth-year group. Widely observed in Korea, though it is custom rather than chart analysis." }
+      "samjae": { "name": "Samjae (Three Calamities)", "def": "A folk cycle: every 12 years, three consecutive years are considered cautionary for your birth-year group. Widely observed in Korea, though it is custom rather than chart analysis." },
+      "johu": { "name": "Johu (Climate Adjustment)", "def": "A school of yongsin selection that reads the chart as a climate: a winter chart may need fire, a summer chart water. The classic reference is the Gungtong-bogam." }
     }
   },
   "about": {

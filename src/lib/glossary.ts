@@ -24,4 +24,5 @@ export const TERMS: Term[] = [
   { key: 'yongsin', hanja: '用神', roman: 'yongsin' },
   { key: 'gyeokguk', hanja: '格局', roman: 'gyeokguk' },
   { key: 'samjae', hanja: '三災', roman: 'samjae' },
+  { key: 'johu', hanja: '調候', roman: 'johu' },
 ];
