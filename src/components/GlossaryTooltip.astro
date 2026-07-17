@@ -30,20 +30,59 @@ const glossaryBase = withBase(`/${lang}/glossary/`);
   <a class="gloss-pop-more" href={glossaryBase}>{moreLabel} →</a>
 </div>
 
-<style>
+<style is:global>
   .gloss {
-    font: inherit; color: inherit; background: none; border: 0; padding: 0;
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    max-inline-size: 100%;
+    padding: 0.12em 0.38em;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    box-shadow: none;
+    color: inherit;
+    font: inherit;
+    font-weight: inherit;
+    line-height: 1.2;
+    text-align: start;
+    text-decoration: none;
     cursor: help;
-    text-decoration: underline dotted var(--indigo);
-    text-underline-offset: 3px; text-decoration-thickness: 1.5px;
+    transition: color var(--dur-fast), background-color var(--dur-fast), box-shadow var(--dur-fast);
   }
-  .gloss:hover, .gloss[aria-expanded="true"] { color: var(--indigo); }
+  .gloss::after {
+    content: "i";
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    inline-size: 1.25em;
+    block-size: 1.25em;
+    border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+    border-radius: 50%;
+    font-family: var(--font-mono);
+    font-size: 0.62em;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .gloss:hover,
+  .gloss:focus-visible,
+  .gloss[aria-expanded="true"] {
+    background: var(--jade-pale);
+    color: var(--indigo);
+  }
+  .gloss:focus-visible {
+    outline: 2px solid var(--indigo);
+    outline-offset: 2px;
+  }
   .gloss-pop {
     position: absolute; z-index: 50; inline-size: max-content;
     max-inline-size: min(22rem, calc(100vw - 2rem));
-    background: var(--paper-raised); border: 1px solid var(--line);
-    border-radius: var(--radius); box-shadow: var(--shadow-card);
-    padding: var(--space-3) var(--space-4);
+    background: color-mix(in srgb, var(--paper-raised) 96%, transparent);
+    border: 1px solid color-mix(in srgb, var(--indigo) 24%, var(--line));
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-float);
+    padding: var(--space-4);
+    backdrop-filter: blur(14px);
     font-family: var(--font-body); font-size: var(--text-sm); line-height: var(--leading-body);
     color: var(--ink);
   }
