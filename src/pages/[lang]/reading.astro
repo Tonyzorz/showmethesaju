@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import GlossaryTooltip from '../../components/GlossaryTooltip.astro';
 import { LOCALES } from '../../i18n/locales';
 import { t, ns } from '../../i18n/t';
 
@@ -19,17 +20,17 @@ const strings = { ...ns(lang, 'reading'), cta: t(lang, 'hero.cta'), siteName: t(
 
     <div class="panel-grid">
       <section class="card panel">
-        <h2>{t(lang, 'reading.dayMaster')} <span id="dm-char" class="dm-char"></span></h2>
+        <h2><button class="gloss" data-gloss="ilgan" type="button">{t(lang, 'reading.dayMaster')}</button> <span id="dm-char" class="dm-char"></span></h2>
         <p id="dm-text"></p>
       </section>
       <section class="card panel">
-        <h2>{t(lang, 'reading.elements')}</h2>
+        <h2><button class="gloss" data-gloss="ohaeng" type="button">{t(lang, 'reading.elements')}</button></h2>
         <div id="element-bars" class="element-bars"></div>
       </section>
     </div>
 
     <section class="card panel">
-      <h2>{t(lang, 'reading.tenGods')}</h2>
+      <h2><button class="gloss" data-gloss="sipseong" type="button">{t(lang, 'reading.tenGods')}</button></h2>
       <table id="tengods" class="tengods"></table>
     </section>
 
@@ -45,6 +46,8 @@ const strings = { ...ns(lang, 'reading'), cta: t(lang, 'hero.cta'), siteName: t(
     <h1>{t(lang, 'reading.yourPillars')}</h1>
     <p><a class="btn-primary" href={`/${lang}/`}>{t(lang, 'hero.cta')}</a></p>
   </section>
+
+  <GlossaryTooltip lang={lang} />
 
   <script>
     import { computeSaju, type Pillar, type SajuResult } from '../../lib/saju-engine';
@@ -108,7 +111,7 @@ const strings = { ...ns(lang, 'reading'), cta: t(lang, 'hero.cta'), siteName: t(
         [S['pillarHour'], r.hour], [S['pillarDay'], r.day], [S['pillarMonth'], r.month], [S['pillarYear'], r.year],
       ] as const;
       document.getElementById('tengods')!.innerHTML =
-        `<thead><tr><th></th><th>天干</th><th>十星</th></tr></thead><tbody>` +
+        `<thead><tr><th></th><th><button class="gloss" data-gloss="cheongan" type="button">天干</button></th><th><button class="gloss" data-gloss="sipseong" type="button">十星</button></th></tr></thead><tbody>` +
         rows.map(([label, p]) => p
           ? `<tr><th scope="row">${label}</th><td lang="ko">${p.stemHanja} ${p.stemKo}</td><td>${p.tenGod ?? '日主'}</td></tr>`
           : `<tr><th scope="row">${label}</th><td colspan="2">—</td></tr>`

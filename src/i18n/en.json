@@ -67,6 +67,9 @@
     "dm.8": "PLACEHOLDER — 壬 Yang Water",
     "dm.9": "PLACEHOLDER — 癸 Yin Water"
   },
+  "glossary": {
+    "moreLink": "Open in glossary"
+  },
   "explainer": {
     "title": "What is Saju?",
     "step1.title": "Four Pillars",

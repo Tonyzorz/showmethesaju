@@ -67,6 +67,9 @@
     "dm.8": "PLACEHOLDER — 임수(壬)",
     "dm.9": "PLACEHOLDER — 계수(癸)"
   },
+  "glossary": {
+    "moreLink": "용어사전에서 보기"
+  },
   "explainer": {
     "title": "사주란?",
     "step1.title": "네 개의 기둥",

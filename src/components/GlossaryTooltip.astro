@@ -1,0 +1,152 @@
+---
+/**
+ * Accessible glossary tooltip runtime (Phase 2 ★, PLAN.md §5.2 / §6.6).
+ * Single source of truth = TERMS in lib/glossary.ts (same as /glossary page).
+ * Include once per page; any `<button class="gloss" data-gloss="<key>">…</button>`
+ * (server-rendered OR injected by client script) becomes a tooltip trigger.
+ * Interactions: mouse hover, touch tap-toggle, keyboard focus, Esc to close.
+ */
+import { TERMS } from '../lib/glossary';
+import { t } from '../i18n/t';
+
+interface Props { lang: string; }
+const { lang } = Astro.props;
+const L = lang === 'ko' ? 'ko' : 'en';
+const data = Object.fromEntries(
+  TERMS.map((tm) => [tm.key, { name: tm.name[L], def: tm.def[L], hanja: tm.hanja, roman: tm.roman }]),
+);
+const moreLabel = t(lang, 'glossary.moreLink');
+const glossaryBase = `/${lang}/glossary/`;
+---
+<script type="application/json" id="gloss-data" set:html={JSON.stringify(data)} />
+<div id="gloss-pop" class="gloss-pop" role="tooltip" hidden data-base={glossaryBase}>
+  <p class="gloss-pop-name"><span class="gloss-pop-term"></span> <span class="gloss-pop-meta" lang="ko"></span></p>
+  <p class="gloss-pop-def"></p>
+  <a class="gloss-pop-more" href={glossaryBase}>{moreLabel} →</a>
+</div>
+
+<style>
+  .gloss {
+    font: inherit; color: inherit; background: none; border: 0; padding: 0;
+    cursor: help;
+    text-decoration: underline dotted var(--indigo);
+    text-underline-offset: 3px; text-decoration-thickness: 1.5px;
+  }
+  .gloss:hover, .gloss[aria-expanded="true"] { color: var(--indigo); }
+  .gloss-pop {
+    position: absolute; z-index: 50; inline-size: max-content;
+    max-inline-size: min(22rem, calc(100vw - 2rem));
+    background: var(--paper-raised); border: 1px solid var(--line);
+    border-radius: var(--radius); box-shadow: var(--shadow-card);
+    padding: var(--space-3) var(--space-4);
+    font-family: var(--font-body); font-size: var(--text-sm); line-height: var(--leading-body);
+    color: var(--ink);
+  }
+  .gloss-pop[hidden] { display: none; }
+  .gloss-pop-name { margin: 0 0 var(--space-1); font-family: var(--font-display); font-weight: 700; font-size: var(--text-base); }
+  .gloss-pop-meta { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-soft); font-weight: 400; }
+  .gloss-pop-def { margin: 0 0 var(--space-2); }
+  .gloss-pop-more { font-family: var(--font-mono); font-size: var(--text-xs); }
+  @media (prefers-reduced-motion: no-preference) {
+    .gloss-pop:not([hidden]) { animation: gloss-in var(--dur-fast) var(--ease-reveal); }
+    @keyframes gloss-in { from { opacity: 0; transform: translateY(-4px); } }
+  }
+</style>
+
+<script>
+  type Entry = { name: string; def: string; hanja: string; roman: string };
+  const DATA: Record<string, Entry> = JSON.parse(document.getElementById('gloss-data')!.textContent!);
+  const pop = document.getElementById('gloss-pop') as HTMLElement;
+  const base = pop.dataset.base!;
+  const termEl = pop.querySelector('.gloss-pop-term') as HTMLElement;
+  const metaEl = pop.querySelector('.gloss-pop-meta') as HTMLElement;
+  const defEl = pop.querySelector('.gloss-pop-def') as HTMLElement;
+  const moreEl = pop.querySelector('.gloss-pop-more') as HTMLAnchorElement;
+
+  let active: HTMLElement | null = null;
+  let hideTimer = 0;
+  let usingPointer = false; // distinguishes pointer-driven focus from keyboard focus
+
+  const closest = (n: EventTarget | null) =>
+    n instanceof Element ? (n.closest('.gloss') as HTMLElement | null) : null;
+
+  function position(trigger: HTMLElement) {
+    const r = trigger.getBoundingClientRect();
+    pop.style.top = `${r.bottom + window.scrollY + 8}px`;
+    pop.style.left = '0'; // reset before measuring width
+    const w = pop.offsetWidth;
+    const min = window.scrollX + 8;
+    const max = window.scrollX + document.documentElement.clientWidth - w - 8;
+    pop.style.left = `${Math.max(min, Math.min(r.left + window.scrollX, max))}px`;
+  }
+
+  function open(trigger: HTMLElement) {
+    const d = DATA[trigger.dataset.gloss!];
+    if (!d) return;
+    clearTimeout(hideTimer);
+    if (active && active !== trigger) {
+      active.removeAttribute('aria-describedby');
+      active.setAttribute('aria-expanded', 'false');
+    }
+    termEl.textContent = d.name;
+    metaEl.textContent = `${d.hanja} · ${d.roman}`;
+    defEl.textContent = d.def;
+    moreEl.href = `${base}#${trigger.dataset.gloss}`;
+    pop.hidden = false;
+    trigger.setAttribute('aria-describedby', 'gloss-pop');
+    trigger.setAttribute('aria-expanded', 'true');
+    active = trigger;
+    position(trigger);
+  }
+
+  function close() {
+    if (!active) return;
+    active.removeAttribute('aria-describedby');
+    active.setAttribute('aria-expanded', 'false');
+    active = null;
+    pop.hidden = true;
+  }
+
+  // Mouse hover only (touch/pen use tap-toggle below).
+  document.addEventListener('pointerover', (e) => {
+    if ((e as PointerEvent).pointerType !== 'mouse') return;
+    const trg = closest(e.target);
+    if (trg?.dataset.gloss) open(trg);
+  });
+  document.addEventListener('pointerout', (e) => {
+    if ((e as PointerEvent).pointerType !== 'mouse') return;
+    if (!closest(e.target)) return;
+    if (pop.contains(e.relatedTarget as Node)) return;
+    hideTimer = window.setTimeout(close, 140);
+  });
+  pop.addEventListener('pointerenter', () => clearTimeout(hideTimer));
+  pop.addEventListener('pointerleave', () => { hideTimer = window.setTimeout(close, 140); });
+
+  // Tap / click toggles (primary path for touch).
+  document.addEventListener('pointerdown', () => {
+    usingPointer = true;
+    window.setTimeout(() => { usingPointer = false; }, 400);
+  }, true);
+  document.addEventListener('click', (e) => {
+    const trg = closest(e.target);
+    if (trg?.dataset.gloss) {
+      e.preventDefault();
+      if (active === trg) close(); else open(trg);
+    } else if (!pop.contains(e.target as Node)) {
+      close();
+    }
+  });
+
+  // Keyboard focus opens; Esc closes and restores focus.
+  document.addEventListener('focusin', (e) => {
+    const trg = closest(e.target);
+    if (trg?.dataset.gloss) { if (!usingPointer) open(trg); }
+    else if (!pop.contains(e.target as Node)) close();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && active) { const a = active; close(); a.focus(); }
+  });
+
+  window.addEventListener('scroll', () => { if (active) position(active); }, { passive: true });
+  window.addEventListener('resize', () => close());
+</script>
