@@ -131,6 +131,8 @@
     "johuPrimary": "Primary",
     "johuSecondary": "Supporting",
     "johuContext": "The climate (johu) stems follow the classical Gungtong-bogam lineage table for your day stem and birth month — a second, temperature-based lens that can differ from the strength-based one.",
+    "wolunTitle": "Monthly luck · {year}",
+    "wolunContext": "The twelve saju months of the selected year (in-wol to chuk-wol). Month labels are approximate — each saju month actually runs from one solar term to the next, starting near the 4th–8th of the civil month.",
     "strengthContext": "A simplified eokbu reference: each visible stem and each branch's main qi counts 1 point, the month branch 2. Schools weigh charts differently — treat this as a starting point, not a verdict.",
     "taewonLabel": "Taewon",
     "myeonggungLabel": "Myeonggung",

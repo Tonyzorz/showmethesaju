@@ -262,6 +262,11 @@ const READING_FOCUSES = [
       </div>
       <div id="seun-list" class="luck-strip luck-strip--annual"></div>
       <div id="seun-detail" class="luck-detail"></div>
+      <div class="wolun">
+        <h3 id="wolun-title"></h3>
+        <div id="wolun-list" class="wolun-grid"></div>
+        <p class="soft context-note">{t(lang, 'reading.wolunContext')}</p>
+      </div>
       <p class="soft context-note">{t(lang, 'reading.seunContext')}</p>
     </section>
 
@@ -326,8 +331,8 @@ const READING_FOCUSES = [
       type TwelveStage,
     } from '../../lib/saju-engine';
     import {
-      extraShinsal, favorableElements, gyeokguk, johuYongsin, myeonggungPillar,
-      samjae, strengthAnalysis, taewonPillar,
+      extraShinsal, favorableElements, gyeokguk, johuYongsin, monthlyLuck,
+      myeonggungPillar, samjae, strengthAnalysis, taewonPillar,
       type MiniPillar,
     } from '../../lib/saju-extras';
     import { trackEvent } from '../../lib/analytics';
@@ -769,12 +774,30 @@ const READING_FOCUSES = [
           button.setAttribute('aria-pressed', String(buttonIndex === index));
         });
         renderLuckDetail(cycles[index], labels[index], detail, r);
+        if (cycleType === 'seun') renderWolun(cycles[index] as AnnualLuck, r);
         if (track) trackEvent('luck_cycle_select', { cycle_type: cycleType, cycle_index: index, language: document.documentElement.lang });
       };
       list.querySelectorAll<HTMLButtonElement>('.luck-card').forEach((button) =>
         button.addEventListener('click', () => selectCycle(Number(button.dataset.cycleIndex), true))
       );
       selectCycle(selectedIndex);
+    }
+
+    function renderWolun(annual: AnnualLuck, r: SajuResult) {
+      // 12 saju months of the selected 세운 year, stems via the year-stem cycle.
+      const months = monthlyLuck(annual.pillar.stem, r.day.stem, annual.year);
+      const monthFmt = new Intl.DateTimeFormat(document.documentElement.lang, { month: 'short' });
+      document.getElementById('wolun-title')!.textContent = fmt(S['wolunTitle'], { year: annual.year });
+      document.getElementById('wolun-list')!.innerHTML = months.map((m) => {
+        const label = monthFmt.format(new Date(m.civilYear, m.civilMonth - 1, 15));
+        const stage = twelveStageForStemBranch(r.day.stem, m.pillar.branch);
+        return `<div class="wolun-card">
+          <small>${label}</small>
+          <strong class="element-text--${m.pillar.stemElement}" lang="ko">${m.pillar.hanja}</strong>
+          <span>${tenGodLabel(m.tenGod)}</span>
+          <em>${stageLabel(stage)}</em>
+        </div>`;
+      }).join('');
     }
 
     function renderLuck(r: SajuResult, timeUnknown: boolean) {
@@ -1257,6 +1280,18 @@ const READING_FOCUSES = [
     .palace-hanja { font-family: var(--font-display); font-size: var(--text-2xl); line-height: var(--leading-tight); }
     .palace-ko { font-family: var(--font-mono); font-size: var(--text-sm); }
     .palace-hint { font-size: var(--text-xs); }
+
+    /* ── 월운 monthly strip ── */
+    .wolun { margin-block-start: var(--space-4); }
+    .wolun h3 { margin-block-end: var(--space-2); }
+    .wolun-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-2); }
+    @media (max-width: 720px) { .wolun-grid { grid-template-columns: repeat(4, 1fr); } }
+    @media (max-width: 480px) { .wolun-grid { grid-template-columns: repeat(3, 1fr); } }
+    .wolun-card { display: grid; justify-items: center; gap: 2px; padding: var(--space-2); background: var(--paper-sunken); border: 1px solid var(--line); border-radius: var(--radius-sm); text-align: center; }
+    .wolun-card small { color: var(--ink-soft); font-family: var(--font-mono); font-size: var(--text-xs); }
+    .wolun-card strong { font-family: var(--font-display); font-size: var(--text-lg); line-height: 1.2; }
+    .wolun-card span { font-size: var(--text-xs); }
+    .wolun-card em { font-style: normal; font-size: var(--text-xs); color: var(--ink-soft); }
 
     /* ── 격국 + 삼재 panels ── */
     .gyeokguk-result, .samjae-result { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; margin-block-end: var(--space-3); }

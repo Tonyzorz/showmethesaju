@@ -9,7 +9,7 @@
  * 희신/기신   favorable elements  — derived from the strength verdict (억부 reference).
  */
 import {
-  BRANCHES_HANJA, BRANCHES_KO, STEMS_HANJA, STEMS_KO,
+  BRANCHES_HANJA, BRANCHES_KO, STEMS_HANJA, STEMS_KO, tenGod,
   type Element, type SajuResult, type TenGod,
 } from './saju-engine';
 
@@ -205,6 +205,34 @@ export function samjae(birthYearBranch: number, sajuYear: number): SamjaeResult 
     stage: (idx === -1 ? 0 : idx + 1) as SamjaeResult['stage'],
     windowStartYear: idx === -1 ? sajuYear + untilStart : sajuYear - idx,
   };
+}
+
+// ───────────────────────── 월운 (monthly luck) ─────────────────────────
+
+export interface MonthLuck {
+  pillar: MiniPillar;
+  tenGod: TenGod;
+  /** Civil calendar anchor: the month runs solar-term to solar-term (인월 ≈ Feb). */
+  civilYear: number;
+  civilMonth: number; // 1–12
+}
+
+/**
+ * The 12 saju months (인월…축월) of one annual-luck year: branches are fixed,
+ * stems follow the year-stem month cycle (오호둔). Civil labels are
+ * approximate — each month actually runs from one solar term to the next.
+ */
+export function monthlyLuck(yearStem: number, dayStem: number, sajuYear: number): MonthLuck[] {
+  return Array.from({ length: 12 }, (_, i) => {
+    const stem = ((yearStem % 5) * 2 + 2 + i) % 10;
+    const branch = (2 + i) % 12;
+    return {
+      pillar: mini(stem, branch),
+      tenGod: tenGod(dayStem, stem),
+      civilYear: i === 11 ? sajuYear + 1 : sajuYear,
+      civilMonth: i === 11 ? 1 : i + 2,
+    };
+  });
 }
 
 // ───────────────────────── 조후용신 (climate adjustment) ─────────────────────────
