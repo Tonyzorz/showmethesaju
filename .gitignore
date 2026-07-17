@@ -24,3 +24,6 @@ pnpm-debug.log*
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# claude code local memory (never commit)
+memory/

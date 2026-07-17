@@ -1,1 +1,0 @@
-- [Push access granted](push-access-granted.md) — owner OK'd auto commit+push to main on this repo
