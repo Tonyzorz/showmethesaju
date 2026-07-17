@@ -6,10 +6,23 @@ export function getStaticPaths() { return LOCALES.map((l) => ({ params: { lang: 
 const { lang } = Astro.params;
 ---
 <Base lang={lang} title={t(lang, 'meta.compat.title')} path="compatibility">
-  <h1>{t(lang, 'compat.headline')}</h1>
-  <p style="max-width: var(--container-text)">{t(lang, 'compat.body')}</p>
-  <form action="https://formspree.io/f/REPLACE_ME" method="POST" style="display:flex; gap:var(--space-2); flex-wrap:wrap;">
-    <input class="field" type="email" name="email" placeholder={t(lang, 'waitlist.email')} required />
-    <button class="btn-primary" type="submit">{t(lang, 'compat.cta')}</button>
-  </form>
+  <section class="card feature-page">
+    <span class="feature-mark" aria-hidden="true">合</span>
+    <div>
+      <h1>{t(lang, 'compat.headline')}</h1>
+      <p>{t(lang, 'compat.body')}</p>
+      <form action="https://formspree.io/f/REPLACE_ME" method="POST">
+        <input class="field" type="email" name="email" placeholder={t(lang, 'waitlist.email')} required />
+        <button class="btn-primary" type="submit">{t(lang, 'compat.cta')}</button>
+      </form>
+    </div>
+  </section>
+  <style>
+    .feature-page { position: relative; max-width: 58rem; min-height: 29rem; display: grid; align-items: center; padding: clamp(2rem, 7vw, 5rem); overflow: hidden; }
+    .feature-page > div { position: relative; max-width: var(--container-text); }
+    .feature-page p { color: var(--ink-soft); font-size: var(--text-lg); }
+    .feature-page form { display: flex; max-width: 35rem; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-8); }
+    .feature-page form .field { flex: 1 1 15rem; }
+    .feature-mark { position: absolute; inset: auto -1rem -5rem auto; color: var(--jade-pale); font-family: var(--font-display); font-size: 18rem; line-height: 1; }
+  </style>
 </Base>

@@ -29,9 +29,12 @@ const faqLd = {
     ))}
   </div>
   <style>
-    .terms { display: grid; gap: var(--space-4); grid-template-columns: 1fr; max-width: var(--container-text); }
-    .term { padding: var(--space-6); }
+    .terms { display: grid; gap: var(--space-5); grid-template-columns: 1fr; }
+    .term { padding: clamp(1.4rem, 4vw, 2rem); transition: transform var(--dur-fast), box-shadow var(--dur-fast); }
+    .term:hover { transform: translateY(-3px); box-shadow: var(--shadow-float); }
     .term h2 { margin-top: 0; font-size: var(--text-lg); }
+    .term p { margin-bottom: 0; color: var(--ink-soft); }
     .meta { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--ink-soft); font-weight: 400; margin-inline-start: var(--space-2); }
+    @media (min-width: 760px) { .terms { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   </style>
 </Base>

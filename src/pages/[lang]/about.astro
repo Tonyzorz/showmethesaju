@@ -7,7 +7,7 @@ const { lang } = Astro.params;
 ---
 <Base lang={lang} title={t(lang, 'meta.about.title')} path="about">
   <h1>{t(lang, 'nav.about')}</h1>
-  <section class="card" style="padding: var(--space-8); max-width: var(--container-text);">
+  <section class="card about-card">
     <!-- TODO: mom's photo, name, years of practice, lineage, how she reads. -->
     <h2>{t(lang, 'about.masterHeading')}</h2>
     <p>{t(lang, 'about.story')}</p>
@@ -15,6 +15,13 @@ const { lang } = Astro.params;
       <a class="btn-primary" href="https://pf.kakao.com/" rel="noopener" target="_blank">{t(lang, 'footer.booking')}</a>
       <a class="btn-secondary" href="https://smartstore.naver.com/" rel="noopener" target="_blank">{t(lang, 'footer.shop')}</a>
     </p>
-    <p style="color: var(--ink-soft); font-size: var(--text-sm);">{t(lang, 'reading.disclaimer')}</p>
+    <p class="disclaimer">{t(lang, 'reading.disclaimer')}</p>
   </section>
+  <style>
+    .about-card { position: relative; max-width: var(--container-text); padding: clamp(1.75rem, 5vw, 3.5rem); }
+    .about-card::after { content: '命'; position: absolute; inset: auto 1rem -2.2rem auto; color: var(--peach-pale); font-family: var(--font-display); font-size: 9rem; line-height: 1; pointer-events: none; }
+    .about-card h2, .about-card p { position: relative; z-index: 1; }
+    .about-card > p:nth-of-type(2) { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-block: var(--space-8); }
+    .disclaimer { color: var(--ink-soft); font-size: var(--text-sm); }
+  </style>
 </Base>

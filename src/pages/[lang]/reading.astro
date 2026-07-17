@@ -182,21 +182,24 @@ const strings = { ...ns(lang, 'reading'), cta: t(lang, 'hero.cta'), siteName: t(
   </script>
 
   <style>
-    .pillars { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); margin-block: var(--space-8); }
+    #result > h1 { margin-bottom: var(--space-4); }
+    .pillars { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); margin-block: var(--space-10); }
     @media (max-width: 600px) { .pillars { grid-template-columns: repeat(2, 1fr); } }
-    .panel-grid { display: grid; gap: var(--space-4); grid-template-columns: 1fr; }
+    .panel-grid { display: grid; gap: var(--space-5); grid-template-columns: 1fr; }
     @media (min-width: 800px) { .panel-grid { grid-template-columns: 1fr 1fr; } }
-    .panel { padding: var(--space-6); margin-block-end: var(--space-4); }
+    .panel { padding: clamp(1.5rem, 4vw, 2.25rem); margin-block-end: var(--space-5); }
+    .panel h2 { font-size: var(--text-xl); }
     .dm-char { font-family: var(--font-display); color: var(--indigo); }
     .element-bars { display: grid; gap: var(--space-2); }
     .ebar { display: grid; grid-template-columns: 5rem 1fr 2rem; align-items: center; gap: var(--space-2); font-size: var(--text-sm); }
-    .ebar-track { background: var(--paper-sunken); border-radius: 99px; height: 0.75rem; overflow: hidden; display: block; }
+    .ebar-track { background: var(--paper-sunken); border-radius: 99px; height: .9rem; overflow: hidden; display: block; box-shadow: inset 0 1px 2px rgb(24 32 28 / .08); }
     .ebar-fill { display: block; height: 100%; border-radius: 99px; }
     .ebar-n { font-family: var(--font-mono); text-align: right; }
     .tengods { width: 100%; border-collapse: collapse; }
-    .tengods th, .tengods td { text-align: left; padding: var(--space-2); border-bottom: 1px solid var(--line); }
+    .tengods th, .tengods td { text-align: left; padding: var(--space-3); border-bottom: 1px solid var(--line); }
+    .tengods tbody tr:hover { background: var(--jade-pale); }
     .actions { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-block: var(--space-8); }
-    .note { background: var(--paper-sunken); border-left: 4px solid var(--gold); padding: var(--space-3) var(--space-4); border-radius: var(--radius-sm); }
+    .note { background: #fff8e9; border: 1px solid #ead7ae; border-left: 4px solid var(--gold); padding: var(--space-4) var(--space-5); border-radius: var(--radius); }
     .disclaimer { color: var(--ink-soft); font-size: var(--text-xs); }
     .hint { font-size: var(--text-xs); color: var(--ink-soft); }
   </style>

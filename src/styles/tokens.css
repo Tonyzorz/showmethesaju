@@ -1,163 +1,209 @@
-/* ============================================================
-   showmethesaju — design tokens
-   Direction: 오방색 on 한지. The five traditional colors ARE the
-   five elements of saju, so the palette is the product concept.
-   Vermilion is reserved: seal stamp + primary CTA only.
-   ============================================================ */
-
+/* Modern editorial system inspired by Korean paper, ink, jade, and seal red. */
 :root {
-  /* ── obangsaek core ── */
-  --ink:       #201A14;  /* 흑 · 먹 — text */
-  --paper:     #F7F1E3;  /* 백 · 한지 — background */
-  --indigo:    #26428B;  /* 청 · 쪽빛 — primary accent, links, focus */
-  --vermilion: #BF3B2B;  /* 적 · 주사 — SEAL + CTA ONLY */
-  --gold:      #B8860B;  /* 황 · 치자 (darkened for AA on paper) — rare highlights */
+  --ink: #18201c;
+  --paper: #f8f7f3;
+  --indigo: #245442;
+  --vermilion: #c64c3b;
+  --gold: #bd812c;
 
-  /* derived neutrals */
-  --paper-raised: #FDFAF2;   /* cards */
-  --paper-sunken: #EFE7D3;   /* wells, form fields */
-  --line:         #D8CDB4;   /* hairlines */
-  --ink-soft:     #5A5147;   /* secondary text */
+  --paper-raised: #fffefa;
+  --paper-sunken: #efeee8;
+  --line: #dcded7;
+  --ink-soft: #626b66;
+  --jade-pale: #e6eee9;
+  --peach-pale: #f5e7df;
 
-  /* ── five-element colors (pillar cards & element charts ONLY) ── */
-  --el-wood:  #3E7C4F;
-  --el-fire:  #BF3B2B;
-  --el-earth: #A87F2E;      /* darkened ochre for contrast on paper */
-  --el-metal: #7C8087;
-  --el-water: #26428B;
+  --el-wood: #3e7957;
+  --el-fire: #c64c3b;
+  --el-earth: #ad782b;
+  --el-metal: #7d8582;
+  --el-water: #3d6280;
 
-  /* ── typography ── */
-  --font-display: 'Gowun Batang', 'Noto Serif KR', serif;   /* headlines + hanja */
-  --font-body: 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;    /* dates, pillar labels */
+  --font-display: 'Gowun Batang', 'Noto Serif KR', Georgia, serif;
+  --font-body: 'Manrope', 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
-  /* modular scale ~1.25, body 16 mobile / 17 desktop */
-  --text-xs: 0.8rem;
-  --text-sm: 0.9rem;
+  --text-xs: .76rem;
+  --text-sm: .88rem;
   --text-base: 1rem;
-  --text-lg: 1.25rem;
-  --text-xl: 1.563rem;
-  --text-2xl: 1.953rem;
-  --text-3xl: 2.441rem;
-  --text-hero: clamp(2rem, 5vw, 3.05rem);
+  --text-lg: 1.2rem;
+  --text-xl: 1.55rem;
+  --text-2xl: 2rem;
+  --text-3xl: 2.65rem;
+  --text-hero: clamp(2.55rem, 6vw, 4.75rem);
 
-  --leading-tight: 1.25;
-  --leading-body: 1.65;      /* Korean body text needs air */
-  --tracking-display: -0.01em;
+  --leading-tight: 1.12;
+  --leading-body: 1.7;
+  --tracking-display: -.035em;
 
-  /* ── spacing / layout ── */
-  --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem;
-  --space-4: 1rem;    --space-6: 1.5rem; --space-8: 2rem;
-  --space-12: 3rem;   --space-16: 4rem;  --space-24: 6rem;
+  --space-1: .25rem;
+  --space-2: .5rem;
+  --space-3: .75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
 
-  --container: 68rem;
-  --container-text: 42rem;   /* article measure */
+  --container: 74rem;
+  --container-text: 44rem;
+  --radius-sm: .65rem;
+  --radius: 1.15rem;
+  --radius-lg: 1.6rem;
+  --shadow-card: 0 1px 1px rgb(24 32 28 / .03), 0 12px 34px rgb(35 53 44 / .07);
+  --shadow-float: 0 24px 70px rgb(31 43 37 / .15);
 
-  --radius-sm: 4px;
-  --radius: 8px;             /* keep corners quiet; hanji is the texture */
-  --shadow-card: 0 1px 2px rgb(32 26 20 / 0.06), 0 4px 16px rgb(32 26 20 / 0.07);
-
-  /* ── motion ── */
-  --ease-reveal: cubic-bezier(0.22, 1, 0.36, 1);
-  --dur-fast: 150ms;
-  --dur-reveal: 600ms;
+  --ease-reveal: cubic-bezier(.22, 1, .36, 1);
+  --dur-fast: 180ms;
+  --dur-reveal: 650ms;
 }
 
-/* ── base ── */
-html { background: var(--paper); color: var(--ink); }
+* { box-sizing: border-box; }
+html {
+  background: var(--paper);
+  color: var(--ink);
+  scroll-behavior: smooth;
+}
 body {
+  position: relative;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
   font-family: var(--font-body);
   font-size: var(--text-base);
   line-height: var(--leading-body);
-  margin: 0;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  background:
+    radial-gradient(circle at 8% 2%, rgb(198 76 59 / .075), transparent 22rem),
+    radial-gradient(circle at 94% 16%, rgb(36 84 66 / .09), transparent 25rem),
+    linear-gradient(180deg, #fbfaf7 0%, var(--paper) 35%, #f5f4ef 100%);
 }
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .24;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.055'/%3E%3C/svg%3E");
+}
+::selection { color: var(--ink); background: #d8e8de; }
+
 h1, h2, h3 {
+  margin-block-start: 0;
   font-family: var(--font-display);
+  font-weight: 700;
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-display);
-  font-weight: 700;
 }
-a { color: var(--indigo); text-underline-offset: 3px; }
-:focus-visible { outline: 3px solid var(--indigo); outline-offset: 2px; border-radius: var(--radius-sm); }
+h1 { max-width: 18ch; margin-block-end: var(--space-6); font-size: clamp(2.4rem, 5vw, 4.2rem); }
+h2 { font-size: clamp(1.65rem, 3vw, 2.35rem); }
+h3 { font-size: var(--text-xl); }
+p { margin-block: 0 var(--space-5); }
+a { color: var(--indigo); text-underline-offset: 4px; text-decoration-thickness: 1px; }
+button, input, select, textarea { font: inherit; }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--indigo) 68%, white); outline-offset: 3px; border-radius: var(--radius-sm); }
 
-/* ── components (contract for Claude Code phases) ── */
-
-.btn-primary {           /* the ONLY place vermilion appears besides .seal */
-  background: var(--vermilion);
-  color: var(--paper-raised);
-  font-weight: 600;
-  border: 0; border-radius: var(--radius);
-  padding: var(--space-3) var(--space-6);
+.btn-primary, .btn-secondary {
+  display: inline-flex;
+  min-height: 3.15rem;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  border-radius: 999px;
+  padding: .78rem 1.4rem;
+  font-weight: 750;
+  line-height: 1.2;
+  text-decoration: none;
   cursor: pointer;
-  transition: transform var(--dur-fast) var(--ease-reveal), box-shadow var(--dur-fast);
+  transition: transform var(--dur-fast) var(--ease-reveal), box-shadow var(--dur-fast), background var(--dur-fast);
 }
-.btn-primary:hover { transform: translateY(-1px); box-shadow: var(--shadow-card); }
-
-.btn-secondary {
-  background: transparent; color: var(--indigo);
-  border: 1.5px solid var(--indigo); border-radius: var(--radius);
-  padding: var(--space-3) var(--space-6); cursor: pointer;
+.btn-primary {
+  border: 1px solid var(--vermilion);
+  color: #fff;
+  background: var(--vermilion);
+  box-shadow: 0 10px 24px rgb(198 76 59 / .2);
 }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgb(198 76 59 / .26); background: #b94233; }
+.btn-secondary { border: 1px solid var(--line); color: var(--indigo); background: var(--paper-raised); }
+.btn-secondary:hover { transform: translateY(-2px); border-color: #b9c9c0; box-shadow: var(--shadow-card); background: #fff; }
 
 .card {
-  background: var(--paper-raised);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--paper-raised) 94%, transparent);
   box-shadow: var(--shadow-card);
 }
-
 .field {
-  background: var(--paper-sunken);
+  width: 100%;
+  min-height: 3rem;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  padding: var(--space-3) var(--space-4);
-  font: inherit; color: var(--ink);
+  padding: .72rem .9rem;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--paper-sunken) 66%, white);
+  transition: border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast);
 }
-.field:focus { border-color: var(--indigo); }
+.field:hover { border-color: #bcc4be; }
+.field:focus { outline: none; border-color: var(--indigo); background: #fff; box-shadow: 0 0 0 4px rgb(36 84 66 / .1); }
+input[type='checkbox'], input[type='radio'] { accent-color: var(--indigo); inline-size: 1.05rem; block-size: 1.05rem; }
 
-/* ── signature: 사주단자 pillar card ── */
 .pillar {
-  display: grid; justify-items: center; gap: var(--space-2);
+  display: grid;
+  min-height: 17rem;
+  justify-items: center;
+  align-content: space-between;
+  gap: var(--space-2);
   padding: var(--space-6) var(--space-4);
-  background: var(--paper-raised);
   border: 1px solid var(--line);
-  border-top: 4px solid var(--pillar-color, var(--ink));  /* set per element via --pillar-color */
+  border-top: 5px solid var(--pillar-color, var(--ink));
   border-radius: var(--radius);
+  background: linear-gradient(160deg, #fff, var(--paper-raised));
+  box-shadow: 0 10px 25px rgb(35 53 44 / .055);
 }
 .pillar .hanja {
   font-family: var(--font-display);
   font-size: var(--text-3xl);
-  writing-mode: vertical-rl;   /* vertical, like a real 사주단자 */
+  writing-mode: vertical-rl;
   color: var(--pillar-color, var(--ink));
 }
-.pillar .reading { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-soft); }
-
-.pillar--wood  { --pillar-color: var(--el-wood); }
-.pillar--fire  { --pillar-color: var(--el-fire); }
+.pillar .reading { color: var(--ink-soft); font-family: var(--font-mono); font-size: var(--text-xs); }
+.pillar--wood { --pillar-color: var(--el-wood); }
+.pillar--fire { --pillar-color: var(--el-fire); }
 .pillar--earth { --pillar-color: var(--el-earth); }
 .pillar--metal { --pillar-color: var(--el-metal); }
 .pillar--water { --pillar-color: var(--el-water); }
 
-/* ── signature: 도장 seal stamp (brand mark on result card) ── */
 .seal {
-  display: inline-grid; place-items: center;
-  inline-size: 3.5rem; block-size: 3.5rem;
+  display: inline-grid;
+  inline-size: 3.5rem;
+  block-size: 3.5rem;
+  place-items: center;
   border: 3px solid var(--vermilion);
   border-radius: var(--radius-sm);
   color: var(--vermilion);
   font-family: var(--font-display);
-  font-weight: 700; line-height: 1.1; text-align: center;
-  transform: rotate(-4deg);            /* hand-stamped */
-  opacity: 0.92;
+  font-weight: 700;
+  line-height: 1.05;
+  text-align: center;
+  transform: rotate(-4deg);
+  opacity: .94;
 }
 
-/* ── reveal animation (result page pillars) ── */
 @media (prefers-reduced-motion: no-preference) {
-  .reveal {
-    opacity: 0; transform: translateY(12px);
-    animation: reveal var(--dur-reveal) var(--ease-reveal) forwards;
-    animation-delay: calc(var(--reveal-i, 0) * 140ms);
-  }
+  .reveal { opacity: 0; transform: translateY(14px); animation: reveal var(--dur-reveal) var(--ease-reveal) forwards; animation-delay: calc(var(--reveal-i, 0) * 120ms); }
   @keyframes reveal { to { opacity: 1; transform: none; } }
+}
+
+@media (max-width: 600px) {
+  :root { --text-hero: clamp(2.35rem, 13vw, 3.4rem); }
+  body { line-height: 1.62; }
+  h1 { font-size: clamp(2.2rem, 11vw, 3.25rem); }
+  .btn-primary, .btn-secondary { min-height: 3rem; padding-inline: 1.15rem; }
 }

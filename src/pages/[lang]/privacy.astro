@@ -6,10 +6,17 @@ export function getStaticPaths() { return LOCALES.map((l) => ({ params: { lang: 
 const { lang } = Astro.params;
 ---
 <Base lang={lang} title={`${t(lang, 'footer.privacy')} — ${t(lang, 'meta.siteName')}`} path="privacy">
-  <h1>{t(lang, 'footer.privacy')}</h1>
-  <div style="max-width: var(--container-text);">
+  <section class="privacy-page">
+    <h1>{t(lang, 'footer.privacy')}</h1>
+    <div class="card privacy-card">
     <p><strong>{t(lang, 'privacy.leadStrong')}</strong> {t(lang, 'privacy.body1')}</p>
     <p>{t(lang, 'privacy.body2')}</p>
     <!-- TODO: name the actual form + analytics providers before launch. -->
-  </div>
+    </div>
+  </section>
+  <style>
+    .privacy-page { max-width: var(--container-text); }
+    .privacy-card { padding: clamp(1.5rem, 5vw, 3rem); border-inline-start: 5px solid var(--indigo); }
+    .privacy-card p:last-child { margin-bottom: 0; color: var(--ink-soft); }
+  </style>
 </Base>

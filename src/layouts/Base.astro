@@ -26,6 +26,11 @@ const nav = [
   { href: withBase(`/${lang}/glossary/`), label: t(lang, 'nav.glossary') },
   { href: withBase(`/${lang}/about/`), label: t(lang, 'nav.about') },
 ];
+
+const commerce = [
+  { href: 'https://smartstore.naver.com/', label: t(lang, 'footer.shop'), className: 'shop-link' },
+  { href: 'https://pf.kakao.com/', label: t(lang, 'footer.booking'), className: 'booking-link' },
+];
 ---
 <!doctype html>
 <html lang={htmlLang}>
@@ -44,10 +49,10 @@ const nav = [
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:type" content="website" />
-    <!-- TODO Phase 2: self-host fonts in /public/fonts (see PLAN.md) -->
+    <meta name="theme-color" content="#f8f7f3" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
   </head>
   <body>
@@ -60,7 +65,17 @@ const nav = [
         <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">☰</button>
         <nav id="site-nav" class="site-nav">
           {nav.map((n) => <a href={n.href}>{n.label}</a>)}
+          <div class="nav-commerce">
+            {commerce.map((item) => (
+              <a class={item.className} href={item.href} rel="noopener" target="_blank">{item.label}<span aria-hidden="true">↗</span></a>
+            ))}
+          </div>
         </nav>
+        <div class="header-actions">
+          {commerce.map((item) => (
+            <a class={item.className} href={item.href} rel="noopener" target="_blank">{item.label}<span aria-hidden="true">↗</span></a>
+          ))}
+        </div>
         <div class="lang-switch">
           <label class="visually-hidden" for="lang-select">{t(lang, 'nav.language')}</label>
           <select id="lang-select" class="field field--lang" data-current={lang}>
@@ -110,28 +125,62 @@ const nav = [
     </script>
 
     <style>
-      .site-header { border-bottom: 1px solid var(--line); background: var(--paper); position: sticky; top: 0; z-index: 10; }
-      .header-inner, .footer-inner { max-width: var(--container); margin: 0 auto; padding: var(--space-3) var(--space-4); }
-      .header-inner { display: flex; align-items: center; gap: var(--space-4); }
-      .logo { display: flex; align-items: center; gap: var(--space-2); text-decoration: none; color: var(--ink); }
-      .seal--logo { inline-size: 2rem; block-size: 2rem; font-size: var(--text-xs); }
-      .logo-text { font-family: var(--font-display); font-weight: 700; font-size: var(--text-lg); }
-      .site-nav { display: flex; gap: var(--space-4); margin-inline-start: auto; }
-      .site-nav a { color: var(--ink); text-decoration: none; font-size: var(--text-sm); }
-      .site-nav a:hover { color: var(--indigo); text-decoration: underline; }
-      .lang-switch { margin-inline-start: var(--space-2); }
-      .field--lang { padding: var(--space-1) var(--space-2); font-size: var(--text-sm); }
-      .nav-toggle { display: none; background: none; border: 1px solid var(--line); border-radius: var(--radius-sm); font-size: var(--text-lg); padding: 0 var(--space-2); cursor: pointer; }
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        border-bottom: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+        background: color-mix(in srgb, var(--paper) 88%, transparent);
+        box-shadow: 0 10px 30px rgb(31 43 37 / 0.04);
+        backdrop-filter: blur(18px) saturate(130%);
+      }
+      .header-inner, .footer-inner { max-width: var(--container); margin: 0 auto; padding: var(--space-3) var(--space-5); }
+      .header-inner { display: flex; align-items: center; gap: clamp(.75rem, 1.6vw, 1.5rem); min-height: 4.5rem; }
+      .logo { display: flex; align-items: center; gap: .7rem; text-decoration: none; color: var(--ink); flex: 0 0 auto; }
+      .seal--logo { inline-size: 2.25rem; block-size: 2.25rem; font-size: .67rem; border-width: 2px; border-radius: .55rem; }
+      .logo-text { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; white-space: nowrap; }
+      .site-nav { display: flex; align-items: center; gap: clamp(.75rem, 1.5vw, 1.35rem); margin-inline-start: auto; }
+      .site-nav > a { position: relative; color: var(--ink-soft); text-decoration: none; font-size: .84rem; font-weight: 650; white-space: nowrap; }
+      .site-nav > a::after { content: ''; position: absolute; inset: auto 0 -.55rem; height: 2px; border-radius: 2px; background: var(--indigo); transform: scaleX(0); transition: transform var(--dur-fast) var(--ease-reveal); }
+      .site-nav > a:hover { color: var(--ink); }
+      .site-nav > a:hover::after { transform: scaleX(1); }
+      .header-actions { display: flex; align-items: center; gap: .5rem; padding-inline-start: .3rem; border-inline-start: 1px solid var(--line); }
+      .header-actions a, .nav-commerce a { display: inline-flex; align-items: center; gap: .35rem; text-decoration: none; white-space: nowrap; font-size: .78rem; font-weight: 700; border-radius: 999px; transition: transform var(--dur-fast), box-shadow var(--dur-fast), background var(--dur-fast); }
+      .header-actions a:hover, .nav-commerce a:hover { transform: translateY(-1px); }
+      .shop-link { color: var(--indigo); background: var(--paper-raised); border: 1px solid var(--line); padding: .55rem .75rem; }
+      .booking-link { color: #fff; background: var(--indigo); border: 1px solid var(--indigo); padding: .55rem .8rem; box-shadow: 0 6px 16px rgb(31 80 64 / .16); }
+      .lang-switch { margin-inline-start: 0; }
+      .field--lang { width: auto; min-width: 5rem; padding: .52rem 1.7rem .52rem .65rem; font-size: .78rem; border-radius: 999px; background-color: var(--paper-raised); }
+      .nav-toggle { display: none; background: var(--paper-raised); color: var(--ink); border: 1px solid var(--line); border-radius: 999px; font-size: var(--text-lg); line-height: 1; inline-size: 2.65rem; block-size: 2.65rem; cursor: pointer; }
+      .nav-commerce { display: none; }
       .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-      .site-main { max-width: var(--container); margin: 0 auto; padding: var(--space-8) var(--space-4) var(--space-16); }
-      .site-footer { border-top: 1px solid var(--line); background: var(--paper-sunken); }
-      .footer-links { display: flex; flex-wrap: wrap; gap: var(--space-4); }
-      .footer-rights { color: var(--ink-soft); font-size: var(--text-sm); }
-      @media (max-width: 720px) {
+      .site-main { position: relative; max-width: var(--container); margin: 0 auto; padding: clamp(2.75rem, 6vw, 5rem) var(--space-5) var(--space-24); }
+      .site-footer { border-top: 1px solid var(--line); background: color-mix(in srgb, var(--paper-sunken) 72%, transparent); }
+      .footer-inner { padding-block: var(--space-8); }
+      .footer-links { display: flex; flex-wrap: wrap; gap: var(--space-5); }
+      .footer-links a { color: var(--ink); font-size: var(--text-sm); font-weight: 650; text-decoration: none; }
+      .footer-links a:hover { color: var(--indigo); }
+      .footer-rights { color: var(--ink-soft); font-size: var(--text-sm); margin-block-end: 0; }
+      @media (max-width: 1120px) {
+        .header-actions .shop-link { display: none; }
+      }
+      @media (max-width: 940px) {
         .nav-toggle { display: block; margin-inline-start: auto; }
-        .site-nav { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--paper); border-bottom: 1px solid var(--line); flex-direction: column; padding: var(--space-4); }
+        .site-nav { display: none; position: absolute; top: calc(100% + .5rem); left: var(--space-4); right: var(--space-4); background: color-mix(in srgb, var(--paper-raised) 96%, transparent); border: 1px solid var(--line); box-shadow: var(--shadow-float); border-radius: var(--radius-lg); flex-direction: column; align-items: stretch; gap: .2rem; padding: var(--space-3); }
         .site-nav.open { display: flex; }
+        .site-nav > a { padding: .7rem .8rem; border-radius: var(--radius-sm); }
+        .site-nav > a:hover { background: var(--paper-sunken); }
+        .site-nav > a::after { display: none; }
+        .nav-commerce { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; border-top: 1px solid var(--line); margin-top: .4rem; padding-top: .75rem; }
+        .nav-commerce a { justify-content: center; padding: .7rem; }
+        .header-actions { display: none; }
         .lang-switch { margin-inline-start: 0; }
+      }
+      @media (max-width: 540px) {
+        .header-inner { min-height: 4rem; padding-inline: var(--space-4); }
+        .logo-text { font-size: 1rem; }
+        .site-main { padding-inline: var(--space-4); }
+        .nav-commerce { grid-template-columns: 1fr; }
       }
     </style>
   </body>
