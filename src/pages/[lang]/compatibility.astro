@@ -1,24 +1,284 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { LOCALES } from '../../i18n/locales';
-import { t } from '../../i18n/t';
+import { t, ns } from '../../i18n/t';
+import { withBase } from '../../lib/paths';
+import { CITIES } from '../../lib/cities';
+
 export function getStaticPaths() { return LOCALES.map((l) => ({ params: { lang: l.code } })); }
 const { lang } = Astro.params;
+
+// Client strings: gunghap namespace + the shared labels it borrows from reading/form.
+const R = ns(lang, 'reading');
+const pick = (prefix: string) =>
+  Object.fromEntries(Object.entries(R).filter(([k]) => k.startsWith(prefix)));
+const strings = {
+  ...ns(lang, 'gunghap'),
+  ...pick('el.'), ...pick('strengthV.'), ...pick('tg.'),
+  pillarYear: R['pillarYear'], pillarMonth: R['pillarMonth'],
+  pillarDay: R['pillarDay'], pillarHour: R['pillarHour'],
+  errFuture: t(lang, 'form.errFuture'),
+  errLunarRange: t(lang, 'form.errLunarRange'),
+};
+
+const personFields = [
+  { key: 'a', label: t(lang, 'gunghap.personA') },
+  { key: 'b', label: t(lang, 'gunghap.personB') },
+];
 ---
-<Base lang={lang} title={t(lang, 'meta.compat.title')} path="compatibility">
-  <section class="card feature-page">
+<Base lang={lang} title={t(lang, 'meta.compat.title')} description={t(lang, 'compat.body')} path="compatibility">
+  <script type="application/json" id="i18n-gunghap" set:html={JSON.stringify(strings)} />
+
+  <section class="compat-hero">
     <span class="feature-mark" aria-hidden="true">合</span>
-    <div>
-      <h1>{t(lang, 'compat.headline')}</h1>
-      <p>{t(lang, 'compat.body')}</p>
-      <a class="btn-primary" href="https://pf.kakao.com/" rel="noopener" target="_blank">{t(lang, 'footer.booking')} <span aria-hidden="true">↗</span></a>
-    </div>
+    <h1>{t(lang, 'compat.headline')}</h1>
+    <p>{t(lang, 'compat.body')}</p>
   </section>
+
+  <form id="gunghap-form" class="card gform" data-lang={lang}>
+    <div class="gform-head">
+      <h2>{t(lang, 'gunghap.formTitle')}</h2>
+      <p class="soft">{t(lang, 'gunghap.formNote')}</p>
+    </div>
+    <div class="gform-grid">
+      {personFields.map((person) => (
+        <fieldset class="person">
+          <legend>{person.label}</legend>
+          <label>{t(lang, 'form.date')}
+            <input class="field" type="date" name={`${person.key}-date`} required max="2030-12-31" />
+          </label>
+          <label>{t(lang, 'form.time')}
+            <input class="field" type="time" name={`${person.key}-time`} value="12:00" />
+          </label>
+          <label class="check"><input type="checkbox" name={`${person.key}-tu`} /> {t(lang, 'form.timeUnknown')}</label>
+          <div class="cal-row">
+            <label class="check"><input type="radio" name={`${person.key}-cal`} value="solar" checked /> {t(lang, 'form.solar')}</label>
+            <label class="check"><input type="radio" name={`${person.key}-cal`} value="lunar" /> {t(lang, 'form.lunar')}</label>
+            <label class="check lunar-only" hidden><input type="checkbox" name={`${person.key}-leap`} /> {t(lang, 'form.lunarLeap')}</label>
+          </div>
+          <label>{t(lang, 'form.place')}
+            <select class="field" name={`${person.key}-city`}>
+              <option value="">— {t(lang, 'form.place')} (auto) —</option>
+              {CITIES.map((c) => <option value={c.tz} data-lon={c.lon}>{c.name}</option>)}
+            </select>
+          </label>
+        </fieldset>
+      ))}
+    </div>
+    <p class="form-error" role="alert" hidden></p>
+    <button class="btn-primary" type="submit">{t(lang, 'gunghap.cta')}</button>
+  </form>
+
+  <section id="gunghap-result" hidden>
+    <div class="result-head">
+      <h2>{t(lang, 'gunghap.resultTitle')}</h2>
+      <a class="btn-secondary" href={withBase(`/${lang}/compatibility/`)}>{t(lang, 'gunghap.reset')}</a>
+    </div>
+    <p class="soft result-note">{t(lang, 'gunghap.resultNote')}</p>
+    <div id="person-charts" class="person-charts"></div>
+    <div id="gunghap-sections" class="gunghap-sections"></div>
+    <section class="card book-band">
+      <div>
+        <h2>{t(lang, 'gunghap.bookTitle')}</h2>
+        <p>{t(lang, 'gunghap.bookBody')}</p>
+      </div>
+      <a class="btn-primary" href="https://pf.kakao.com/" rel="noopener" target="_blank" data-analytics-event="booking_click" data-analytics-destination="kakao_booking" data-analytics-area="gunghap">{t(lang, 'footer.booking')} <span aria-hidden="true">↗</span></a>
+    </section>
+  </section>
+
+  <section class="card culture">
+    <h2>{t(lang, 'gunghap.culture.title')}</h2>
+    <p>{t(lang, 'gunghap.culture.body')}</p>
+  </section>
+
+  <section class="card waitband">
+    <h2>{t(lang, 'waitlist.title')}</h2>
+    <p>{t(lang, 'waitlist.body')}</p>
+    <!-- TODO: replace action with your Formspree/Buttondown endpoint -->
+    <form action="https://formspree.io/f/REPLACE_ME" method="POST" class="waitlist-form">
+      <label class="visually-hidden" for="gh-email">{t(lang, 'waitlist.email')}</label>
+      <input id="gh-email" class="field" type="email" name="email" placeholder={t(lang, 'waitlist.email')} required />
+      <button class="btn-secondary" type="submit">{t(lang, 'waitlist.cta')}</button>
+    </form>
+  </section>
+
+  <script>
+    import KoreanLunarCalendar from 'korean-lunar-calendar';
+    import { tzOffsetMinutes } from '../../lib/cities';
+    import { computeGunghap, type GunghapResult, type PairRelation } from '../../lib/gunghap';
+    import type { SajuInput, SajuResult } from '../../lib/saju-engine';
+    import { trackEvent } from '../../lib/analytics';
+
+    const S: Record<string, string> = JSON.parse(document.getElementById('i18n-gunghap')!.textContent!);
+    const fmt = (template: string, vars: Record<string, string | number>) =>
+      Object.entries(vars).reduce((text, [k, v]) => text.replaceAll(`{${k}}`, String(v)), template);
+    const form = document.getElementById('gunghap-form') as HTMLFormElement;
+    const errEl = form.querySelector('.form-error') as HTMLElement;
+
+    // Lunar checkbox visibility per person.
+    (['a', 'b'] as const).forEach((key, personIndex) => {
+      form.querySelectorAll(`input[name="${key}-cal"]`).forEach((radio) =>
+        radio.addEventListener('change', () => {
+          const only = form.querySelectorAll('.lunar-only')[personIndex] as HTMLElement;
+          only.hidden = (form.elements.namedItem(`${key}-cal`) as RadioNodeList).value !== 'lunar';
+        })
+      );
+    });
+
+    type PersonParams = Record<string, string>;
+    function readPerson(f: FormData, key: string): PersonParams | { error: string } {
+      let [y, m, d] = String(f.get(`${key}-date`) || '').split('-').map(Number);
+      if (!y) return { error: S['errBothRequired'] };
+      const tu = f.get(`${key}-tu`) === 'on';
+      const [h, mi] = tu ? [12, 0] : String(f.get(`${key}-time`) || '12:00').split(':').map(Number);
+      if (new Date(y, m - 1, d) > new Date()) return { error: S['errFuture'] };
+      if (f.get(`${key}-cal`) === 'lunar') {
+        if (y < 1900 || y > 2050) return { error: S['errLunarRange'] };
+        try {
+          const cal = new KoreanLunarCalendar();
+          cal.setLunarDate(y, m, d, f.get(`${key}-leap`) === 'on');
+          const s = cal.getSolarCalendar();
+          y = s.year; m = s.month; d = s.day;
+        } catch { return { error: S['errLunarRange'] }; }
+      }
+      const citySel = form.elements.namedItem(`${key}-city`) as HTMLSelectElement;
+      const tz = citySel.value || Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const lon = citySel.value ? Number(citySel.selectedOptions[0].dataset.lon) : 126.98;
+      const tzMin = tzOffsetMinutes(tz, y, m, d, h, mi);
+      return {
+        [`${key}y`]: String(y), [`${key}m`]: String(m), [`${key}d`]: String(d),
+        [`${key}h`]: String(h), [`${key}i`]: String(mi), [`${key}u`]: tu ? '1' : '0',
+        [`${key}z`]: String(tzMin), [`${key}l`]: String(lon),
+      };
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      errEl.hidden = true;
+      const f = new FormData(form);
+      const a = readPerson(f, 'a');
+      const b = readPerson(f, 'b');
+      const bad = ('error' in a && a) || ('error' in b && b);
+      if (bad) { errEl.textContent = (bad as { error: string }).error; errEl.hidden = false; return; }
+      const q = new URLSearchParams({ ...(a as PersonParams), ...(b as PersonParams) });
+      location.href = `${location.pathname}?${q}`;
+    });
+
+    // ── Result rendering (all state in the querystring; nothing stored) ──
+    const q = new URLSearchParams(location.search);
+    if (q.has('ay') && q.has('by')) {
+      const input = (key: string): SajuInput => ({
+        year: +q.get(`${key}y`)!, month: +q.get(`${key}m`)!, day: +q.get(`${key}d`)!,
+        hour: +q.get(`${key}h`)!, minute: +q.get(`${key}i`)!,
+        timeUnknown: q.get(`${key}u`) === '1',
+        tzOffsetMinutes: +q.get(`${key}z`)!, longitude: +q.get(`${key}l`)!,
+      });
+      const g: GunghapResult = computeGunghap(input('a'), input('b'));
+      render(g);
+      form.hidden = true;
+      document.getElementById('gunghap-result')!.hidden = false;
+      trackEvent('gunghap_view', { language: document.documentElement.lang });
+    }
+
+    function miniChart(r: SajuResult, label: string): string {
+      const roles = [[r.hour, S['pillarHour']], [r.day, S['pillarDay']], [r.month, S['pillarMonth']], [r.year, S['pillarYear']]] as const;
+      return `<div class="card mini-chart">
+        <h3>${label} · <span lang="ko">${r.dayMaster.hanja}(${r.dayMaster.ko})</span></h3>
+        <div class="mini-pillars">${roles.map(([p, roleLabel]) => p
+          ? `<div class="mini-pillar"><small>${roleLabel}</small><strong class="element-text--${p.stemElement}" lang="ko">${p.hanja}</strong><span>${p.stemKo}${p.branchKo}</span></div>`
+          : `<div class="mini-pillar"><small>${roleLabel}</small><span>—</span></div>`).join('')}
+        </div></div>`;
+    }
+
+    const relBadge = (rel: PairRelation) => {
+      const tense = ['punishment', 'clash', 'break', 'harm', 'grudge', 'ghostGate'].includes(rel);
+      return `<span class="rel-badge ${tense ? 'rel-badge--tense' : 'rel-badge--smooth'}">${S[`rel.${rel}`] ?? rel}</span>`;
+    };
+    const relBlock = (rels: PairRelation[]) =>
+      rels.length ? `<div class="rel-badges">${rels.map(relBadge).join('')}</div>` : `<p class="soft">${S['relNone']}</p>`;
+    const section = (title: string, body: string, note: string) =>
+      `<section class="card gsection"><h3>${title}</h3>${body}<p class="soft context-note">${note}</p></section>`;
+    const elLabel = (el: string) => S[`el.${el}`] ?? el;
+    const tgLabel = (god: string) => S[`tg.${god}`] ?? god;
+
+    function render(g: GunghapResult) {
+      document.getElementById('person-charts')!.innerHTML =
+        miniChart(g.a, S['personA']) + miniChart(g.b, S['personB']);
+
+      const stemLine = g.stems.type === 'combination'
+        ? fmt(S['stem.combination'], { el: elLabel(g.stems.transformElement!) })
+        : S[`stem.${g.stems.type}`];
+
+      const fills = [
+        g.bFillsForA.length ? fmt(S['fillsForA'], { els: g.bFillsForA.map(elLabel).join(', ') }) : '',
+        g.aFillsForB.length ? fmt(S['fillsForB'], { els: g.aFillsForB.map(elLabel).join(', ') }) : '',
+      ].filter(Boolean);
+
+      document.getElementById('gunghap-sections')!.innerHTML = [
+        section(S['outer'], relBlock(g.yearRelations), S['outerNote']),
+        section(S['inner'], relBlock(g.dayRelations), S['innerNote']),
+        section(S['stems'], `<p class="glead">${stemLine}</p>`, S['stemsNote']),
+        section(S['tengods'],
+          `<p class="glead">${fmt(S['tenGodOfB'], { god: tgLabel(g.tenGodOfBForA) })}</p>
+           <p class="glead">${fmt(S['tenGodOfA'], { god: tgLabel(g.tenGodOfAForB) })}</p>`,
+          S['tengodsNote']),
+        section(S['elements'],
+          fills.length ? fills.map((line) => `<p class="glead">${line}</p>`).join('') : `<p class="soft">${S['fillsNone']}</p>`,
+          S['elementsNote']),
+        section(S['strength'],
+          `<p class="glead">${S['myStrength']}: <strong>${S[`strengthV.${g.strengthA}`]}</strong> ·
+            ${S['theirStrength']}: <strong>${S[`strengthV.${g.strengthB}`]}</strong></p>`,
+          S['strengthNote']),
+      ].join('');
+    }
+  </script>
+
   <style>
-    .feature-page { position: relative; max-width: 58rem; min-height: 29rem; display: grid; align-items: center; padding: clamp(2rem, 7vw, 5rem); overflow: hidden; }
-    .feature-page > div { position: relative; max-width: var(--container-text); }
-    .feature-page p { color: var(--ink-soft); font-size: var(--text-lg); }
-    .feature-page .btn-primary { margin-top: var(--space-6); }
-    .feature-mark { position: absolute; inset: auto -1rem -5rem auto; color: var(--jade-pale); font-family: var(--font-display); font-size: 18rem; line-height: 1; }
+    .compat-hero { position: relative; max-width: 58rem; margin-block-end: var(--space-8); overflow: hidden; padding-block: var(--space-8); }
+    .compat-hero p { color: var(--ink-soft); font-size: var(--text-lg); max-width: var(--container-text); }
+    .feature-mark { position: absolute; inset: -2rem -1rem auto auto; color: var(--jade-pale, var(--paper-sunken)); font-family: var(--font-display); font-size: 12rem; line-height: 1; z-index: -1; }
+    .gform { padding: var(--space-6); display: grid; gap: var(--space-4); margin-block-end: var(--space-12); }
+    .gform-head h2 { margin: 0 0 var(--space-1); font-size: var(--text-xl); }
+    .gform-head p { margin: 0; font-size: var(--text-sm); }
+    .gform-grid { display: grid; gap: var(--space-4); grid-template-columns: 1fr 1fr; }
+    @media (max-width: 720px) { .gform-grid { grid-template-columns: 1fr; } }
+    .person { border: 1px solid var(--line); border-radius: var(--radius-sm); display: grid; gap: var(--space-3); padding: var(--space-4); }
+    .person legend { font-family: var(--font-display); font-weight: 700; padding-inline: var(--space-1); }
+    .person label { display: grid; gap: var(--space-1); font-size: var(--text-sm); }
+    .person .check { display: flex; align-items: center; gap: var(--space-2); }
+    .cal-row { display: flex; gap: var(--space-4); flex-wrap: wrap; }
+    .form-error { color: var(--vermilion); font-size: var(--text-sm); margin: 0; }
+    .result-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
+    .result-head h2 { margin: 0; }
+    .result-note { max-width: var(--container-text); }
+    .person-charts { display: grid; gap: var(--space-4); grid-template-columns: 1fr 1fr; margin-block: var(--space-6); }
+    @media (max-width: 720px) { .person-charts { grid-template-columns: 1fr; } }
+    .mini-chart { padding: var(--space-4); }
+    .mini-chart h3 { margin: 0 0 var(--space-3); font-size: var(--text-base); }
+    .mini-pillars { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2); }
+    .mini-pillar { display: grid; justify-items: center; gap: 2px; padding: var(--space-2); background: var(--paper-sunken); border-radius: var(--radius-sm); }
+    .mini-pillar small { color: var(--ink-soft); font-size: var(--text-xs); }
+    .mini-pillar strong { font-family: var(--font-display); font-size: var(--text-lg); }
+    .mini-pillar span { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-soft); }
+    .gunghap-sections { display: grid; gap: var(--space-4); grid-template-columns: 1fr 1fr; }
+    @media (max-width: 860px) { .gunghap-sections { grid-template-columns: 1fr; } }
+    .gsection { padding: var(--space-6); }
+    .gsection h3 { margin-top: 0; }
+    .rel-badges { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+    .rel-badge { border-radius: 999px; padding: var(--space-1) var(--space-3); font-size: var(--text-sm); font-weight: 600; border: 1px solid var(--line); }
+    .rel-badge--smooth { color: var(--indigo); border-color: color-mix(in srgb, var(--indigo) 40%, var(--line)); background: color-mix(in srgb, var(--indigo) 7%, transparent); }
+    .rel-badge--tense { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 45%, var(--line)); background: color-mix(in srgb, var(--gold) 8%, transparent); }
+    .glead { margin: var(--space-1) 0; }
+    .context-note { font-size: var(--text-sm); margin-bottom: 0; }
+    .soft { color: var(--ink-soft); }
+    .book-band { margin-block: var(--space-8); padding: var(--space-6); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
+    .book-band h2 { margin: 0 0 var(--space-1); font-size: var(--text-xl); }
+    .book-band p { margin: 0; color: var(--ink-soft); max-width: 34rem; }
+    .culture { margin-block: var(--space-8); padding: var(--space-8); max-width: 55rem; border-inline-start: 5px solid var(--gold); }
+    .culture h2 { margin-top: 0; font-size: var(--text-xl); }
+    .culture p { margin: 0; color: var(--ink-soft); }
+    .waitband { padding: var(--space-8); text-align: center; }
+    .waitlist-form { display: flex; gap: var(--space-2); justify-content: center; flex-wrap: wrap; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   </style>
 </Base>
