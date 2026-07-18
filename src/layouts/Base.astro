@@ -74,6 +74,7 @@ const commerce = [
     <link rel="icon" href={withBase('/icons/favicon-32.png')} sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href={withBase('/icons/apple-touch-icon.png')} />
     <meta name="theme-color" content="#f8f7f3" />
+    <script id="google-analytics-script" async src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}></script>
     <script is:inline define:vars={{ measurementId: GA_MEASUREMENT_ID }}>
       window.dataLayer = window.dataLayer || [];
       window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };

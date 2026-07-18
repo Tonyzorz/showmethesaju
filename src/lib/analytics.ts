@@ -109,14 +109,6 @@ function loadGoogleAnalytics() {
     cookie_expires: 60 * 60 * 24 * 90,
   });
 
-  if (!document.getElementById('google-analytics-script')) {
-    const script = document.createElement('script');
-    script.id = 'google-analytics-script';
-    script.async = true;
-    script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
-    document.head.append(script);
-  }
-
   window.__sajuAnalyticsReady = true;
   if (!window.__sajuPageViewSent) {
     window.gtag('event', 'page_view', {
