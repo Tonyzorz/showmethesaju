@@ -16,7 +16,7 @@
  *
  * VERIFY BEFORE LAUNCH: cross-check ≥20 dates against KASI 만세력
  * (https://astro.kasi.re.kr), especially births within ±1 day of 입춘/절기,
- * 23:00–01:00 births, and lunar leap-month conversions. See PLAN.md Phase 4.
+ * 23:00–01:00 births, and lunar leap-month conversions. See KASI-CHECKLIST.md.
  */
 
 // ───────────────────────────── constants ─────────────────────────────
@@ -778,6 +778,6 @@ export function computeSaju(input: SajuInput): SajuResult {
  *     const after  = computeSaju({ year: 2024, month: 2, day: 5, hour: 12, tzOffsetMinutes: 540 });
  *     expect(before.year.hanja).not.toBe(after.year.hanja);
  *   });
- *   // TODO Phase 4: add fixtures/kasi-verified.json with ≥20 cases from astro.kasi.re.kr
+ *   // Launch gate: expand tests/engine-fixtures.json with ≥20 KASI-verified cases.
  * });
  */

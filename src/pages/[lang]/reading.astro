@@ -19,8 +19,9 @@ const strings = {
   genderMale: t(lang, 'form.genderM'),
 };
 const READING_FOCUSES = [
-  { key: 'basic', mark: '命' }, { key: 'wealth', mark: '財' }, { key: 'health', mark: '身' },
-  { key: 'career', mark: '業' }, { key: 'relationships', mark: '緣' }, { key: 'timing', mark: '運' },
+  { key: 'basic', mark: '命' }, { key: 'personality', mark: '氣' }, { key: 'wealth', mark: '財' },
+  { key: 'health', mark: '身' }, { key: 'career', mark: '業' }, { key: 'relationships', mark: '緣' },
+  { key: 'noble', mark: '貴' }, { key: 'movement', mark: '動' }, { key: 'timing', mark: '運' },
 ] as const;
 ---
 <Base lang={lang} title={t(lang, 'meta.reading.title')} path="reading" noindex>
@@ -62,7 +63,7 @@ const READING_FOCUSES = [
           <h3 id="focus-title"></h3>
           <p id="focus-summary"></p>
           <div id="focus-metrics" class="focus-metrics"></div>
-          <a id="focus-details" href="#original-chart">{t(lang, 'fortune.viewDetails')} <span aria-hidden="true">↓</span></a>
+          <button id="focus-details" type="button">{t(lang, 'fortune.viewDetails')} <span aria-hidden="true">↓</span></button>
         </div>
       </article>
     </section>
@@ -228,7 +229,7 @@ const READING_FOCUSES = [
         <div class="relation-section"><h3>{t(lang, 'reading.harmonies')}</h3><div id="harmony-groups" class="harmony-list"></div></div>
         <p class="soft context-note">{t(lang, 'reading.relationsContext')}</p>
       </section>
-      <section class="card panel shinsal-panel">
+      <section id="shinsal-analysis" class="card panel shinsal-panel">
         <div class="panel-heading">
           <h2>{t(lang, 'reading.shinsal')}</h2>
           <span class="panel-index" aria-hidden="true">11</span>
@@ -340,8 +341,15 @@ const READING_FOCUSES = [
     import { trackEvent } from '../../lib/analytics';
 
     const S: Record<string, string> = JSON.parse(document.getElementById('i18n-reading')!.textContent!);
-    const q = new URLSearchParams(location.search);
-    const readingFocuses = ['basic', 'wealth', 'health', 'career', 'relationships', 'timing'] as const;
+    const rawState = location.hash.length > 1 ? location.hash.slice(1) : location.search;
+    const q = new URLSearchParams(rawState);
+    if (!location.hash && location.search && q.size) {
+      const migrated = new URL(location.href);
+      migrated.search = '';
+      migrated.hash = q.toString();
+      location.replace(migrated);
+    }
+    const readingFocuses = ['basic', 'personality', 'wealth', 'health', 'career', 'relationships', 'noble', 'movement', 'timing'] as const;
     type ReadingFocus = typeof readingFocuses[number];
     let selectedReadingFocus: ReadingFocus = readingFocuses.includes(q.get('focus') as ReadingFocus)
       ? q.get('focus') as ReadingFocus : 'basic';
@@ -358,7 +366,8 @@ const READING_FOCUSES = [
     };
     const gender = q.get('g') === 'f' ? 'female' : q.get('g') === 'm' ? 'male' : undefined;
     const dateCheck = new Date(Date.UTC(values.year, values.month - 1, values.day));
-    const validQuery = q.has('y') && (!q.has('g') || Boolean(gender)) && Object.values(values).every(Number.isFinite) &&
+    const requiredState = ['y', 'm', 'd', 'h', 'mi', 'tz', 'lon'];
+    const validQuery = requiredState.every((key) => q.has(key)) && (!q.has('g') || Boolean(gender)) && Object.values(values).every(Number.isFinite) &&
       values.year >= 1900 && values.year <= 2050 &&
       dateCheck.getUTCFullYear() === values.year && dateCheck.getUTCMonth() === values.month - 1 && dateCheck.getUTCDate() === values.day &&
       values.hour >= 0 && values.hour <= 23 && values.minute >= 0 && values.minute <= 59 &&
@@ -538,6 +547,12 @@ const READING_FOCUSES = [
       const yin = visiblePillars.length * 2 - yang;
       const relationPairs = new Set(r.relations.map((relation) => [relation.leftRole, relation.rightRole].sort().join('-'))).size;
       const relationshipStars = r.shinsal.filter((item) => item.name === 'peachBlossom').length;
+      const heavenlyNobleCount = r.shinsal.filter((item) => item.name === 'cheonEul').length;
+      const literaryCount = r.shinsal.filter((item) => item.name === 'munChang').length;
+      const virtueCount = r.shinsal.filter((item) => item.name === 'cheonDeok' || item.name === 'wolDeok').length;
+      const travelCount = r.shinsal.filter((item) => item.name === 'travelHorse').length;
+      const strength = strengthAnalysis(r);
+      const structure = gyeokguk(r);
       const today = new Date();
       const civilYear = today.getFullYear();
       const currentSajuYear = today.getTime() < ipchunUtcMs(civilYear) ? civilYear - 1 : civilYear;
@@ -552,6 +567,12 @@ const READING_FOCUSES = [
           summary: fmt(S['focus.basic.summary'], { dayMaster: `${r.dayMaster.hanja} ${r.dayMaster.ko}`, element: S[`el.${dominantElement}`], count: maxElementCount, total: totalElements, yang, yin }),
           metrics: metric(S['focus.metric.dayMaster'], `${r.dayMaster.hanja} · ${S[`el.${r.dayMaster.element}`]}`) + metric(S['focus.metric.dominantElement'], S[`el.${dominantElement}`]) + metric(S['focus.metric.yinYang'], `${yang} / ${yin}`),
           target: '#original-chart',
+        },
+        personality: {
+          mark: '氣',
+          summary: fmt(S['focus.personality.summary'], { dayMaster: `${r.dayMaster.hanja} ${r.dayMaster.ko}`, strength: S[`strengthV.${strength.verdict}`], structure: S[`gg.${structure.name}`] }),
+          metrics: metric(S['focus.metric.dayMaster'], `${r.dayMaster.hanja} · ${S[`el.${r.dayMaster.element}`]}`) + metric(S['focus.metric.strength'], S[`strengthV.${strength.verdict}`]) + metric(S['focus.metric.structure'], S[`gg.${structure.name}`]),
+          target: '#strength-analysis',
         },
         wealth: {
           mark: '財',
@@ -577,6 +598,18 @@ const READING_FOCUSES = [
           metrics: metric(S['focus.metric.dayBranch'], r.day.branchHanja) + metric(S['focus.metric.relations'], relationPairs) + metric(S['focus.metric.relationshipStars'], relationshipStars),
           target: '#relations-analysis',
         },
+        noble: {
+          mark: '貴',
+          summary: fmt(S['focus.noble.summary'], { nobleCount: heavenlyNobleCount, literaryCount, virtueCount }),
+          metrics: metric(S['focus.metric.heavenlyNoble'], heavenlyNobleCount) + metric(S['focus.metric.literaryStar'], literaryCount) + metric(S['focus.metric.virtueStars'], virtueCount),
+          target: '#shinsal-analysis',
+        },
+        movement: {
+          mark: '動',
+          summary: fmt(S['focus.movement.summary'], { travelCount, relationCount: relationPairs, daeunPillar: activeDaeun?.pillar.hanja ?? S['focus.unavailable'] }),
+          metrics: metric(S['focus.metric.travelHorse'], travelCount) + metric(S['focus.metric.relations'], relationPairs) + metric(S['focus.metric.currentDaeun'], activeDaeun?.pillar.hanja ?? S['focus.unavailable']),
+          target: '#shinsal-analysis',
+        },
         timing: {
           mark: '運',
           summary: fmt(S['focus.timing.summary'], { direction: r.daeun ? S[r.daeun.direction] : S['focus.unavailable'], daeunPillar: activeDaeun?.pillar.hanja ?? S['focus.unavailable'], year: currentSajuYear, annualPillar: annual.pillar.hanja }),
@@ -598,15 +631,21 @@ const READING_FOCUSES = [
         document.getElementById('focus-title')!.textContent = S[`focus.${focus}.title`];
         document.getElementById('focus-summary')!.textContent = config.summary;
         document.getElementById('focus-metrics')!.innerHTML = config.metrics;
-        document.getElementById('focus-details')!.setAttribute('href', config.target);
+        (document.getElementById('focus-details') as HTMLButtonElement).dataset.target = config.target;
         const url = new URL(location.href);
-        url.searchParams.set('focus', focus);
-        history.replaceState(null, '', url);
+        q.set('focus', focus);
+        url.search = '';
+        url.hash = q.toString();
+        if (url.href !== location.href) location.replace(url);
         if (track) trackEvent('reading_focus_select', { reading_focus: focus, selection_area: 'result', language: document.documentElement.lang });
       };
 
       document.querySelectorAll<HTMLButtonElement>('[data-reading-focus]').forEach((button) => {
         button.addEventListener('click', () => paint(button.dataset.readingFocus as ReadingFocus, true));
+      });
+      document.getElementById('focus-details')!.addEventListener('click', () => {
+        document.querySelector((document.getElementById('focus-details') as HTMLButtonElement).dataset.target || '#original-chart')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
       paint(selectedReadingFocus);
     }
@@ -1173,9 +1212,12 @@ const READING_FOCUSES = [
     .focus-content { position: relative; display: grid; min-height: 16rem; grid-template-columns: auto 1fr; align-items: center; gap: clamp(1.2rem, 4vw, 2.4rem); overflow: hidden; padding: clamp(1.3rem, 4vw, 2.5rem); border: 1px solid color-mix(in srgb, var(--focus-accent) 28%, var(--line)); border-radius: var(--radius-lg); background: linear-gradient(135deg, color-mix(in srgb, var(--focus-accent) 10%, white), rgb(255 255 255 / .94) 56%); box-shadow: 0 20px 55px rgb(35 53 44 / .1); }
     .focus-content::after { content: ''; position: absolute; inline-size: 15rem; aspect-ratio: 1; inset: -7rem -5rem auto auto; border: 1px solid var(--focus-accent); border-radius: 50%; box-shadow: 0 0 0 2.7rem color-mix(in srgb, var(--focus-accent) 4%, transparent), 0 0 0 5.4rem color-mix(in srgb, var(--focus-accent) 2.5%, transparent); opacity: .13; pointer-events: none; }
     .focus-content[data-focus="wealth"] { --focus-accent: #a47428; }
+    .focus-content[data-focus="personality"] { --focus-accent: #76623b; }
     .focus-content[data-focus="health"] { --focus-accent: #ae5147; }
     .focus-content[data-focus="career"] { --focus-accent: #405f8e; }
     .focus-content[data-focus="relationships"] { --focus-accent: #a34e70; }
+    .focus-content[data-focus="noble"] { --focus-accent: #33777a; }
+    .focus-content[data-focus="movement"] { --focus-accent: #765686; }
     .focus-content[data-focus="timing"] { --focus-accent: #65538f; }
     .focus-content__mark { position: relative; z-index: 1; display: grid; inline-size: clamp(5.2rem, 10vw, 7rem); aspect-ratio: 1; place-items: center; border: 1px solid color-mix(in srgb, var(--focus-accent) 28%, transparent); border-radius: 1.6rem; color: var(--focus-accent); background: color-mix(in srgb, var(--focus-accent) 9%, white); box-shadow: inset 0 0 0 .45rem rgb(255 255 255 / .5), 0 14px 30px color-mix(in srgb, var(--focus-accent) 15%, transparent); font-family: var(--font-display); font-size: clamp(2.6rem, 6vw, 4rem); font-weight: 750; }
     .focus-content__copy { position: relative; z-index: 1; min-width: 0; }
@@ -1186,9 +1228,9 @@ const READING_FOCUSES = [
     .focus-metrics > span { display: grid; min-width: 7.2rem; gap: .2rem; padding: .55rem .7rem; border: 1px solid color-mix(in srgb, var(--focus-accent) 17%, var(--line)); border-radius: .75rem; background: rgb(255 255 255 / .66); }
     .focus-metrics small { color: var(--ink-soft); font-size: .56rem; font-weight: 720; }
     .focus-metrics strong { color: var(--focus-accent); font-size: .76rem; overflow-wrap: anywhere; }
-    #focus-details { display: inline-flex; align-items: center; gap: .45rem; margin-top: 1rem; color: var(--focus-accent); font-size: .72rem; font-weight: 800; text-decoration: none; }
+    #focus-details { display: inline-flex; align-items: center; gap: .45rem; margin-top: 1rem; padding: 0; border: 0; color: var(--focus-accent); background: transparent; font: inherit; font-size: .72rem; font-weight: 800; text-decoration: none; cursor: pointer; }
     #focus-details span { display: grid; inline-size: 1.4rem; aspect-ratio: 1; place-items: center; border-radius: 50%; color: white; background: var(--focus-accent); }
-    #original-chart, #element-balance, #ten-gods-analysis, #relations-analysis, #luck-analysis { scroll-margin-top: 6rem; }
+    #original-chart, #element-balance, #ten-gods-analysis, #strength-analysis, #relations-analysis, #shinsal-analysis, #luck-analysis { scroll-margin-top: 6rem; }
 
     .chart-matrix-panel {
       position: relative;

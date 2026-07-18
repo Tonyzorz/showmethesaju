@@ -7,8 +7,8 @@
 import {
   branchRelationTypes, computeSaju, tenGod,
   type BranchRelationType, type Element, type SajuInput, type SajuResult, type TenGod,
-} from './saju-engine';
-import { strengthAnalysis, type StrengthVerdict } from './saju-extras';
+} from './saju-engine.ts';
+import { strengthAnalysis, type StrengthVerdict } from './saju-extras.ts';
 
 const ELEMENTS: Element[] = ['wood', 'fire', 'earth', 'metal', 'water'];
 const STEM_ELEMENT = (s: number): Element => ELEMENTS[Math.floor(s / 2)];
@@ -38,12 +38,11 @@ export function dayStemPair(a: number, b: number): StemPair {
   return { type: CONTROLS[ea] === eb ? 'aControlsB' : 'bControlsA', transformElement: null };
 }
 
-/** Branch pair relations, plus 삼합-group membership as 'trine'. */
-export type PairRelation = BranchRelationType | 'trine' | 'sameBranch';
+/** Branch pair relations. Half-harmony already represents shared 삼합 membership. */
+export type PairRelation = BranchRelationType | 'sameBranch';
 export function branchPair(a: number, b: number): PairRelation[] {
   const out: PairRelation[] = [...branchRelationTypes(a, b)];
   if (a === b) out.unshift('sameBranch');
-  else if (a % 4 === b % 4) out.unshift('trine');
   return out;
 }
 

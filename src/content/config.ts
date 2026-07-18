@@ -1,7 +1,7 @@
 import { defineCollection, z } from 'astro:content';
 
 /**
- * Learn articles (PLAN.md §6.3). Folder = locale: src/content/learn/<locale>/<slug>.md
+ * Learn articles. Folder = locale: src/content/learn/<locale>/<slug>.md
  * `translationKey` ties translations of the same article together for hreflang.
  * Educational content only — fortune interpretation copy is owner-written.
  */

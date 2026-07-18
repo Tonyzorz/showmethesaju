@@ -10,10 +10,13 @@ export function getStaticPaths() {
 const { lang } = Astro.params;
 const READING_FOCUSES = [
   { key: 'basic', mark: '命' },
+  { key: 'personality', mark: '氣' },
   { key: 'wealth', mark: '財' },
   { key: 'health', mark: '身' },
   { key: 'career', mark: '業' },
   { key: 'relationships', mark: '緣' },
+  { key: 'noble', mark: '貴' },
+  { key: 'movement', mark: '動' },
   { key: 'timing', mark: '運' },
 ] as const;
 ---
@@ -27,28 +30,6 @@ const READING_FOCUSES = [
       <p class="hero-sub">{t(lang, 'hero.sub')}</p>
       <p class="trust-line">{t(lang, 'hero.trust')}</p>
 
-      <section class="fortune-picker" aria-labelledby="fortune-picker-title">
-        <div class="fortune-picker__heading">
-          <p>{t(lang, 'fortune.eyebrow')}</p>
-          <h2 id="fortune-picker-title">{t(lang, 'fortune.title')}</h2>
-          <span>{t(lang, 'fortune.subtitle')}</span>
-        </div>
-        <div class="fortune-grid">
-          {READING_FOCUSES.map((focus, index) => (
-            <label class={`fortune-card fortune-card--${focus.key}`}>
-              <input type="radio" name="focus" value={focus.key} form="birth-form" checked={index === 0} />
-              <span class="fortune-card__surface">
-                <span class="fortune-card__mark" aria-hidden="true">{focus.mark}</span>
-                <span class="fortune-card__copy">
-                  <strong>{t(lang, `fortune.${focus.key}.title`)}</strong>
-                  <small>{t(lang, `fortune.${focus.key}.body`)}</small>
-                </span>
-                <span class="fortune-card__check" aria-hidden="true">✓</span>
-              </span>
-            </label>
-          ))}
-        </div>
-      </section>
     </div>
 
     <form id="birth-form" class="card birth-form" data-lang={lang}
@@ -155,6 +136,31 @@ const READING_FOCUSES = [
       <p class="form-error" role="alert" hidden></p>
       <button class="btn-primary" type="submit"><span id="submit-label">{t(lang, 'hero.cta')}</span><span class="button-arrow" aria-hidden="true">→</span></button>
     </form>
+
+    <section class="fortune-picker" aria-labelledby="fortune-picker-title">
+      <div class="fortune-picker__heading">
+        <div>
+          <p>{t(lang, 'fortune.eyebrow')}</p>
+          <h2 id="fortune-picker-title">{t(lang, 'fortune.title')}</h2>
+        </div>
+        <span>{t(lang, 'fortune.subtitle')}</span>
+      </div>
+      <div class="fortune-grid">
+        {READING_FOCUSES.map((focus, index) => (
+          <label class={`fortune-card fortune-card--${focus.key}`}>
+            <input type="radio" name="focus" value={focus.key} form="birth-form" checked={index === 0} />
+            <span class="fortune-card__surface">
+              <span class="fortune-card__mark" aria-hidden="true">{focus.mark}</span>
+              <span class="fortune-card__copy">
+                <strong>{t(lang, `fortune.${focus.key}.title`)}</strong>
+                <small>{t(lang, `fortune.${focus.key}.body`)}</small>
+              </span>
+              <span class="fortune-card__check" aria-hidden="true">✓</span>
+            </span>
+          </label>
+        ))}
+      </div>
+    </section>
   </section>
 
   <section class="explainer">
@@ -361,7 +367,9 @@ const READING_FOCUSES = [
         solar_correction: f.get('trueSolar') === 'on',
         reading_focus: String(f.get('focus') || 'basic'),
       });
-      location.href = withBase(`/${form.dataset.lang}/reading/`) + `?${q}`;
+      // The fragment is never included in the HTTP request, keeping birth
+      // details out of hosting logs while preserving a shareable client URL.
+      location.href = withBase(`/${form.dataset.lang}/reading/`) + `#${q}`;
     });
   </script>
 
@@ -381,30 +389,39 @@ const READING_FOCUSES = [
     .hero-sub { max-width: 34rem; font-size: clamp(1.05rem, 2vw, 1.28rem); color: var(--ink-soft); line-height: 1.65; }
     .trust-line { display: inline-flex; align-items: center; gap: .55rem; margin-top: var(--space-3); padding: .6rem .85rem; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-soft); background: rgb(255 255 255 / .55); font-size: var(--text-xs); font-weight: 650; }
     .trust-line::before { content: '✓'; display: grid; inline-size: 1.2rem; block-size: 1.2rem; place-items: center; border-radius: 50%; color: white; background: var(--indigo); font-size: .68rem; }
-    .fortune-picker { margin-top: clamp(1.5rem, 4vw, 2.4rem); }
+    .fortune-picker { grid-column: 1 / -1; margin-top: clamp(.5rem, 2vw, 1.5rem); padding-top: clamp(1.5rem, 4vw, 2.5rem); border-top: 1px solid var(--line); }
+    .fortune-picker__heading { display: grid; grid-template-columns: minmax(0, .8fr) minmax(18rem, 1.2fr); align-items: end; gap: var(--space-6); margin-bottom: 1.2rem; }
     .fortune-picker__heading > p { margin: 0 0 .35rem; color: var(--vermilion); font-family: var(--font-mono); font-size: .66rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
     .fortune-picker__heading h2 { margin: 0; font-size: clamp(1.35rem, 3vw, 1.9rem); }
-    .fortune-picker__heading > span { display: block; margin-top: .45rem; color: var(--ink-soft); font-size: var(--text-sm); line-height: 1.55; }
-    .fortune-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; margin-top: 1rem; }
-    .fortune-card { position: relative; min-width: 0; cursor: pointer; }
+    .fortune-picker__heading > span { display: block; max-width: 42rem; color: var(--ink-soft); font-size: var(--text-sm); line-height: 1.65; }
+    .fortune-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: .8rem; }
+    .fortune-card { position: relative; min-width: 0; grid-column: span 3; cursor: pointer; }
     .fortune-card > input { position: absolute; inline-size: 1px; block-size: 1px; opacity: 0; pointer-events: none; }
-    .fortune-card__surface { position: relative; display: grid; min-height: 7.2rem; grid-template-columns: auto 1fr; align-items: center; gap: .8rem; overflow: hidden; padding: .9rem; border: 1px solid var(--line); border-radius: var(--radius); background: rgb(255 255 255 / .68); box-shadow: 0 7px 22px rgb(35 53 44 / .055); transition: transform var(--dur-fast) var(--ease-reveal), border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast); }
+    .fortune-card__surface { position: relative; display: grid; min-height: 9.2rem; block-size: 100%; grid-template-columns: auto 1fr; align-items: center; gap: 1rem; overflow: hidden; padding: clamp(1rem, 2vw, 1.35rem); border: 1px solid var(--line); border-radius: var(--radius-lg); background: rgb(255 255 255 / .72); box-shadow: 0 9px 26px rgb(35 53 44 / .065); transition: transform var(--dur-fast) var(--ease-reveal), border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast); }
     .fortune-card__surface::after { content: ''; position: absolute; inline-size: 5rem; aspect-ratio: 1; inset: auto -2.7rem -3rem auto; border: 1px solid currentColor; border-radius: 50%; opacity: .07; }
     .fortune-card:hover .fortune-card__surface { transform: translateY(-3px); border-color: color-mix(in srgb, var(--focus-color, var(--indigo)) 38%, var(--line)); box-shadow: 0 14px 30px rgb(35 53 44 / .11); }
     .fortune-card__mark { display: grid; inline-size: 2.7rem; aspect-ratio: 1; place-items: center; border-radius: .85rem; color: var(--focus-color, var(--indigo)); background: color-mix(in srgb, var(--focus-color, var(--indigo)) 10%, white); font-family: var(--font-display); font-size: 1.35rem; font-weight: 750; }
     .fortune-card__copy { display: grid; min-width: 0; gap: .28rem; }
-    .fortune-card__copy strong { font-size: .82rem; line-height: 1.3; }
-    .fortune-card__copy small { color: var(--ink-soft); font-size: .65rem; line-height: 1.5; }
+    .fortune-card__copy strong { font-size: .9rem; line-height: 1.35; }
+    .fortune-card__copy small { color: var(--ink-soft); font-size: .68rem; line-height: 1.55; }
     .fortune-card__check { position: absolute; inset: .5rem .5rem auto auto; display: grid; inline-size: 1.25rem; aspect-ratio: 1; place-items: center; border-radius: 50%; color: white; background: var(--focus-color, var(--indigo)); font-size: .65rem; opacity: 0; transform: scale(.65); transition: opacity var(--dur-fast), transform var(--dur-fast); }
     .fortune-card input:checked + .fortune-card__surface { border-color: color-mix(in srgb, var(--focus-color, var(--indigo)) 56%, var(--line)); background: linear-gradient(135deg, color-mix(in srgb, var(--focus-color, var(--indigo)) 9%, white), rgb(255 255 255 / .92)); box-shadow: 0 14px 34px color-mix(in srgb, var(--focus-color, var(--indigo)) 14%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--focus-color, var(--indigo)) 12%, transparent); }
     .fortune-card input:checked + .fortune-card__surface .fortune-card__check { opacity: 1; transform: scale(1); }
     .fortune-card input:focus-visible + .fortune-card__surface { outline: 3px solid color-mix(in srgb, var(--focus-color, var(--indigo)) 55%, white); outline-offset: 3px; }
     .fortune-card--basic { --focus-color: #245442; }
+    .fortune-card--personality { --focus-color: #76623b; }
     .fortune-card--wealth { --focus-color: #aa7728; }
     .fortune-card--health { --focus-color: #b45246; }
     .fortune-card--career { --focus-color: #405f8e; }
     .fortune-card--relationships { --focus-color: #a34e70; }
+    .fortune-card--noble { --focus-color: #33777a; }
+    .fortune-card--movement { --focus-color: #765686; }
     .fortune-card--timing { --focus-color: #65538f; }
+    .fortune-card--basic { grid-column: span 5; }
+    .fortune-card--health { grid-column: span 3; }
+    .fortune-card--wealth { grid-column: span 4; }
+    .fortune-card--movement { grid-column: span 5; }
+    .fortune-card--timing { grid-column: span 7; }
     .birth-form { position: relative; padding: clamp(1.1rem, 3vw, 1.6rem); display: grid; gap: var(--space-3); box-shadow: var(--shadow-float); }
     .birth-form::before { content: ''; position: absolute; inset: 0 0 auto; height: .35rem; background: linear-gradient(90deg, var(--el-wood), var(--el-fire), var(--el-earth), var(--el-metal), var(--el-water)); }
     .form-progress { display: flex; align-items: center; justify-content: center; gap: .45rem; margin: .35rem auto .15rem; color: var(--ink-soft); font-family: var(--font-mono); font-size: .65rem; font-weight: 800; letter-spacing: .08em; }
@@ -481,6 +498,11 @@ const READING_FOCUSES = [
     .waitlist p { position: relative; max-width: 34rem; margin-inline: auto; color: rgb(255 255 255 / .76); }
     .waitlist > .btn-secondary { position: relative; border-color: white; color: var(--ink); background: white; }
     .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    @media (max-width: 859px) {
+      .fortune-picker__heading { grid-template-columns: 1fr; gap: .5rem; }
+      .fortune-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .fortune-card, .fortune-card--basic, .fortune-card--health, .fortune-card--wealth, .fortune-card--movement, .fortune-card--timing { grid-column: span 1; }
+    }
     @media (max-width: 560px) {
       .hero { margin-block-end: var(--space-20); }
       .hero-symbols span { inline-size: 1.85rem; block-size: 1.85rem; }
@@ -491,11 +513,11 @@ const READING_FOCUSES = [
       .form-summary span { margin: 0; }
       .form-summary strong { text-align: end; }
       .trust-line { border-radius: var(--radius); }
-      .fortune-card__surface { min-height: 7rem; grid-template-columns: 1fr; align-content: start; }
+      .fortune-card__surface { min-height: 7.5rem; grid-template-columns: 1fr; align-content: start; }
       .fortune-card__mark { inline-size: 2.35rem; }
       .waitlist > .btn-secondary { width: 100%; }
     }
-    @media (max-width: 390px) { .fortune-grid { grid-template-columns: 1fr; } .fortune-card__surface { grid-template-columns: auto 1fr; min-height: 6.4rem; align-items: center; } }
+    @media (max-width: 390px) { .fortune-grid { grid-template-columns: 1fr; } .fortune-card__surface { grid-template-columns: auto 1fr; min-height: 6.8rem; align-items: center; } }
     @media (prefers-reduced-motion: reduce) {
       .input-step, .input-step::before, .field-icon, .input-step__check, .choice-tile > span, .fortune-card__surface, .fortune-card__check, .switch-control i, .switch-control i::after, .button-arrow { transition: none; }
     }

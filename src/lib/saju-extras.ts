@@ -1,5 +1,5 @@
 /**
- * Chart extras beyond the verified core engine (PLAN.md §7.4 pattern:
+ * Chart extras beyond the verified core engine (reference-layer pattern:
  * new features live in new files; saju-engine.ts stays untouched).
  *
  * 태원(胎元)  conception pillar  — month stem +1, month branch +3 (classical rule).
@@ -11,7 +11,7 @@
 import {
   BRANCHES_HANJA, BRANCHES_KO, STEMS_HANJA, STEMS_KO, tenGod,
   type Element, type SajuResult, type TenGod,
-} from './saju-engine';
+} from './saju-engine.ts';
 
 export interface MiniPillar {
   stem: number; branch: number;
@@ -130,7 +130,7 @@ export function favorableElements(dayElement: Element, verdict: StrengthVerdict)
   const weak = verdict === 'weak' || verdict === 'extremeWeak';
   return weak
     ? { favorable: [PRODUCED_BY[dayElement], dayElement],
-        unfavorable: [CONTROLLED_BY[dayElement], CONTROLS[dayElement]], balanced: false }
+        unfavorable: [CONTROLLED_BY[dayElement], CONTROLS[dayElement], PRODUCES[dayElement]], balanced: false }
     : { favorable: [PRODUCES[dayElement], CONTROLS[dayElement], CONTROLLED_BY[dayElement]],
         unfavorable: [PRODUCED_BY[dayElement], dayElement], balanced: false };
 }

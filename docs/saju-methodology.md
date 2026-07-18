@@ -96,13 +96,16 @@ Annual pillars follow the sexagenary year beginning at each Ipchun. The selected
 
 ## Themed reading summaries
 
-The six home-page cards are different views of the same locally calculated chart, not separate predictive engines:
+The nine home-page cards are different views of the same locally calculated chart, not separate predictive engines:
 
 - **Core Saju** summarizes the Day Master, visible Five-Element counts, and visible Yin-Yang positions.
 - **Wealth flow** counts Direct and Indirect Wealth relationships across visible and hidden stems, identifies the Day Master's Wealth element, and links to Daeun and Seun timing. Counts are descriptive, not financial advice or a wealth score.
 - **Health and balance** shows only the traditional visible Five-Element distribution. It is explicitly not a diagnosis, medical guidance, or a prediction of illness.
+- **Personality and strengths** combines the Day Master, simplified strength analysis, and the disclosed structure reference. It describes traditional chart tendencies, not a psychological diagnosis.
 - **Career and achievement** counts Authority and Output relationships across visible and hidden stems and presents them beside the month pillar and current cycles.
 - **Love and relationships** uses the day branch, unique natal pillar pairs with branch relations, and Peach Blossom occurrences. It does not claim compatibility with a person whose chart was not entered.
+- **Noble help and opportunities** surfaces Cheon-eul Nobleman, Munchang, Heavenly Virtue, and Monthly Virtue markers already present in the detailed Shinsal calculation. It does not promise outside help or a particular outcome.
+- **Movement and change** surfaces Traveling Horse, unique natal relation pairs, and the currently active Daeun as traditional indicators of change rather than a prediction of relocation or travel.
 - **Daeun and annual timing** shows the active ten-year cycle by current full age and the annual pillar for the current Saju year. The Saju year changes at Ipchun.
 
 Every theme links back to the supporting detailed chart section. Visitors can switch themes on the result page without recalculating or re-entering birth data.

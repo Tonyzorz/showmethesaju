@@ -146,17 +146,6 @@ const personFields = [
     <p>{t(lang, 'gunghap.culture.body')}</p>
   </section>
 
-  <section class="card waitband">
-    <h2>{t(lang, 'waitlist.title')}</h2>
-    <p>{t(lang, 'waitlist.body')}</p>
-    <!-- TODO: replace action with your Formspree/Buttondown endpoint -->
-    <form action="https://formspree.io/f/REPLACE_ME" method="POST" class="waitlist-form">
-      <label class="visually-hidden" for="gh-email">{t(lang, 'waitlist.email')}</label>
-      <input id="gh-email" class="field" type="email" name="email" placeholder={t(lang, 'waitlist.email')} required />
-      <button class="btn-secondary" type="submit">{t(lang, 'waitlist.cta')}</button>
-    </form>
-  </section>
-
   <script>
     import KoreanLunarCalendar from 'korean-lunar-calendar';
     import { tzOffsetMinutes } from '../../lib/cities';
@@ -242,12 +231,11 @@ const personFields = [
       }
       const citySel = form.elements.namedItem(`${key}-city`) as HTMLSelectElement;
       const tz = citySel.value || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
-      const lon = citySel.value ? Number(citySel.selectedOptions[0].dataset.lon) : 0;
       const tzMin = tzOffsetMinutes(tz, y, m, d, h, mi);
       return {
         [`${key}y`]: String(y), [`${key}m`]: String(m), [`${key}d`]: String(d),
         [`${key}h`]: String(h), [`${key}i`]: String(mi), [`${key}u`]: tu ? '1' : '0',
-        [`${key}z`]: String(tzMin), [`${key}l`]: String(lon),
+        [`${key}z`]: String(tzMin),
         [`${key}g`]: String(f.get(`${key}-gender`) || ''),
       };
     }
@@ -266,7 +254,8 @@ const personFields = [
       }
       const q = new URLSearchParams({ ...(a as PersonParams), ...(b as PersonParams) });
       trackEvent('gunghap_submit', { language: document.documentElement.lang });
-      location.href = `${location.pathname}?${q}`;
+      location.replace(`${location.pathname}#${q}`);
+      renderFromParams(q);
     });
 
     function miniChart(r: SajuResult, label: string): string {
@@ -322,15 +311,17 @@ const personFields = [
       ].join('');
     }
 
-    // ── Result rendering — MUST run after every helper above is initialized
-    // (state lives in the querystring; nothing is stored) ──
-    const q = new URLSearchParams(location.search);
-    if (q.has('ay') && q.has('by')) {
+    // Result rendering must run after every helper above is initialized.
+    // State lives in the URL fragment, so it is not sent to the host.
+    function renderFromParams(q: URLSearchParams) {
+      const required = ['y', 'm', 'd', 'h', 'i', 'u', 'z', 'g'];
+      if (![...required.map((key) => `a${key}`), ...required.map((key) => `b${key}`)].every((key) => q.has(key))) return;
+      if (!['f', 'm'].includes(q.get('ag') ?? '') || !['f', 'm'].includes(q.get('bg') ?? '')) return;
       const input = (key: string): SajuInput => ({
         year: +q.get(`${key}y`)!, month: +q.get(`${key}m`)!, day: +q.get(`${key}d`)!,
         hour: +q.get(`${key}h`)!, minute: +q.get(`${key}i`)!,
         timeUnknown: q.get(`${key}u`) === '1',
-        tzOffsetMinutes: +q.get(`${key}z`)!, longitude: +q.get(`${key}l`)!,
+        tzOffsetMinutes: +q.get(`${key}z`)!,
         gender: q.get(`${key}g`) === 'f' ? 'female' : q.get(`${key}g`) === 'm' ? 'male' : undefined,
       });
       try {
@@ -340,10 +331,19 @@ const personFields = [
         document.getElementById('gunghap-result')!.hidden = false;
         trackEvent('gunghap_view', { language: document.documentElement.lang });
       } catch (err) {
-        // Malformed/legacy querystring: fall back to the empty form.
+        // Malformed fragment or legacy query state: fall back to the empty form.
         console.error('[gunghap] failed to render result:', err);
       }
     }
+    const rawState = location.hash.length > 1 ? location.hash.slice(1) : location.search;
+    const q = new URLSearchParams(rawState);
+    if (!location.hash && location.search && q.size) {
+      const migrated = new URL(location.href);
+      migrated.search = '';
+      migrated.hash = q.toString();
+      location.replace(migrated);
+    }
+    renderFromParams(q);
   </script>
 
   <style>
@@ -440,8 +440,6 @@ const personFields = [
     .culture { margin-block: var(--space-8); padding: var(--space-8); max-width: 55rem; border-inline-start: 5px solid var(--gold); }
     .culture h2 { margin-top: 0; font-size: var(--text-xl); }
     .culture p { margin: 0; color: var(--ink-soft); }
-    .waitband { padding: var(--space-8); text-align: center; }
-    .waitlist-form { display: flex; gap: var(--space-2); justify-content: center; flex-wrap: wrap; }
     .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
     @media (max-width: 560px) { .gform { padding: 1rem; } .input-step { padding: .9rem; } }
     @media (prefers-reduced-motion: reduce) {

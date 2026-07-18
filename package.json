@@ -5,11 +5,11 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "test:engine": "node scripts/test-engine.mjs",
+    "test:engine": "node --experimental-strip-types scripts/test-engine.mjs",
     "preview": "astro preview",
     "validate": "node --experimental-strip-types scripts/validate.mjs",
     "smoke": "node scripts/smoke-dist.mjs",
-    "check": "npm run validate && npm run build && npm run smoke"
+    "check": "npm run test:engine && npm run validate && npm run build && npm run smoke"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.1.6",

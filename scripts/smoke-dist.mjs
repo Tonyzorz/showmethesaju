@@ -16,11 +16,12 @@ function read(relativePath) {
 for (const locale of locales) {
   const homeHtml = read(path.join(locale, 'index.html'));
   assert(homeHtml.includes('id="birth-form"'), `${locale}: missing birth form`);
-  assert((homeHtml.match(/class="fortune-card fortune-card--/g) || []).length === 6,
-    `${locale}: homepage must contain six themed reading cards`);
+  assert((homeHtml.match(/class="fortune-card fortune-card--/g) || []).length === 9,
+    `${locale}: homepage must contain nine themed reading cards`);
   assert(homeHtml.includes('name="focus"') && homeHtml.includes('value="basic"') && homeHtml.includes('value="wealth"') &&
     homeHtml.includes('value="health"') && homeHtml.includes('value="career"') &&
-    homeHtml.includes('value="relationships"') && homeHtml.includes('value="timing"'),
+    homeHtml.includes('value="relationships"') && homeHtml.includes('value="timing"') &&
+    homeHtml.includes('value="personality"') && homeHtml.includes('value="noble"') && homeHtml.includes('value="movement"'),
     `${locale}: themed reading choices are incomplete`);
   assert((homeHtml.match(/data-input-step=/g) || []).length === 4, `${locale}: birth form must contain four input cards`);
   assert(homeHtml.includes('name="gender"') && homeHtml.includes('value="f"') && homeHtml.includes('value="m"'),
@@ -29,13 +30,15 @@ for (const locale of locales) {
     `${locale}: missing live birth-data review strip`);
   assert(homeHtml.includes('name="date"') && homeHtml.includes('name="time"') && homeHtml.includes('name="city"'),
     `${locale}: native birth inputs are missing`);
+  assert(homeHtml.includes("window.gtag('set', 'send_page_view', false)"),
+    `${locale}: global automatic GA4 page views are not disabled`);
 
   const html = read(path.join(locale, 'reading', 'index.html'));
   assert(html.includes('id="loading-state"'), `${locale}: missing non-blank loading fallback`);
   assert(html.includes('id="render-error"'), `${locale}: missing visible render error`);
   assert(html.includes('id="element-radar"'), `${locale}: missing Five Elements chart`);
-  assert(html.includes('id="reading-focus"') && (html.match(/data-reading-focus=/g) || []).length === 6,
-    `${locale}: reading page must contain six switchable themed summaries`);
+  assert(html.includes('id="reading-focus"') && (html.match(/data-reading-focus=/g) || []).length === 9,
+    `${locale}: reading page must contain nine switchable themed summaries`);
   assert(html.includes('id="focus-metrics"') && html.includes('id="focus-details"'),
     `${locale}: themed summary metrics or evidence link is missing`);
   assert(html.includes('class="card chart-matrix-panel"') && html.includes('id="chart-facts"'),
@@ -49,6 +52,14 @@ for (const locale of locales) {
   assert(html.includes('id="analytics-consent"'), `${locale}: missing consent controls`);
   assert(html.includes("window.gtag('consent', 'default'"), `${locale}: consent default is not in the document head`);
   assert(!html.includes('<script async src="https://www.googletagmanager.com/gtag/js'), `${locale}: GA must not load before consent`);
+
+  const compatibilityHtml = read(path.join(locale, 'compatibility', 'index.html'));
+  assert(compatibilityHtml.includes('id="gunghap-form"') && (compatibilityHtml.match(/data-person=/g) || []).length === 2,
+    `${locale}: Gunghap must contain two complete person forms`);
+  assert(compatibilityHtml.includes('id="gunghap-result"') && compatibilityHtml.includes('id="gunghap-sections"'),
+    `${locale}: Gunghap result shell is missing`);
+  assert(!compatibilityHtml.includes('REPLACE_ME') && !compatibilityHtml.includes('formspree.io/f/'),
+    `${locale}: broken placeholder form endpoint remains in Gunghap`);
 }
 
 const jsDirectory = path.join(dist, '_astro');
@@ -70,6 +81,8 @@ assert(homeBundle.source.includes('Intl.DateTimeFormat') && homeBundle.source.in
 assert(homeBundle.source.includes('gender'), 'Birth-form bundle does not carry gender into the chart query');
 assert(homeBundle.source.includes('reading_focus_select') && homeBundle.source.includes('reading_focus'),
   'Birth-form bundle does not carry or measure the selected reading focus');
+assert(homeBundle.source.includes('`#${') || homeBundle.source.includes('`#${D}`') || homeBundle.source.includes('`#${q}`'),
+  'Birth-form bundle does not keep chart state in the URL fragment');
 
 assert(readingBundle.source.includes('hidden-stems') && readingBundle.source.includes('daeun-list') && readingBundle.source.includes('seun-list'),
   'Reading bundle is missing advanced 만세력 rendering behavior');
@@ -79,12 +92,21 @@ assert(readingBundle.source.includes('chart_layer_toggle') && readingBundle.sour
 assert(readingBundle.source.includes('reading_focus_select') && readingBundle.source.includes('focus-metrics') &&
   readingBundle.source.includes('annualPillar'),
   'Reading bundle is missing themed summary switching, metrics, or annual-cycle support');
+assert(readingBundle.source.includes('location.hash') && readingBundle.source.includes('location.replace'),
+  'Reading bundle does not support private fragment state and query-free migration');
+
+const gunghapBundle = bundles.find(({ source }) => source.includes('gunghap_submit') && source.includes('gunghap_view'));
+assert(gunghapBundle, 'Could not identify the built Gunghap bundle');
+assert(gunghapBundle.source.includes('location.hash') && gunghapBundle.source.includes('location.replace'),
+  'Gunghap bundle does not keep two-person birth state in the private URL fragment');
 
 const analyticsBundle = bundles.find(({ source }) => source.includes('google-analytics-script'));
 assert(analyticsBundle, 'Could not identify the built analytics bundle');
 assert(analyticsBundle.source.includes('G-RMFH4E7NGS'), 'GA4 measurement ID missing from analytics bundle');
+assert(analyticsBundle.source.includes('send_page_view:!1'),
+  'GA4 must keep automatic page views disabled');
 assert(analyticsBundle.source.includes('location.origin') && analyticsBundle.source.includes('location.pathname'),
   'Analytics page locations are not built from the query-free origin and path');
 assert(!analyticsBundle.source.includes('location.search'), 'Analytics bundle must not read or send URL query parameters');
 
-console.log(`Smoke-tested ${locales.length} home and reading pages, six localized reading themes, rich chart layers, interactive birth cards, rendering order, consent defaults, and query-free GA4 wiring.`);
+console.log(`Smoke-tested ${locales.length} home, reading, and Gunghap pages; nine localized reading themes; private fragment state; rich chart layers; consent defaults; and query-free GA4 wiring.`);
