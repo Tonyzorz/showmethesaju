@@ -67,6 +67,15 @@ for (const locale of locales) {
   assert(compatibilityHtml.includes('id="pair-signature"') && compatibilityHtml.includes('id="pair-charts"') &&
     (compatibilityHtml.match(/data-gunghap-target=/g) || []).length === 4,
     `${locale}: Gunghap pair signature, chart comparison, or result navigator is missing`);
+  const compatibilityCss = [...compatibilityHtml.matchAll(/href="[^"]*\/_astro\/([^"]+\.css)"/g)]
+    .map((match) => read(path.join('_astro', match[1])))
+    .join('\n');
+  assert(compatibilityCss.includes('.mini-chart{') && compatibilityCss.includes('.signature-person{') &&
+    compatibilityCss.includes('.gsection__head{'),
+    `${locale}: Gunghap dynamic-result selectors are missing from production CSS`);
+  assert(!compatibilityCss.includes('.mini-chart[data-astro-cid-') &&
+    !compatibilityCss.includes('.signature-person[data-astro-cid-'),
+    `${locale}: Gunghap dynamic-result CSS was incorrectly Astro-scoped`);
   assert(!compatibilityHtml.includes('REPLACE_ME') && !compatibilityHtml.includes('formspree.io/f/'),
     `${locale}: broken placeholder form endpoint remains in Gunghap`);
 }
