@@ -428,8 +428,20 @@
     }
   },
   "about": {
-    "masterHeading": "Về việc luận giải",
-    "story": "Show Me the Saju giúp người dùng nhiều ngôn ngữ dễ khám phá cấu trúc lá số truyền thống Hàn Quốc. Lá số miễn phí được tính trên thiết bị; buổi luận giải trực tiếp bổ sung bối cảnh, nhận định và đối thoại mà phần mềm không thể thay thế."
+    "masterHeading": "Tác giả và tiêu chuẩn biên tập",
+    "story": "Show Me the Saju là dự án giáo dục độc lập do Tonyzorz xây dựng và duy trì. Mục tiêu là giúp người dùng nhiều ngôn ngữ dễ kiểm tra cấu trúc Tứ Trụ Hàn Quốc mà không che giấu quy tắc phía sau một điểm số vận may.",
+    "authorName": "Tonyzorz",
+    "authorRole": "Người sáng tạo, lập trình viên và biên tập viên",
+    "authorBio": "Tonyzorz thiết kế và duy trì giao diện, dự án tính toán và thư viện học tập. Trang này không tuyên bố có giấy phép chuyên môn về y tế, tâm lý, tài chính hay pháp lý, và trang web không trình bày kết quả phần mềm như lời khuyên chuyên nghiệp.",
+    "authorLink": "Hồ sơ tác giả công khai",
+    "standardsTitle": "Cách nội dung được kiểm tra",
+    "standardsBody": "Các quy ước tính toán được công khai và kiểm tra dựa trên ranh giới thiên văn, tài liệu Mệnh lý Hàn Quốc, các trường hợp kiểm thử xác định và kiểm thử bản phát hành. Bài học phân biệt dữ kiện tính được, quy ước khác nhau theo trường phái và giới hạn diễn giải. Một sửa lỗi tính toán quan trọng phải bắt đầu bằng kiểm thử thất bại.",
+    "aiTitle": "AI và tính minh bạch biên tập",
+    "aiBody": "Codex và GPT-5.6 hỗ trợ sắp xếp nghiên cứu, triển khai, soạn bản dịch và rà soát. Người sáng tạo đưa ra quyết định biên tập cuối cùng và xác thực thay đổi qua hệ thống kiểm thử của dự án. Trang web không gọi mô hình AI khi hoạt động; việc rà soát bởi người bản ngữ vẫn được khuyến nghị cho sắc thái bản dịch.",
+    "correctionsTitle": "Đính chính và trách nhiệm",
+    "correctionsHeading": "Hãy nêu trang, điều kiện nhập và kết quả mong đợi",
+    "correctionsBody": "Nếu phát hiện sai lệch tính toán, lỗi dịch, giao diện khó tiếp cận hoặc nhận định thiếu căn cứ, hãy báo trang chính xác và điều kiện nhập không nhạy cảm qua trình theo dõi công khai. Các đính chính có thể tái hiện sẽ được đối chiếu với phương pháp đã công bố và kiểm thử tự động.",
+    "correctionsLink": "Báo một đính chính"
   },
   "learn": {
     "title": "Cách đọc lá số Saju",

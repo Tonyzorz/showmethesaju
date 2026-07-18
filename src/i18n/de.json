@@ -428,8 +428,20 @@
     }
   },
   "about": {
-    "masterHeading": "Über die Deutung",
-    "story": "Show Me the Saju macht den Aufbau eines traditionellen koreanischen Diagramms in mehreren Sprachen zugänglich. Das kostenlose Diagramm entsteht auf deinem Gerät; eine Live-Deutung ergänzt Kontext, Urteil und Gespräch, die Software nicht ersetzen kann."
+    "masterHeading": "Urheber und redaktionelle Standards",
+    "story": "Show Me the Saju ist ein unabhängiges Bildungsprojekt, das von Tonyzorz erstellt und gepflegt wird. Ziel ist es, den Aufbau koreanischer Vier-Säulen-Diagramme in mehreren Sprachen nachvollziehbar zu machen, ohne die Regeln hinter einer Glückspunktzahl zu verbergen.",
+    "authorName": "Tonyzorz",
+    "authorRole": "Urheber, Entwickler und Redakteur",
+    "authorBio": "Tonyzorz gestaltet und pflegt die Benutzeroberfläche, das Berechnungsprojekt und die Lernbibliothek. Diese Seite beansprucht keine anerkannte medizinische, psychologische, finanzielle oder rechtliche Qualifikation, und die Softwareergebnisse werden nicht als professionelle Beratung dargestellt.",
+    "authorLink": "Öffentliches Autorenprofil",
+    "standardsTitle": "Wie die Inhalte geprüft werden",
+    "standardsBody": "Die Berechnungskonventionen sind öffentlich dokumentiert und werden anhand astronomischer Grenzen, koreanischer Myeongri-Quellen, deterministischer Prüffälle und Produktionstests kontrolliert. Lernartikel trennen berechnete Fakten, schulabhängige Konventionen und Deutungsgrenzen. Einer wesentlichen Berechnungskorrektur muss zuerst ein fehlschlagender Test vorausgehen.",
+    "aiTitle": "KI und redaktionelle Transparenz",
+    "aiBody": "Codex und GPT-5.6 halfen bei der Strukturierung der Recherche, der Umsetzung, Übersetzungsentwürfen und der Prüfung. Der Urheber trifft die abschließenden redaktionellen Entscheidungen und validiert Änderungen mit den Projekttests. Während der Nutzung ruft die Website kein KI-Modell auf; für sprachliche Feinheiten bleibt eine Prüfung durch Muttersprachler empfohlen.",
+    "correctionsTitle": "Korrekturen und Verantwortung",
+    "correctionsHeading": "Nenne Seite, Eingabebedingungen und erwartetes Ergebnis",
+    "correctionsBody": "Wenn du eine Berechnungsabweichung, ein Übersetzungsproblem, eine unzugängliche Oberfläche oder eine unbelegte Aussage findest, melde die genaue Seite und nicht sensible Eingabebedingungen im öffentlichen Issue-Tracker. Reproduzierbare Korrekturen werden anhand der dokumentierten Methode und automatisierter Tests geprüft.",
+    "correctionsLink": "Korrektur melden"
   },
   "learn": {
     "title": "Ein Saju-Diagramm lesen",

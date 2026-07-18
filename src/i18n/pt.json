@@ -428,8 +428,20 @@
     }
   },
   "about": {
-    "masterHeading": "Sobre a leitura",
-    "story": "Show Me the Saju facilita explorar a estrutura de um mapa tradicional coreano em vários idiomas. O mapa gratuito é calculado no seu dispositivo; uma leitura ao vivo acrescenta contexto, discernimento e conversa que o software não substitui."
+    "masterHeading": "Criador e padrões editoriais",
+    "story": "Show Me the Saju é um projeto educacional independente criado e mantido por Tonyzorz. O objetivo é facilitar a análise da estrutura coreana dos Quatro Pilares em vários idiomas, sem esconder as regras por trás de uma pontuação de sorte.",
+    "authorName": "Tonyzorz",
+    "authorRole": "Criador, desenvolvedor e editor",
+    "authorBio": "Tonyzorz projeta e mantém a interface, o projeto de cálculo e a biblioteca de aprendizagem. Esta página não reivindica qualificação licenciada nas áreas médica, psicológica, financeira ou jurídica, e o site não apresenta resultados do software como orientação profissional.",
+    "authorLink": "Perfil público do autor",
+    "standardsTitle": "Como o trabalho é verificado",
+    "standardsBody": "As convenções de cálculo são documentadas publicamente e verificadas com limites astronômicos, referências coreanas de Myeongri, casos determinísticos e testes de produção. Os artigos separam fatos calculados, convenções que variam por escola e limites interpretativos. Uma correção importante de cálculo exige primeiro um teste que falhe.",
+    "aiTitle": "IA e transparência editorial",
+    "aiBody": "Codex e GPT-5.6 ajudaram a organizar a pesquisa, implementar recursos, preparar rascunhos de tradução e revisar o conteúdo. O criador toma as decisões editoriais finais e valida as alterações pelos testes do projeto. O site não chama nenhum modelo de IA durante o uso, e a revisão por falantes nativos continua recomendada para nuances de tradução.",
+    "correctionsTitle": "Correções e responsabilidade",
+    "correctionsHeading": "Informe a página, as condições de entrada e o resultado esperado",
+    "correctionsBody": "Se encontrar divergência de cálculo, problema de tradução, interface inacessível ou afirmação sem base, informe a página exata e condições de entrada não sensíveis no rastreador público. Correções reproduzíveis são analisadas conforme o método documentado e os testes automatizados.",
+    "correctionsLink": "Relatar uma correção"
   },
   "learn": {
     "title": "Como ler um mapa Saju",

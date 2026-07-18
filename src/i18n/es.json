@@ -428,8 +428,20 @@
     }
   },
   "about": {
-    "masterHeading": "Sobre la lectura",
-    "story": "Show Me the Saju facilita explorar la estructura de una carta tradicional coreana en varios idiomas. La carta gratuita se calcula en tu dispositivo; una lectura en vivo aporta contexto, juicio y conversación que el software no sustituye."
+    "masterHeading": "Creador y criterios editoriales",
+    "story": "Show Me the Saju es un proyecto educativo independiente creado y mantenido por Tonyzorz. Su objetivo es facilitar el análisis de la estructura coreana de los Cuatro Pilares en varios idiomas sin ocultar las reglas detrás de una puntuación de fortuna.",
+    "authorName": "Tonyzorz",
+    "authorRole": "Creador, desarrollador y editor",
+    "authorBio": "Tonyzorz diseña y mantiene la interfaz, el proyecto de cálculo y la biblioteca educativa. Esta página no afirma disponer de una acreditación médica, psicológica, financiera o jurídica, y el sitio no presenta los resultados del software como asesoramiento profesional.",
+    "authorLink": "Perfil público del autor",
+    "standardsTitle": "Cómo se comprueba el trabajo",
+    "standardsBody": "Las convenciones de cálculo se documentan públicamente y se contrastan con límites astronómicos, referencias coreanas de Myeongri, casos de prueba deterministas y pruebas de producción. Los artículos distinguen entre hechos calculados, convenciones que dependen de la escuela y límites interpretativos. Una corrección importante del cálculo requiere primero una prueba que falle.",
+    "aiTitle": "IA y transparencia editorial",
+    "aiBody": "Codex y GPT-5.6 ayudaron a organizar la investigación, implementar funciones, preparar borradores de traducción y revisar contenido. El creador toma las decisiones editoriales finales y valida los cambios mediante las pruebas del proyecto. El sitio no llama a ningún modelo de IA durante su uso, y se sigue recomendando una revisión nativa para los matices de traducción.",
+    "correctionsTitle": "Correcciones y responsabilidad",
+    "correctionsHeading": "Indica la página, las condiciones de entrada y el resultado esperado",
+    "correctionsBody": "Si encuentras una diferencia de cálculo, un problema de traducción, una interfaz inaccesible o una afirmación sin respaldo, informa de la página exacta y de condiciones de entrada no sensibles en el registro público de incidencias. Las correcciones reproducibles se revisan según el método documentado y las pruebas automáticas.",
+    "correctionsLink": "Informar de una corrección"
   },
   "learn": {
     "title": "Cómo leer una carta Saju",

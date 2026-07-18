@@ -428,8 +428,20 @@
     }
   },
   "about": {
-    "masterHeading": "Our Master",
-    "story": "Show Me the Saju makes the structure of a traditional Korean chart easier to explore across languages. The free chart is calculated on your device; a live reading adds the human context, judgment, and conversation that software cannot replace."
+    "masterHeading": "Creator and editorial standards",
+    "story": "Show Me the Saju is an independent educational project created and maintained by Tonyzorz. Its goal is to make the structure of Korean Four Pillars charts easier to inspect across languages without hiding the rules behind a fortune score.",
+    "authorName": "Tonyzorz",
+    "authorRole": "Creator, developer, and editor",
+    "authorBio": "Tonyzorz designs and maintains the interface, calculation project, and learning library. This page does not claim a licensed medical, psychological, financial, or legal qualification, and the site does not present software output as professional advice.",
+    "authorLink": "Public author profile",
+    "standardsTitle": "How the work is checked",
+    "standardsBody": "Calculation conventions are documented publicly and anchored to astronomical boundaries, Korean Myeongri references, deterministic fixtures, and production tests. Educational articles separate calculated facts, school-dependent conventions, and interpretive limits. Significant calculation fixes require a failing test first.",
+    "aiTitle": "AI and editorial transparency",
+    "aiBody": "Codex and GPT-5.6 assisted with research organization, implementation, translation drafts, and review. The creator owns the final editorial decisions and validates changes through the project test gate. The site does not call an AI model at runtime, and native-speaker review remains recommended for translated nuance.",
+    "correctionsTitle": "Corrections and accountability",
+    "correctionsHeading": "Show the page, inputs, and expected result",
+    "correctionsBody": "If you find a calculation mismatch, translation issue, inaccessible interface, or unsupported claim, report the exact page and non-sensitive input conditions through the public issue tracker. Reproducible corrections are reviewed against the documented method and automated tests.",
+    "correctionsLink": "Report a correction"
   },
   "learn": {
     "title": "How to read a Saju chart",

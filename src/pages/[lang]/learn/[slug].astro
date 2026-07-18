@@ -23,6 +23,8 @@ const { lang, slug } = Astro.params;
 const { Content } = await entry.render();
 const site = Astro.site?.toString().replace(/\/$/, '') ?? '';
 const dateFmt = new Intl.DateTimeFormat(lang, { dateStyle: 'long' });
+const authorName = t(lang, 'about.authorName');
+const authorPage = `${site}/${lang}/about/`;
 
 const articleLd = {
   '@context': 'https://schema.org',
@@ -32,6 +34,7 @@ const articleLd = {
   datePublished: entry.data.pubDate.toISOString(),
   inLanguage: lang,
   mainEntityOfPage: `${site}/${lang}/learn/${slug}/`,
+  author: { '@type': 'Person', name: authorName, url: authorPage, sameAs: 'https://github.com/Tonyzorz' },
   publisher: { '@type': 'Organization', name: t(lang, 'meta.siteName') },
 };
 ---
@@ -41,7 +44,9 @@ const articleLd = {
     <header>
       <p class="article-crumb"><a href={withBase(`/${lang}/learn/`)}>← {t(lang, 'nav.learn')}</a></p>
       <h1>{entry.data.title}</h1>
-      <p class="article-meta">{dateFmt.format(entry.data.pubDate)} · {t(lang, 'meta.siteName')}</p>
+      <p class="article-meta">
+        {dateFmt.format(entry.data.pubDate)} · <a href={withBase(`/${lang}/about/`)} rel="author">{authorName}</a>
+      </p>
     </header>
     <div class="article-body"><Content /></div>
     <footer class="article-cta card">
@@ -54,6 +59,7 @@ const articleLd = {
     .article-crumb a { text-decoration: none; font-size: var(--text-sm); }
     .article h1 { font-size: var(--text-2xl); line-height: var(--leading-tight); }
     .article-meta { color: var(--ink-soft); font-family: var(--font-mono); font-size: var(--text-xs); border-bottom: 1px solid var(--line); padding-bottom: var(--space-4); }
+    .article-meta a { color: inherit; font-weight: 800; text-underline-offset: .2em; }
     .article-body :global(h2) { font-size: var(--text-xl); margin-top: var(--space-8); }
     .article-body :global(p) { line-height: var(--leading-body); }
     .article-body :global(table) { width: 100%; border-collapse: collapse; font-size: var(--text-sm); margin-block: var(--space-4); }

@@ -428,8 +428,20 @@
     }
   },
   "about": {
-    "masterHeading": "À propos de la lecture",
-    "story": "Show Me the Saju rend la structure d'un thème traditionnel coréen accessible en plusieurs langues. Le thème gratuit est calculé sur votre appareil ; une lecture en direct apporte contexte, jugement et dialogue que le logiciel ne remplace pas."
+    "masterHeading": "Créateur et règles éditoriales",
+    "story": "Show Me the Saju est un projet éducatif indépendant créé et maintenu par Tonyzorz. Son objectif est de rendre la structure coréenne des Quatre Piliers plus facile à examiner en plusieurs langues, sans dissimuler les règles derrière une note de fortune.",
+    "authorName": "Tonyzorz",
+    "authorRole": "Créateur, développeur et éditeur",
+    "authorBio": "Tonyzorz conçoit et maintient l’interface, le projet de calcul et la bibliothèque pédagogique. Cette page ne revendique aucune qualification agréée dans les domaines médical, psychologique, financier ou juridique, et le site ne présente pas les résultats du logiciel comme des conseils professionnels.",
+    "authorLink": "Profil public de l’auteur",
+    "standardsTitle": "Comment le travail est vérifié",
+    "standardsBody": "Les conventions de calcul sont documentées publiquement et vérifiées à l’aide de limites astronomiques, de références coréennes de Myeongri, de cas déterministes et de tests de production. Les articles distinguent faits calculés, conventions propres aux écoles et limites d’interprétation. Une correction importante du calcul commence par un test en échec.",
+    "aiTitle": "IA et transparence éditoriale",
+    "aiBody": "Codex et GPT-5.6 ont aidé à organiser la recherche, à mettre en œuvre les fonctions, à préparer les traductions et à relire. Le créateur prend les décisions éditoriales finales et valide les changements avec les tests du projet. Le site n’appelle aucun modèle d’IA pendant son utilisation et une relecture par des locuteurs natifs reste recommandée pour les nuances traduites.",
+    "correctionsTitle": "Corrections et responsabilité",
+    "correctionsHeading": "Indiquez la page, les conditions de saisie et le résultat attendu",
+    "correctionsBody": "Si vous trouvez un écart de calcul, un problème de traduction, une interface inaccessible ou une affirmation non étayée, signalez la page exacte et des conditions de saisie non sensibles dans le suivi public. Les corrections reproductibles sont examinées selon la méthode documentée et les tests automatisés.",
+    "correctionsLink": "Signaler une correction"
   },
   "learn": {
     "title": "Comment lire un thème Saju",

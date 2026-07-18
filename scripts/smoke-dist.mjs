@@ -125,7 +125,18 @@ for (const locale of locales) {
   assert(privacyHtml.includes('ca-pub-1837000267504503'),
     `${locale}: privacy page is missing the AdSense publisher disclosure`);
   const aboutHtml = read(path.join(locale, 'about', 'index.html'));
-  assert(!aboutHtml.includes(adsenseScript), `${locale}: AdSense must not load on the thin About page`);
+  assert(!aboutHtml.includes(adsenseScript), `${locale}: AdSense must not load on the About page`);
+  assert(aboutHtml.includes('https://github.com/Tonyzorz') && aboutHtml.includes('rel="me noopener"') &&
+    aboutHtml.includes('https://github.com/Tonyzorz/showmethesaju/issues') &&
+    aboutHtml.includes('"@type":"Person"'),
+    `${locale}: About page is missing public authorship or correction metadata`);
+}
+
+for (const locale of ['en', 'ko']) {
+  const articleHtml = read(path.join(locale, 'learn', 'how-daeun-seun-wolun-work', 'index.html'));
+  assert(articleHtml.includes(`href="/${locale}/about/" rel="author"`) &&
+    articleHtml.includes('"author":{"@type":"Person","name":"Tonyzorz"'),
+    `${locale}: learning articles are missing the visible or structured author byline`);
 }
 
 assert(!read(path.join('404.html')).includes(adsenseScript), 'AdSense must not load on the 404 page');
