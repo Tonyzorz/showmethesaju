@@ -73,6 +73,10 @@ for (const locale of locales) {
   assert(compatibilityCss.includes('.mini-chart{') && compatibilityCss.includes('.signature-person{') &&
     compatibilityCss.includes('.gsection__head{'),
     `${locale}: Gunghap dynamic-result selectors are missing from production CSS`);
+  assert(compatibilityCss.includes('.card.gunghap-result-hero{') &&
+    compatibilityCss.includes('.card.gsection{') && compatibilityCss.includes('.element-text--fire{') &&
+    compatibilityCss.includes('.element-bg-soft--earth{'),
+    `${locale}: Gunghap card overrides or shared Five-Element utilities are missing`);
   assert(!compatibilityCss.includes('.mini-chart[data-astro-cid-') &&
     !compatibilityCss.includes('.signature-person[data-astro-cid-'),
     `${locale}: Gunghap dynamic-result CSS was incorrectly Astro-scoped`);

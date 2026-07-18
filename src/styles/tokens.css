@@ -150,6 +150,29 @@ button, input, select, textarea { font: inherit; }
   background: color-mix(in srgb, var(--paper-raised) 94%, transparent);
   box-shadow: var(--shadow-card);
 }
+
+/* Shared Five-Element utilities. Keep these global because chart markup is also
+   rendered dynamically on the reading and compatibility routes. */
+.element-text--wood { color: var(--el-wood); }
+.element-text--fire { color: var(--el-fire); }
+.element-text--earth { color: var(--el-earth); }
+.element-text--metal { color: var(--el-metal); }
+.element-text--water { color: var(--el-water); }
+.element-bg--wood { background: var(--el-wood); }
+.element-bg--fire { background: var(--el-fire); }
+.element-bg--earth { background: var(--el-earth); }
+.element-bg--metal { background: var(--el-metal); }
+.element-bg--water { background: var(--el-water); }
+.element-fill--wood { fill: var(--el-wood); }
+.element-fill--fire { fill: var(--el-fire); }
+.element-fill--earth { fill: var(--el-earth); }
+.element-fill--metal { fill: var(--el-metal); }
+.element-fill--water { fill: var(--el-water); }
+.element-bg-soft--wood { background: color-mix(in srgb, var(--el-wood) 13%, white); }
+.element-bg-soft--fire { background: color-mix(in srgb, var(--el-fire) 13%, white); }
+.element-bg-soft--earth { background: color-mix(in srgb, var(--el-earth) 13%, white); }
+.element-bg-soft--metal { background: color-mix(in srgb, var(--el-metal) 13%, white); }
+.element-bg-soft--water { background: color-mix(in srgb, var(--el-water) 13%, white); }
 .field {
   width: 100%;
   min-height: 3rem;
