@@ -9,10 +9,10 @@
     "settings": "Preferencias de analíticas"
   },
   "privacyAnalytics": {
-    "title": "Google Analytics",
-    "body": "Solo tras tu consentimiento se carga Google Analytics 4 (ID de medición G-RMFH4E7NGS). Google puede establecer cookies de análisis durante un máximo de 90 días.",
-    "data": "Enviamos la ruta de la página sin la cadena de consulta, el idioma y eventos como crear o compartir una carta, consultar el glosario y pulsar enlaces de tienda o reserva. Nunca enviamos fecha u hora de nacimiento, género, ciudad, longitud, zona horaria ni datos introducidos en la carta.",
-    "control": "Puedes conceder o retirar el consentimiento en cualquier momento mediante Preferencias de analíticas en el pie de página. Rechazarlo no afecta a la carta. Los enlaces externos aplican sus propias políticas de privacidad."
+    "title": "Analítica y publicidad",
+    "body": "Google Analytics 4 (ID de medición G-RMFH4E7NGS) solo se carga cuando permites las analíticas. En páginas con contenido editorial sustancial puede cargarse Google AdSense (ID de editor ca-pub-1837000267504503) para ofrecer publicidad. AdSense no se carga en las páginas de carta o resultados, compatibilidad, privacidad, Acerca de ni errores.",
+    "data": "El modo de consentimiento de Google deniega inicialmente el almacenamiento de anuncios, los datos de usuario para publicidad y la personalización de anuncios. Aunque se denieguen esos ajustes, Google puede tratar datos técnicos limitados de la solicitud, como la dirección IP, información del navegador, la URL de la página y diagnósticos, para mostrar anuncios, prevenir el fraude y medir resultados. Nuestro código nunca envía a Google la fecha u hora de nacimiento, el género, la ciudad, la longitud, la zona horaria ni los datos de la carta.",
+    "control": "Las preferencias de analíticas del pie de página solo controlan Google Analytics. Cuando sea necesario, el mensaje de consentimiento de Google ofrece opciones de privacidad publicitaria; si no eliges una opción de publicidad, el almacenamiento y la personalización permanecen denegados. Rechazar las analíticas o la publicidad no afecta a los cálculos de la carta. Los enlaces externos aplican sus propias políticas de privacidad."
   },
   "fortune": {
     "eyebrow": "Elige una lectura",

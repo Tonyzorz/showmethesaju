@@ -9,10 +9,10 @@
     "settings": "Preferências de análise"
   },
   "privacyAnalytics": {
-    "title": "Google Analytics",
-    "body": "O Google Analytics 4 (ID de medição G-RMFH4E7NGS) só é carregado após seu consentimento. O Google pode definir cookies de análise por até 90 dias.",
-    "data": "Enviamos o caminho da página sem a consulta, o idioma e eventos como gerar ou compartilhar um mapa, consultar o glossário e clicar em links da loja ou agendamento. Nunca enviamos data ou hora de nascimento, gênero, cidade, longitude, fuso horário ou dados inseridos no mapa.",
-    "control": "Você pode conceder ou retirar o consentimento a qualquer momento nas Preferências de análise do rodapé. Recusar não afeta o mapa. Links externos seguem suas próprias políticas de privacidade."
+    "title": "Análise e publicidade",
+    "body": "O Google Analytics 4 (ID de medição G-RMFH4E7NGS) só é carregado quando você permite a análise. Em páginas com conteúdo editorial substancial, o Google AdSense (ID do editor ca-pub-1837000267504503) pode ser carregado para fornecer publicidade. O AdSense não é carregado nas páginas de mapa ou resultado, compatibilidade, privacidade, Sobre ou erro.",
+    "data": "O Modo de consentimento do Google inicialmente nega o armazenamento de anúncios, os dados do usuário para publicidade e a personalização de anúncios. Mesmo com essas configurações negadas, o Google pode processar dados técnicos limitados da solicitação, como endereço IP, informações do navegador, URL da página e diagnósticos, para veicular anúncios, prevenir fraudes e medir resultados. Nosso código nunca envia ao Google data ou hora de nascimento, gênero, cidade, longitude, fuso horário ou dados inseridos no mapa.",
+    "control": "As preferências de análise no rodapé controlam apenas o Google Analytics. Onde for necessário, a mensagem de consentimento do Google oferece opções de privacidade para publicidade; sem uma escolha de publicidade, o armazenamento e a personalização permanecem negados. Recusar análise ou publicidade não afeta os cálculos do mapa. Links externos seguem suas próprias políticas de privacidade."
   },
   "fortune": {
     "eyebrow": "Escolha uma leitura",

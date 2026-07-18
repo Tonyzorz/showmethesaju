@@ -9,10 +9,10 @@
     "settings": "Tùy chọn phân tích"
   },
   "privacyAnalytics": {
-    "title": "Google Analytics",
-    "body": "Google Analytics 4 (mã đo lường G-RMFH4E7NGS) chỉ được tải sau khi bạn đồng ý. Google có thể đặt cookie phân tích trong tối đa 90 ngày.",
-    "data": "Chúng tôi chỉ gửi đường dẫn trang đã bỏ chuỗi truy vấn, ngôn ngữ trang và các sự kiện như tạo hoặc chia sẻ lá số, xem thuật ngữ, nhấp cửa hàng hay đặt lịch. Ngày giờ sinh, giới tính, thành phố, kinh độ, múi giờ và dữ liệu nhập lá số tuyệt đối không được gửi.",
-    "control": "Bạn có thể cho phép hoặc rút lại sự đồng ý bất cứ lúc nào trong Tùy chọn phân tích ở chân trang. Từ chối không ảnh hưởng đến lá số. Các liên kết ngoài áp dụng chính sách riêng tư của dịch vụ tương ứng."
+    "title": "Phân tích và quảng cáo",
+    "body": "Google Analytics 4 (mã đo lường G-RMFH4E7NGS) chỉ được tải khi bạn cho phép phân tích. Trên các trang có nội dung biên tập đầy đủ, Google AdSense (mã nhà xuất bản ca-pub-1837000267504503) có thể được tải để cung cấp quảng cáo. AdSense không được tải trên trang lá số hoặc kết quả, tương hợp, quyền riêng tư, Giới thiệu hay trang lỗi.",
+    "data": "Chế độ đồng ý của Google ban đầu từ chối lưu trữ quảng cáo, dữ liệu người dùng cho quảng cáo và cá nhân hóa quảng cáo. Ngay cả khi các cài đặt này bị từ chối, Google vẫn có thể xử lý dữ liệu kỹ thuật giới hạn của yêu cầu, như địa chỉ IP, thông tin trình duyệt, URL trang và dữ liệu chẩn đoán, để phân phối quảng cáo, ngăn gian lận và đo lường. Mã của chúng tôi không bao giờ gửi cho Google ngày giờ sinh, giới tính, thành phố, kinh độ, múi giờ hay dữ liệu nhập lá số.",
+    "control": "Tùy chọn phân tích ở chân trang chỉ kiểm soát Google Analytics. Ở nơi có yêu cầu, thông báo đồng ý của Google cung cấp lựa chọn quyền riêng tư về quảng cáo; nếu không chọn quảng cáo, việc lưu trữ và cá nhân hóa quảng cáo vẫn bị từ chối. Từ chối phân tích hoặc quảng cáo không ảnh hưởng đến phép tính lá số. Các liên kết ngoài áp dụng chính sách riêng tư của dịch vụ tương ứng."
   },
   "fortune": {
     "eyebrow": "Chọn chủ đề",

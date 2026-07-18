@@ -44,6 +44,9 @@ for (const locale of locales) {
     `${locale}: native birth inputs are missing`);
   assert(homeHtml.includes("window.gtag('set', 'send_page_view', false)"),
     `${locale}: global automatic GA4 page views are not disabled`);
+  assert(homeHtml.includes("ad_storage: 'denied'") && homeHtml.includes("ad_user_data: 'denied'") &&
+    homeHtml.includes("ad_personalization: 'denied'"),
+    `${locale}: advertising consent must default to denied`);
 
   const html = read(path.join(locale, 'reading', 'index.html'));
   assert(html.includes('id="loading-state"'), `${locale}: missing non-blank loading fallback`);
@@ -119,6 +122,8 @@ for (const locale of locales) {
   assert(glossaryHtml.includes(adsenseScript), `${locale}: AdSense is missing from the glossary`);
   const privacyHtml = read(path.join(locale, 'privacy', 'index.html'));
   assert(!privacyHtml.includes(adsenseScript), `${locale}: AdSense must not load on the privacy page`);
+  assert(privacyHtml.includes('ca-pub-1837000267504503'),
+    `${locale}: privacy page is missing the AdSense publisher disclosure`);
   const aboutHtml = read(path.join(locale, 'about', 'index.html'));
   assert(!aboutHtml.includes(adsenseScript), `${locale}: AdSense must not load on the thin About page`);
 }

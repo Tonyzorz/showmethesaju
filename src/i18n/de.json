@@ -9,10 +9,10 @@
     "settings": "Analyse-Einstellungen"
   },
   "privacyAnalytics": {
-    "title": "Google Analytics",
-    "body": "Google Analytics 4 (Mess-ID G-RMFH4E7NGS) wird erst nach deiner Zustimmung geladen. Google kann Analyse-Cookies für höchstens 90 Tage setzen.",
-    "data": "Wir senden den Seitenpfad ohne Abfragezeichenfolge, die Seitensprache und Ereignisse wie Horoskoperstellung, Teilen, Glossarnutzung sowie Shop- oder Buchungsklicks. Geburtsdatum, Geburtszeit, Geschlecht, Stadt, Längengrad, Zeitzone und Horoskop-Eingaben werden niemals gesendet.",
-    "control": "Du kannst deine Zustimmung jederzeit über die Analyse-Einstellungen im Footer erteilen oder widerrufen. Eine Ablehnung beeinträchtigt das Horoskop nicht. Für externe Links gelten deren eigene Datenschutzrichtlinien."
+    "title": "Analyse und Werbung",
+    "body": "Google Analytics 4 (Mess-ID G-RMFH4E7NGS) wird nur geladen, wenn du die Analyse erlaubst. Auf Seiten mit umfangreichen redaktionellen Inhalten kann Google AdSense (Publisher-ID ca-pub-1837000267504503) geladen werden, um Werbung bereitzustellen. AdSense wird auf Horoskop- oder Ergebnisseiten sowie auf Kompatibilitäts-, Datenschutz-, Über-uns- und Fehlerseiten nicht geladen.",
+    "data": "Der Google-Einwilligungsmodus lehnt zunächst Werbespeicherung, Werbenutzerdaten und personalisierte Werbung ab. Auch bei abgelehnten Einstellungen kann Google begrenzte technische Anfragedaten wie IP-Adresse, Browserinformationen, Seiten-URL und Diagnosedaten für Anzeigenauslieferung, Betrugsprävention und Messung verarbeiten. Unser Code sendet niemals Geburtsdatum, Geburtszeit, Geschlecht, Stadt, Längengrad, Zeitzone oder Horoskop-Eingaben an Google.",
+    "control": "Die Analyse-Einstellungen im Footer steuern nur Google Analytics. Wo dies erforderlich ist, bietet die Einwilligungsnachricht von Google Datenschutzoptionen für Werbung; ohne eine Werbeauswahl bleiben Werbespeicherung und Personalisierung abgelehnt. Das Ablehnen von Analyse oder Werbung beeinflusst die Horoskopberechnung nicht. Für externe Links gelten deren eigene Datenschutzrichtlinien."
   },
   "fortune": {
     "eyebrow": "Deutung wählen",

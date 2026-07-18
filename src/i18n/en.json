@@ -9,10 +9,10 @@
     "settings": "Analytics preferences"
   },
   "privacyAnalytics": {
-    "title": "Google Analytics",
-    "body": "Only after you consent does this site load Google Analytics 4 (measurement ID G-RMFH4E7NGS). Google may set analytics cookies for up to 90 days.",
-    "data": "We send the page path without its query string, the site language, and events such as chart creation, sharing, glossary use, and shop or booking clicks. Birth date, birth time, gender, city, longitude, time zone, and chart inputs are never sent.",
-    "control": "You can grant or withdraw consent at any time through Analytics preferences in the footer. Refusing analytics does not affect the chart. External booking and shop links have their own privacy policies."
+    "title": "Analytics and advertising",
+    "body": "Google Analytics 4 (measurement ID G-RMFH4E7NGS) loads only after you allow analytics. On substantial editorial pages, Google AdSense (publisher ID ca-pub-1837000267504503) may load to provide advertising. AdSense is not loaded on chart or result, compatibility, privacy, About, or error pages.",
+    "data": "Google Consent Mode initially denies ad storage, ad user data, and ad personalization. Even with those settings denied, Google may process limited technical request data such as the IP address, browser information, page URL, and diagnostics for ad delivery, fraud prevention, and measurement. Our code never sends birth date, birth time, gender, city, longitude, time zone, or chart inputs to Google.",
+    "control": "Analytics preferences in the footer control Google Analytics only. Where required, Google's consent message provides advertising privacy choices; if no advertising choice is made, ad storage and personalization remain denied. Refusing analytics or advertising does not affect chart calculations. External links have their own privacy policies."
   },
   "fortune": {
     "eyebrow": "Choose a reading",

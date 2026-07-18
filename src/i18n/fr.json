@@ -9,10 +9,10 @@
     "settings": "Préférences d’analyse"
   },
   "privacyAnalytics": {
-    "title": "Google Analytics",
-    "body": "Google Analytics 4 (ID de mesure G-RMFH4E7NGS) n’est chargé qu’après votre consentement. Google peut déposer des cookies d’analyse pendant 90 jours au maximum.",
-    "data": "Nous transmettons le chemin de page sans chaîne de requête, la langue du site et des événements tels que la création ou le partage d’un thème, l’usage du glossaire et les clics vers la boutique ou la réservation. Date et heure de naissance, genre, ville, longitude, fuseau horaire et saisies du thème ne sont jamais transmis.",
-    "control": "Vous pouvez accorder ou retirer votre consentement à tout moment via les préférences d’analyse du pied de page. Le refus n’affecte pas le calcul du thème. Les liens externes ont leurs propres politiques de confidentialité."
+    "title": "Analyse d’audience et publicité",
+    "body": "Google Analytics 4 (ID de mesure G-RMFH4E7NGS) n’est chargé que lorsque vous autorisez l’analyse d’audience. Sur les pages au contenu éditorial substantiel, Google AdSense (ID éditeur ca-pub-1837000267504503) peut être chargé pour diffuser de la publicité. AdSense n’est pas chargé sur les pages de thème ou de résultat, de compatibilité, de confidentialité, À propos ou d’erreur.",
+    "data": "Le mode Consentement de Google refuse initialement le stockage publicitaire, les données utilisateur à des fins publicitaires et la personnalisation des annonces. Même lorsque ces réglages sont refusés, Google peut traiter des données techniques limitées de la requête, comme l’adresse IP, les informations du navigateur, l’URL de la page et des diagnostics, pour diffuser les annonces, prévenir la fraude et mesurer les résultats. Notre code n’envoie jamais à Google la date ou l’heure de naissance, le genre, la ville, la longitude, le fuseau horaire ni les données saisies pour le thème.",
+    "control": "Les préférences d’analyse du pied de page contrôlent uniquement Google Analytics. Lorsque la réglementation l’exige, le message de consentement de Google propose des choix de confidentialité publicitaire ; sans choix publicitaire, le stockage et la personnalisation restent refusés. Refuser l’analyse ou la publicité n’affecte pas les calculs du thème. Les liens externes ont leurs propres politiques de confidentialité."
   },
   "fortune": {
     "eyebrow": "Choisir une lecture",
