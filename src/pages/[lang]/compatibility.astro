@@ -14,9 +14,10 @@ const pick = (prefix: string) =>
   Object.fromEntries(Object.entries(R).filter(([k]) => k.startsWith(prefix)));
 const strings = {
   ...ns(lang, 'gunghap'),
-  ...pick('el.'), ...pick('strengthV.'), ...pick('tg.'),
+  ...pick('el.'), ...pick('strengthV.'), ...pick('tg.'), ...pick('qi.'),
   pillarYear: R['pillarYear'], pillarMonth: R['pillarMonth'],
   pillarDay: R['pillarDay'], pillarHour: R['pillarHour'],
+  hiddenStems: R['hiddenStems'], hiddenStemsContext: R['hiddenStemsContext'],
   errFuture: t(lang, 'form.errFuture'),
   errLunarRange: t(lang, 'form.errLunarRange'),
 };
@@ -141,6 +142,8 @@ const personFields = [
       <div>
         <button type="button" data-gunghap-target="pair-charts">{t(lang, 'gunghap.formTitle')}</button>
         <button type="button" data-gunghap-target="gsection-inner">{t(lang, 'gunghap.inner')}</button>
+        <button type="button" data-gunghap-target="gsection-cross">{t(lang, 'gunghap.crossPillars')}</button>
+        <button type="button" data-gunghap-target="gsection-spouse">{t(lang, 'gunghap.spousePalaceDetail')}</button>
         <button type="button" data-gunghap-target="gsection-tengods">{t(lang, 'gunghap.tengods')}</button>
         <button type="button" data-gunghap-target="gsection-elements">{t(lang, 'gunghap.elements')}</button>
       </div>
@@ -167,7 +170,7 @@ const personFields = [
     import KoreanLunarCalendar from 'korean-lunar-calendar';
     import { tzOffsetMinutes } from '../../lib/cities';
     import { computeGunghap, type GunghapResult, type PairRelation } from '../../lib/gunghap';
-    import type { SajuInput, SajuResult } from '../../lib/saju-engine';
+    import type { PillarRole, SajuInput, SajuResult } from '../../lib/saju-engine';
     import { trackEvent } from '../../lib/analytics';
 
     const S: Record<string, string> = JSON.parse(document.getElementById('i18n-gunghap')!.textContent!);
@@ -315,6 +318,42 @@ const personFields = [
       </section>`;
     const elLabel = (el: string) => S[`el.${el}`] ?? el;
     const tgLabel = (god: string) => S[`tg.${god}`] ?? god;
+    const roleLabels: Record<PillarRole, string> = {
+      year: S['pillarYear'], month: S['pillarMonth'], day: S['pillarDay'], hour: S['pillarHour'],
+    };
+
+    function crossPillarComparison(g: GunghapResult) {
+      if (!g.crossPillarRelations.length) return `<p class="soft">${S['crossNone']}</p>`;
+      return `<div class="cross-pillar-grid">${g.crossPillarRelations.map((item) => {
+        const aPillar = g.a[item.aRole]!;
+        const bPillar = g.b[item.bRole]!;
+        return `<article class="cross-pillar-item">
+          <header>
+            <span><small>${S['personA']} · ${roleLabels[item.aRole]}</small><strong lang="ko">${aPillar.branchHanja}</strong></span>
+            <i aria-hidden="true">↔</i>
+            <span><small>${S['personB']} · ${roleLabels[item.bRole]}</small><strong lang="ko">${bPillar.branchHanja}</strong></span>
+          </header>
+          ${relBlock(item.relations)}
+        </article>`;
+      }).join('')}</div>`;
+    }
+
+    function spousePalaceHiddenStems(g: GunghapResult) {
+      const card = (r: SajuResult, label: string, person: 'a' | 'b') =>
+        `<article class="spouse-palace spouse-palace--${person}">
+          <header>
+            <span>${label}</span>
+            <strong lang="ko">${r.day.branchHanja}</strong>
+            <small>${S['pillarDay']}</small>
+          </header>
+          <div>${r.hiddenStems.day.map((stem) => `<div class="spouse-hidden-chip">
+            <small>${S[`qi.${stem.phase}`]}</small>
+            <strong class="element-text--${stem.element}" lang="ko">${stem.stemHanja}</strong>
+            <span>${tgLabel(stem.tenGod)}</span>
+          </div>`).join('')}</div>
+        </article>`;
+      return `<div class="spouse-palace-grid">${card(g.a, S['personA'], 'a')}${card(g.b, S['personB'], 'b')}</div>`;
+    }
 
     function elementComparison(g: GunghapResult) {
       const elements = ['wood', 'fire', 'earth', 'metal', 'water'] as const;
@@ -369,15 +408,17 @@ const personFields = [
       document.getElementById('gunghap-sections')!.innerHTML = [
         section('outer', '01', '年', S['outer'], relBlock(g.yearRelations), S['outerNote']),
         section('inner', '02', '日', S['inner'], relBlock(g.dayRelations), S['innerNote']),
-        section('stems', '03', '干', S['stems'], `<p class="glead glead--feature">${stemLine}</p>`, S['stemsNote']),
-        section('tengods', '04', '神', S['tengods'],
+        section('cross', '03', '交', S['crossPillars'], crossPillarComparison(g), S['crossPillarsNote'], true),
+        section('spouse', '04', '藏', S['spousePalaceDetail'], spousePalaceHiddenStems(g), S['spousePalaceNote'], true),
+        section('stems', '05', '干', S['stems'], `<p class="glead glead--feature">${stemLine}</p>`, S['stemsNote']),
+        section('tengods', '06', '神', S['tengods'],
           `<div class="pair-insight-list"><p>${fmt(S['tenGodOfB'], { god: tgLabel(g.tenGodOfBForA) })}</p>
            <p>${fmt(S['tenGodOfA'], { god: tgLabel(g.tenGodOfAForB) })}</p></div>`,
           S['tengodsNote']),
-        section('elements', '05', '行', S['elements'],
+        section('elements', '07', '行', S['elements'],
           `<div class="fill-summary">${fills.length ? fills.map((line) => `<p>${line}</p>`).join('') : `<p>${S['fillsNone']}</p>`}</div>${elementComparison(g)}`,
           S['elementsNote'], true),
-        section('strength', '06', '氣', S['strength'],
+        section('strength', '08', '氣', S['strength'],
           `<div class="strength-compare">
             <article><small>${S['myStrength']}</small><strong>${S[`strengthV.${g.strengthA}`]}</strong></article>
             <span aria-hidden="true">↔</span>
@@ -564,6 +605,8 @@ const personFields = [
     .card.gsection { --section-accent: var(--indigo); position: relative; display: grid; min-width: 0; align-content: start; overflow: hidden; padding: clamp(1.15rem, 3vw, 1.75rem); border-color: color-mix(in srgb, var(--section-accent) 18%, var(--line)); background: linear-gradient(145deg, color-mix(in srgb, var(--section-accent) 5%, white), rgb(255 255 255 / .88)); box-shadow: 0 15px 42px rgb(35 53 44 / .07); }
     .gsection::after { content: ''; position: absolute; inline-size: 8rem; aspect-ratio: 1; inset: -5rem -4rem auto auto; border: 1px solid color-mix(in srgb, var(--section-accent) 14%, transparent); border-radius: 50%; box-shadow: 0 0 0 1.8rem color-mix(in srgb, var(--section-accent) 2.5%, transparent); pointer-events: none; }
     .gsection--inner { --section-accent: #9b4d59; }
+    .gsection--cross { --section-accent: #4e6f8e; }
+    .gsection--spouse { --section-accent: #8b6740; }
     .gsection--stems { --section-accent: #546b95; }
     .gsection--tengods { --section-accent: #74598a; }
     .gsection--elements { --section-accent: #a06d29; }
@@ -588,6 +631,30 @@ const personFields = [
     .fill-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; margin-bottom: 1rem; }
     .fill-summary p:only-child { grid-column: 1 / -1; }
     .soft { color: var(--ink-soft); }
+
+    .cross-pillar-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; }
+    .cross-pillar-item { min-width: 0; padding: .8rem; border: 1px solid color-mix(in srgb, var(--section-accent) 15%, var(--line)); border-radius: .85rem; background: rgb(255 255 255 / .68); }
+    .cross-pillar-item header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: .55rem; margin-bottom: .65rem; }
+    .cross-pillar-item header > span { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: .5rem; min-width: 0; }
+    .cross-pillar-item header > span:last-child { grid-template-columns: auto 1fr; }
+    .cross-pillar-item header > span:last-child small { order: 2; text-align: end; }
+    .cross-pillar-item header small { overflow: hidden; color: var(--ink-soft); font-size: .58rem; font-weight: 720; text-overflow: ellipsis; white-space: nowrap; }
+    .cross-pillar-item header strong { display: grid; inline-size: 2rem; aspect-ratio: 1; place-items: center; border: 1px solid color-mix(in srgb, var(--section-accent) 22%, var(--line)); border-radius: .55rem; color: var(--section-accent); background: white; font-family: var(--font-display); font-size: 1.15rem; }
+    .cross-pillar-item header i { color: var(--section-accent); font-size: .75rem; font-style: normal; }
+    .cross-pillar-item .rel-badge { min-height: 1.85rem; padding: .32rem .5rem; font-size: .62rem; }
+
+    .spouse-palace-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+    .spouse-palace { --person-accent: var(--indigo); overflow: hidden; border: 1px solid color-mix(in srgb, var(--person-accent) 20%, var(--line)); border-radius: var(--radius); background: rgb(255 255 255 / .7); }
+    .spouse-palace--b { --person-accent: #a55d4d; }
+    .spouse-palace > header { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: .15rem .7rem; padding: .75rem .9rem; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--person-accent) 6%, white); }
+    .spouse-palace > header span { color: var(--person-accent); font-size: .66rem; font-weight: 800; }
+    .spouse-palace > header strong { grid-row: 1 / 3; grid-column: 2; font-family: var(--font-display); font-size: 1.8rem; line-height: 1; }
+    .spouse-palace > header small { color: var(--ink-soft); font-size: .57rem; }
+    .spouse-palace > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .55rem; padding: .75rem; }
+    .spouse-hidden-chip { display: grid; min-width: 0; justify-items: center; gap: .25rem; padding: .65rem .4rem; border-radius: .75rem; background: color-mix(in srgb, var(--paper-sunken) 58%, white); text-align: center; }
+    .spouse-hidden-chip small { color: var(--ink-soft); font-size: .55rem; font-weight: 700; }
+    .spouse-hidden-chip strong { font-family: var(--font-display); font-size: 1.45rem; line-height: 1; }
+    .spouse-hidden-chip span { overflow: hidden; max-width: 100%; color: var(--ink-soft); font-size: .58rem; font-weight: 720; text-overflow: ellipsis; white-space: nowrap; }
 
     .element-compare { display: grid; gap: .65rem; padding: clamp(.9rem, 2.5vw, 1.25rem); border: 1px solid color-mix(in srgb, var(--section-accent) 16%, var(--line)); border-radius: var(--radius); background: rgb(255 255 255 / .62); }
     .element-compare__legend { display: flex; justify-content: flex-end; gap: 1rem; }
@@ -623,6 +690,7 @@ const personFields = [
     @media (max-width: 720px) {
       .person-charts { grid-template-columns: 1fr; }
       .mini-chart { max-width: 38rem; width: 100%; margin-inline: auto; }
+      .cross-pillar-grid, .spouse-palace-grid { grid-template-columns: 1fr; }
       .fill-summary { grid-template-columns: 1fr; }
       .fill-summary p { grid-column: auto; }
     }
@@ -641,6 +709,7 @@ const personFields = [
       .mini-pillars { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(5.4rem, 1fr); overflow-x: auto; padding-bottom: .35rem; scroll-snap-type: x proximity; scrollbar-width: thin; }
       .mini-pillar { min-height: 7.5rem; scroll-snap-align: start; }
       .gsection { padding: 1.15rem; }
+      .cross-pillar-item header { gap: .35rem; }
       .element-compare__row { grid-template-columns: 4.2rem 1fr 2rem; gap: .45rem; }
       .strength-compare { grid-template-columns: 1fr; }
       .strength-compare > span { margin-inline: auto; transform: rotate(90deg); }

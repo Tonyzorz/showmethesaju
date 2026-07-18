@@ -16,6 +16,7 @@ function read(relativePath) {
 for (const locale of locales) {
   const homeHtml = read(path.join(locale, 'index.html'));
   assert(homeHtml.includes('id="birth-form"'), `${locale}: missing birth form`);
+  assert(homeHtml.includes(`/${locale}/#birth-form`), `${locale}: reading navigation must lead to the birth form`);
   assert((homeHtml.match(/class="fortune-card fortune-card--/g) || []).length === 9,
     `${locale}: homepage must contain nine themed reading cards`);
   assert(homeHtml.includes('name="focus"') && homeHtml.includes('value="basic"') && homeHtml.includes('value="wealth"') &&
@@ -36,6 +37,8 @@ for (const locale of locales) {
   const html = read(path.join(locale, 'reading', 'index.html'));
   assert(html.includes('id="loading-state"'), `${locale}: missing non-blank loading fallback`);
   assert(html.includes('id="render-error"'), `${locale}: missing visible render error`);
+  assert(html.includes('class="reading-empty"') && (html.match(/class="reading-empty__feature"/g) || []).length === 6,
+    `${locale}: no-data reading route must show six feature cards`);
   assert(html.includes('id="element-radar"'), `${locale}: missing Five Elements chart`);
   assert(html.includes('id="reading-focus"') && (html.match(/data-reading-focus=/g) || []).length === 9,
     `${locale}: reading page must contain nine switchable themed summaries`);
@@ -65,7 +68,7 @@ for (const locale of locales) {
   assert(compatibilityHtml.includes('id="gunghap-result"') && compatibilityHtml.includes('id="gunghap-sections"'),
     `${locale}: Gunghap result shell is missing`);
   assert(compatibilityHtml.includes('id="pair-signature"') && compatibilityHtml.includes('id="pair-charts"') &&
-    (compatibilityHtml.match(/data-gunghap-target=/g) || []).length === 4,
+    (compatibilityHtml.match(/data-gunghap-target=/g) || []).length === 6,
     `${locale}: Gunghap pair signature, chart comparison, or result navigator is missing`);
   const compatibilityCss = [...compatibilityHtml.matchAll(/href="[^"]*\/_astro\/([^"]+\.css)"/g)]
     .map((match) => read(path.join('_astro', match[1])))
@@ -75,7 +78,8 @@ for (const locale of locales) {
     `${locale}: Gunghap dynamic-result selectors are missing from production CSS`);
   assert(compatibilityCss.includes('.card.gunghap-result-hero{') &&
     compatibilityCss.includes('.card.gsection{') && compatibilityCss.includes('.element-text--fire{') &&
-    compatibilityCss.includes('.element-bg-soft--earth{'),
+    compatibilityCss.includes('.element-bg-soft--earth{') && compatibilityCss.includes('.cross-pillar-grid{') &&
+    compatibilityCss.includes('.spouse-palace-grid{'),
     `${locale}: Gunghap card overrides or shared Five-Element utilities are missing`);
   assert(!compatibilityCss.includes('.mini-chart[data-astro-cid-') &&
     !compatibilityCss.includes('.signature-person[data-astro-cid-'),
@@ -127,7 +131,8 @@ assert(gunghapBundle, 'Could not identify the built Gunghap bundle');
 assert(gunghapBundle.source.includes('location.hash') && gunghapBundle.source.includes('location.replace'),
   'Gunghap bundle does not keep two-person birth state in the private URL fragment');
 assert(gunghapBundle.source.includes('gunghap_section_navigate') && gunghapBundle.source.includes('element-compare') &&
-  gunghapBundle.source.includes('signature-person') && gunghapBundle.source.includes('gsection--wide'),
+  gunghapBundle.source.includes('signature-person') && gunghapBundle.source.includes('gsection--wide') &&
+  gunghapBundle.source.includes('crossPillarRelations') && gunghapBundle.source.includes('spouse-hidden-chip'),
   'Gunghap bundle is missing result navigation, pair signature, or comparative result visualizations');
 
 const analyticsBundle = bundles.find(({ source }) => source.includes('google-analytics-script'));

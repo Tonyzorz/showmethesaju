@@ -6,7 +6,7 @@
  */
 import {
   branchRelationTypes, computeSaju, tenGod,
-  type BranchRelationType, type Element, type SajuInput, type SajuResult, type TenGod,
+  type BranchRelationType, type Element, type PillarRole, type SajuInput, type SajuResult, type TenGod,
 } from './saju-engine.ts';
 import { strengthAnalysis, type StrengthVerdict } from './saju-extras.ts';
 
@@ -46,6 +46,14 @@ export function branchPair(a: number, b: number): PairRelation[] {
   return out;
 }
 
+export interface CrossPillarRelation {
+  aRole: PillarRole;
+  bRole: PillarRole;
+  aBranch: number;
+  bBranch: number;
+  relations: PairRelation[];
+}
+
 export interface GunghapResult {
   a: SajuResult;
   b: SajuResult;
@@ -53,6 +61,8 @@ export interface GunghapResult {
   yearRelations: PairRelation[];
   /** 속궁합: day branches (배우자궁). */
   dayRelations: PairRelation[];
+  /** Every relation-bearing branch pair across the two full charts. */
+  crossPillarRelations: CrossPillarRelation[];
   stems: StemPair;
   /** What B's day master is to A, and vice versa. */
   tenGodOfBForA: TenGod;
@@ -67,12 +77,31 @@ export interface GunghapResult {
 export function computeGunghap(inputA: SajuInput, inputB: SajuInput): GunghapResult {
   const a = computeSaju(inputA);
   const b = computeSaju(inputB);
+  const roles: PillarRole[] = ['year', 'month', 'day', 'hour'];
+  const crossPillarRelations: CrossPillarRelation[] = [];
+  for (const aRole of roles) {
+    const aPillar = a[aRole];
+    if (!aPillar) continue;
+    for (const bRole of roles) {
+      const bPillar = b[bRole];
+      if (!bPillar) continue;
+      const relations = branchPair(aPillar.branch, bPillar.branch);
+      if (relations.length) {
+        crossPillarRelations.push({
+          aRole, bRole,
+          aBranch: aPillar.branch, bBranch: bPillar.branch,
+          relations,
+        });
+      }
+    }
+  }
   const fills = (self: SajuResult, other: SajuResult): Element[] =>
     ELEMENTS.filter((el) => self.elementCounts[el] === 0 && other.elementCounts[el] >= 2);
   return {
     a, b,
     yearRelations: branchPair(a.year.branch, b.year.branch),
     dayRelations: branchPair(a.day.branch, b.day.branch),
+    crossPillarRelations,
     stems: dayStemPair(a.day.stem, b.day.stem),
     tenGodOfBForA: tenGod(a.day.stem, b.day.stem),
     tenGodOfAForB: tenGod(b.day.stem, a.day.stem),

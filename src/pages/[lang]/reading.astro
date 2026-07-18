@@ -23,6 +23,14 @@ const READING_FOCUSES = [
   { key: 'health', mark: '身' }, { key: 'career', mark: '業' }, { key: 'relationships', mark: '緣' },
   { key: 'noble', mark: '貴' }, { key: 'movement', mark: '動' }, { key: 'timing', mark: '運' },
 ] as const;
+const EMPTY_READING_FEATURES = [
+  { mark: '命', title: 'reading.originalChart', body: 'reading.originalChartContext' },
+  { mark: '行', title: 'reading.elements', body: 'reading.elementContext' },
+  { mark: '藏', title: 'reading.hiddenStems', body: 'reading.hiddenStemsContext' },
+  { mark: '合', title: 'reading.allRelations', body: 'reading.relationsContext' },
+  { mark: '星', title: 'reading.shinsal', body: 'reading.shinsalContext' },
+  { mark: '運', title: 'reading.daeun', body: 'reading.daeunContext' },
+] as const;
 ---
 <Base lang={lang} title={t(lang, 'meta.reading.title')} path="reading" noindex>
   <script type="application/json" id="i18n-reading" set:html={JSON.stringify(strings)} />
@@ -333,10 +341,33 @@ const READING_FOCUSES = [
     <p class="disclaimer">{t(lang, 'reading.disclaimer')}</p>
   </section>
 
-  <section id="no-query" hidden>
-    <h1>{t(lang, 'reading.yourPillars')}</h1>
-    <p id="render-error" class="note" hidden>{t(lang, 'readingError')}</p>
-    <p><a class="btn-primary" href={withBase(`/${lang}/`)}>{t(lang, 'hero.cta')}</a></p>
+  <section id="no-query" class="reading-empty" hidden>
+    <header class="reading-empty__hero">
+      <div>
+        <p class="panel-overline">{t(lang, 'fortune.eyebrow')}</p>
+        <h1>{t(lang, 'reading.yourPillars')}</h1>
+        <p>{t(lang, 'reading.readingGuide.body')}</p>
+        <p id="render-error" class="note" hidden>{t(lang, 'readingError')}</p>
+        <a class="btn-primary" href={`${withBase(`/${lang}/`)}#birth-form`} data-analytics-event="navigation_click" data-analytics-destination="birth_form" data-analytics-area="reading_empty">{t(lang, 'hero.cta')} <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="reading-empty__mark" aria-hidden="true"><span>命</span><i></i></div>
+    </header>
+
+    <section class="reading-empty__features" aria-labelledby="reading-empty-features-title">
+      <div class="reading-empty__heading">
+        <h2 id="reading-empty-features-title">{t(lang, 'reading.chartAtGlance')}</h2>
+        <p>{t(lang, 'fortune.resultSubtitle')}</p>
+      </div>
+      <div class="reading-empty__grid">
+        {EMPTY_READING_FEATURES.map((feature, index) => (
+          <article class="reading-empty__feature">
+            <div><span aria-hidden="true">{feature.mark}</span><small>{String(index + 1).padStart(2, '0')}</small></div>
+            <h3>{t(lang, feature.title)}</h3>
+            <p>{t(lang, feature.body)}</p>
+          </article>
+        ))}
+      </div>
+    </section>
   </section>
 
   <GlossaryTooltip lang={lang} />
@@ -1284,6 +1315,34 @@ const READING_FOCUSES = [
     .loading-state p { color: var(--ink-soft); }
     .loading-mark { inline-size: 2.5rem; aspect-ratio: 1; border: 3px solid var(--line); border-top-color: var(--vermilion); border-radius: 50%; animation: loading-spin .8s linear infinite; }
     @keyframes loading-spin { to { transform: rotate(1turn); } }
+    #no-query[hidden] { display: none; }
+    .reading-empty { display: grid; gap: clamp(3rem, 7vw, 5.5rem); padding-block: clamp(1rem, 4vw, 3rem); }
+    .reading-empty__hero { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: clamp(1.5rem, 5vw, 4rem); overflow: hidden; padding: clamp(1.5rem, 5vw, 4rem); border-radius: clamp(1.25rem, 3vw, 2.25rem); color: white; background: radial-gradient(circle at 86% 18%, rgb(255 255 255 / .16), transparent 12rem), linear-gradient(128deg, #153c31, #275a47 58%, #3d735e); box-shadow: 0 28px 75px rgb(24 52 42 / .2); }
+    .reading-empty__hero::after { content: ''; position: absolute; z-index: -1; inset: 0; opacity: .18; background-image: linear-gradient(30deg, transparent 48%, rgb(255 255 255 / .2) 49%, rgb(255 255 255 / .2) 51%, transparent 52%); background-size: 4rem 7rem; mask-image: linear-gradient(90deg, transparent, #000); }
+    .reading-empty__hero > div:first-child { max-width: 47rem; }
+    .reading-empty__hero .panel-overline { color: #efad7a; }
+    .reading-empty__hero h1 { margin: 0; color: white; font-size: clamp(2rem, 5vw, 3.5rem); }
+    .reading-empty__hero h1 + p { max-width: 43rem; margin: .8rem 0 1.25rem; color: rgb(255 255 255 / .74); line-height: 1.75; }
+    .reading-empty__hero .note { margin: 0 0 1rem; color: #723a26; }
+    .reading-empty__hero .btn-primary { display: inline-flex; align-items: center; gap: .55rem; }
+    .reading-empty__hero .btn-primary span { display: grid; inline-size: 1.55rem; aspect-ratio: 1; place-items: center; border-radius: 50%; background: rgb(255 255 255 / .15); transition: transform var(--dur-fast); }
+    .reading-empty__hero .btn-primary:hover span { transform: translateX(3px); }
+    .reading-empty__mark { position: relative; display: grid; inline-size: clamp(8rem, 18vw, 12rem); aspect-ratio: 1; place-items: center; border: 1px solid rgb(255 255 255 / .26); border-radius: 50%; background: rgb(255 255 255 / .07); box-shadow: inset 0 0 0 .8rem rgb(255 255 255 / .035), 0 20px 45px rgb(12 35 27 / .18); }
+    .reading-empty__mark::before { content: ''; position: absolute; inset: .75rem; border: 1px dashed rgb(255 255 255 / .22); border-radius: 50%; }
+    .reading-empty__mark span { font-family: var(--font-display); font-size: clamp(4rem, 10vw, 7rem); line-height: 1; }
+    .reading-empty__mark i { position: absolute; inset: 50% -2.5rem auto; display: block; block-size: 1px; background: linear-gradient(90deg, transparent, rgb(255 255 255 / .48), transparent); transform: rotate(-28deg); }
+    .reading-empty__features { display: grid; gap: var(--space-6); }
+    .reading-empty__heading { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-5); }
+    .reading-empty__heading h2 { margin: 0; }
+    .reading-empty__heading p { max-width: 34rem; margin: 0; color: var(--ink-soft); font-size: var(--text-sm); text-align: end; }
+    .reading-empty__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+    .reading-empty__feature { position: relative; min-width: 0; overflow: hidden; padding: clamp(1.15rem, 3vw, 1.65rem); border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(145deg, rgb(255 255 255 / .9), rgb(247 247 242 / .68)); box-shadow: 0 12px 32px rgb(35 53 44 / .055); transition: transform var(--dur-fast), border-color var(--dur-fast), box-shadow var(--dur-fast); }
+    .reading-empty__feature:hover { border-color: color-mix(in srgb, var(--indigo) 32%, var(--line)); box-shadow: 0 18px 40px rgb(35 53 44 / .1); transform: translateY(-3px); }
+    .reading-empty__feature > div { display: flex; align-items: center; justify-content: space-between; }
+    .reading-empty__feature > div span { display: grid; inline-size: 2.6rem; aspect-ratio: 1; place-items: center; border-radius: .82rem; color: var(--vermilion); background: var(--peach-pale); font-family: var(--font-display); font-size: 1.15rem; }
+    .reading-empty__feature > div small { color: color-mix(in srgb, var(--ink-soft) 56%, transparent); font-family: var(--font-mono); font-size: .62rem; font-weight: 750; }
+    .reading-empty__feature h3 { margin: 1rem 0 .5rem; font-size: var(--text-lg); }
+    .reading-empty__feature p { margin: 0; color: var(--ink-soft); font-size: var(--text-xs); line-height: 1.65; }
     #result { --chart-line: color-mix(in srgb, var(--indigo) 18%, transparent); }
     .result-hero {
       position: relative;
@@ -1798,6 +1857,7 @@ const READING_FOCUSES = [
     }
 
     @media (max-width: 900px) {
+      .reading-empty__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .chart-matrix-heading { align-items: flex-start; flex-direction: column; }
       .chart-layer-controls { justify-content: flex-start; }
       .pillars { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1814,6 +1874,11 @@ const READING_FOCUSES = [
       .role-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (max-width: 620px) {
+      .reading-empty__hero { grid-template-columns: 1fr; }
+      .reading-empty__mark { display: none; }
+      .reading-empty__heading { align-items: flex-start; flex-direction: column; }
+      .reading-empty__heading p { text-align: start; }
+      .reading-empty__grid { grid-template-columns: 1fr; }
       .reading-jumpbar { top: 4rem; margin-inline: -.35rem; border-radius: 1rem; }
       .reading-jumpbar__label { display: none; }
       .result-hero { padding: 2rem 1.35rem 2.4rem; }

@@ -26,7 +26,7 @@ const htmlLang = LOCALES.find((l) => l.code === lang)?.htmlLang ?? lang;
 const year = new Date().getFullYear();
 
 const nav = [
-  { href: withBase(`/${lang}/reading/`), label: t(lang, 'nav.reading'), analyticsKey: 'reading' },
+  { href: `${withBase(`/${lang}/`)}#birth-form`, label: t(lang, 'nav.reading'), analyticsKey: 'reading' },
   { href: withBase(`/${lang}/compatibility/`), label: t(lang, 'nav.compatibility'), analyticsKey: 'compatibility' },
   { href: withBase(`/${lang}/learn/`), label: t(lang, 'nav.learn'), analyticsKey: 'learn' },
   { href: withBase(`/${lang}/glossary/`), label: t(lang, 'nav.glossary'), analyticsKey: 'glossary' },

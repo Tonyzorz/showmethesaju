@@ -47,4 +47,8 @@ const comparison = computeGunghap(
   { year: 1990, month: 6, day: 15, hour: 14, minute: 30, gender: 'male', tzOffsetMinutes: 540 },
 );
 assert.ok(comparison.a.day && comparison.b.day && comparison.stems.type, 'Gunghap must compute two charts and a day-stem relation.');
+assert.ok(comparison.crossPillarRelations.length > 0 && comparison.crossPillarRelations.every((item) => item.relations.length > 0),
+  'Gunghap must expose only relation-bearing cross-chart pillar pairs.');
+assert.ok(comparison.a.hiddenStems.day.length > 0 && comparison.b.hiddenStems.day.length > 0,
+  'Both spouse palaces must retain their hidden-stem evidence.');
 console.log('✓ extras and Gunghap invariants');
