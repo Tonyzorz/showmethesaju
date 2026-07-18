@@ -43,6 +43,8 @@ for (const locale of locales) {
     `${locale}: reading page must contain the eight-section quick navigator`);
   assert(html.includes('id="focus-metrics"') && html.includes('id="focus-details"'),
     `${locale}: themed summary metrics or evidence link is missing`);
+  assert(html.includes('id="focus-evidence"') && html.includes('id="focus-evidence-copy"') && html.includes('id="focus-evidence-sources"'),
+    `${locale}: themed summary evidence drawer is missing`);
   assert(html.includes('class="card chart-matrix-panel"') && html.includes('id="chart-facts"'),
     `${locale}: missing detailed original-chart matrix or fact grid`);
   assert((html.match(/data-layer-toggle=/g) || []).length === 4,
@@ -62,6 +64,9 @@ for (const locale of locales) {
     `${locale}: Gunghap must contain two complete person forms`);
   assert(compatibilityHtml.includes('id="gunghap-result"') && compatibilityHtml.includes('id="gunghap-sections"'),
     `${locale}: Gunghap result shell is missing`);
+  assert(compatibilityHtml.includes('id="pair-signature"') && compatibilityHtml.includes('id="pair-charts"') &&
+    (compatibilityHtml.match(/data-gunghap-target=/g) || []).length === 4,
+    `${locale}: Gunghap pair signature, chart comparison, or result navigator is missing`);
   assert(!compatibilityHtml.includes('REPLACE_ME') && !compatibilityHtml.includes('formspree.io/f/'),
     `${locale}: broken placeholder form endpoint remains in Gunghap`);
 }
@@ -96,6 +101,8 @@ assert(readingBundle.source.includes('chart_layer_toggle') && readingBundle.sour
 assert(readingBundle.source.includes('reading_focus_select') && readingBundle.source.includes('focus-metrics') &&
   readingBundle.source.includes('annualPillar'),
   'Reading bundle is missing themed summary switching, metrics, or annual-cycle support');
+assert(readingBundle.source.includes('reading_evidence_open') && readingBundle.source.includes('focus-evidence-sources'),
+  'Reading bundle is missing expandable evidence behavior');
 assert(readingBundle.source.includes('reading_section_navigate') && readingBundle.source.includes('ten-god-family') &&
   readingBundle.source.includes('current-timing-card'),
   'Reading bundle is missing section navigation, Ten-God family summaries, or current solar-month timing');
@@ -106,6 +113,9 @@ const gunghapBundle = bundles.find(({ source }) => source.includes('gunghap_subm
 assert(gunghapBundle, 'Could not identify the built Gunghap bundle');
 assert(gunghapBundle.source.includes('location.hash') && gunghapBundle.source.includes('location.replace'),
   'Gunghap bundle does not keep two-person birth state in the private URL fragment');
+assert(gunghapBundle.source.includes('gunghap_section_navigate') && gunghapBundle.source.includes('element-compare') &&
+  gunghapBundle.source.includes('signature-person') && gunghapBundle.source.includes('gsection--wide'),
+  'Gunghap bundle is missing result navigation, pair signature, or comparative result visualizations');
 
 const analyticsBundle = bundles.find(({ source }) => source.includes('google-analytics-script'));
 assert(analyticsBundle, 'Could not identify the built analytics bundle');
@@ -116,4 +126,4 @@ assert(analyticsBundle.source.includes('location.origin') && analyticsBundle.sou
   'Analytics page locations are not built from the query-free origin and path');
 assert(!analyticsBundle.source.includes('location.search'), 'Analytics bundle must not read or send URL query parameters');
 
-console.log(`Smoke-tested ${locales.length} home, reading, and Gunghap pages; nine localized reading themes; result navigation; Ten-God and current-cycle summaries; private fragment state; rich chart layers; consent defaults; and query-free GA4 wiring.`);
+console.log(`Smoke-tested ${locales.length} home, reading, and Gunghap pages; nine localized reading themes with evidence drawers; redesigned compatibility results; result navigation; Ten-God and current-cycle summaries; private fragment state; rich chart layers; consent defaults; and query-free GA4 wiring.`);

@@ -77,7 +77,14 @@ const READING_FOCUSES = [
           <h3 id="focus-title"></h3>
           <p id="focus-summary"></p>
           <div id="focus-metrics" class="focus-metrics"></div>
-          <button id="focus-details" type="button">{t(lang, 'fortune.viewDetails')} <span aria-hidden="true">↓</span></button>
+          <details id="focus-evidence" class="focus-evidence">
+            <summary>{t(lang, 'fortune.viewDetails')}</summary>
+            <div class="focus-evidence__body">
+              <p id="focus-evidence-copy"></p>
+              <div id="focus-evidence-sources" class="focus-evidence__sources"></div>
+              <button id="focus-details" type="button"><span id="focus-details-label"></span><i aria-hidden="true">↓</i></button>
+            </div>
+          </details>
         </div>
       </article>
     </section>
@@ -598,60 +605,87 @@ const READING_FOCUSES = [
       const structure = gyeokguk(r);
       const { currentSajuYear, activeDaeun, annual } = currentTiming(r);
       const metric = (label: string, value: string | number) => `<span><small>${label}</small><strong>${value}</strong></span>`;
-      const configs: Record<ReadingFocus, { mark: string; summary: string; metrics: string; target: string }> = {
+      const configs: Record<ReadingFocus, { mark: string; summary: string; metrics: string; target: string; targetLabel: string; context: string; sources: string[] }> = {
         basic: {
           mark: '命',
           summary: fmt(S['focus.basic.summary'], { dayMaster: `${r.dayMaster.hanja} ${r.dayMaster.ko}`, element: S[`el.${dominantElement}`], count: maxElementCount, total: totalElements, yang, yin }),
           metrics: metric(S['focus.metric.dayMaster'], `${r.dayMaster.hanja} · ${S[`el.${r.dayMaster.element}`]}`) + metric(S['focus.metric.dominantElement'], S[`el.${dominantElement}`]) + metric(S['focus.metric.yinYang'], `${yang} / ${yin}`),
           target: '#original-chart',
+          targetLabel: S['originalChart'],
+          context: S['elementContext'],
+          sources: [S['dayMaster'], S['elements'], S['yinYangBalance']],
         },
         personality: {
           mark: '氣',
           summary: fmt(S['focus.personality.summary'], { dayMaster: `${r.dayMaster.hanja} ${r.dayMaster.ko}`, strength: S[`strengthV.${strength.verdict}`], structure: S[`gg.${structure.name}`] }),
           metrics: metric(S['focus.metric.dayMaster'], `${r.dayMaster.hanja} · ${S[`el.${r.dayMaster.element}`]}`) + metric(S['focus.metric.strength'], S[`strengthV.${strength.verdict}`]) + metric(S['focus.metric.structure'], S[`gg.${structure.name}`]),
           target: '#strength-analysis',
+          targetLabel: S['strength'],
+          context: `${S['strengthContext']} ${S['gyeokgukContext']}`,
+          sources: [S['dayMaster'], S['strength'], S['gyeokguk']],
         },
         wealth: {
           mark: '財',
           summary: fmt(S['focus.wealth.summary'], { wealthCount, element: S[`el.${wealthElement}`] }),
           metrics: metric(S['focus.metric.wealthElement'], S[`el.${wealthElement}`]) + metric(S['focus.metric.wealthStars'], wealthCount) + metric(S['focus.metric.currentDaeun'], activeDaeun?.pillar.hanja ?? S['focus.unavailable']),
           target: '#ten-gods-analysis',
+          targetLabel: S['tenGods'],
+          context: `${S['tenGodsContext']} ${S['hiddenStemsContext']}`,
+          sources: [S['tenGods'], S['hiddenStems'], S['daeun']],
         },
         health: {
           mark: '身',
           summary: fmt(S['focus.health.summary'], { dominant: S[`el.${dominantElement}`], lowElements }),
           metrics: metric(S['focus.metric.dominantElement'], S[`el.${dominantElement}`]) + metric(S['focus.metric.leastElements'], lowElements) + metric(S['focus.metric.visibleBalance'], `${maxElementCount} : ${minElementCount}`),
           target: '#element-balance',
+          targetLabel: S['elements'],
+          context: S['elementContext'],
+          sources: [S['elements'], S['yinYangBalance'], S['strength']],
         },
         career: {
           mark: '業',
           summary: fmt(S['focus.career.summary'], { authorityCount, outputCount }),
           metrics: metric(S['focus.metric.authorityStars'], authorityCount) + metric(S['focus.metric.outputStars'], outputCount) + metric(S['focus.metric.monthPillar'], r.month.hanja),
           target: '#ten-gods-analysis',
+          targetLabel: S['tenGods'],
+          context: `${S['tenGodsContext']} ${S['hiddenStemsContext']}`,
+          sources: [S['tenGods'], S['hiddenStems'], S['pillarMonth']],
         },
         relationships: {
           mark: '緣',
           summary: fmt(S['focus.relationships.summary'], { dayBranch: `${r.day.branchHanja} ${r.day.branchKo}`, relationCount: relationPairs, starCount: relationshipStars }),
           metrics: metric(S['focus.metric.dayBranch'], r.day.branchHanja) + metric(S['focus.metric.relations'], relationPairs) + metric(S['focus.metric.relationshipStars'], relationshipStars),
           target: '#relations-analysis',
+          targetLabel: S['allRelations'],
+          context: `${S['relationsContext']} ${S['shinsalContext']}`,
+          sources: [S['pillarDay'], S['allRelations'], S['shinsal']],
         },
         noble: {
           mark: '貴',
           summary: fmt(S['focus.noble.summary'], { nobleCount: heavenlyNobleCount, literaryCount, virtueCount }),
           metrics: metric(S['focus.metric.heavenlyNoble'], heavenlyNobleCount) + metric(S['focus.metric.literaryStar'], literaryCount) + metric(S['focus.metric.virtueStars'], virtueCount),
           target: '#shinsal-analysis',
+          targetLabel: S['shinsal'],
+          context: S['shinsalContext'],
+          sources: [S['shinsal'], S['cheonEulBranches'], S['pillarRoles']],
         },
         movement: {
           mark: '動',
           summary: fmt(S['focus.movement.summary'], { travelCount, relationCount: relationPairs, daeunPillar: activeDaeun?.pillar.hanja ?? S['focus.unavailable'] }),
           metrics: metric(S['focus.metric.travelHorse'], travelCount) + metric(S['focus.metric.relations'], relationPairs) + metric(S['focus.metric.currentDaeun'], activeDaeun?.pillar.hanja ?? S['focus.unavailable']),
           target: '#shinsal-analysis',
+          targetLabel: S['shinsal'],
+          context: `${S['shinsalContext']} ${S['relationsContext']}`,
+          sources: [S['shinsal'], S['allRelations'], S['daeun']],
         },
         timing: {
           mark: '運',
           summary: fmt(S['focus.timing.summary'], { direction: r.daeun ? S[r.daeun.direction] : S['focus.unavailable'], daeunPillar: activeDaeun?.pillar.hanja ?? S['focus.unavailable'], year: currentSajuYear, annualPillar: annual.pillar.hanja }),
           metrics: metric(S['focus.metric.direction'], r.daeun ? S[r.daeun.direction] : S['focus.unavailable']) + metric(S['focus.metric.currentDaeun'], activeDaeun?.pillar.hanja ?? S['focus.unavailable']) + metric(S['focus.metric.annualPillar'], annual.pillar.hanja),
           target: '#luck-analysis',
+          targetLabel: S['daeun'],
+          context: `${S['daeunContext']} ${S['seunContext']}`,
+          sources: [S['daeun'], S['seun'], fmt(S['wolunTitle'], { year: currentSajuYear })],
         },
       };
 
@@ -668,6 +702,10 @@ const READING_FOCUSES = [
         document.getElementById('focus-title')!.textContent = S[`focus.${focus}.title`];
         document.getElementById('focus-summary')!.textContent = config.summary;
         document.getElementById('focus-metrics')!.innerHTML = config.metrics;
+        document.getElementById('focus-evidence-copy')!.textContent = config.context;
+        document.getElementById('focus-evidence-sources')!.innerHTML = config.sources
+          .map((source) => `<span>${source}</span>`).join('');
+        document.getElementById('focus-details-label')!.textContent = config.targetLabel;
         (document.getElementById('focus-details') as HTMLButtonElement).dataset.target = config.target;
         const url = new URL(location.href);
         q.set('focus', focus);
@@ -683,6 +721,11 @@ const READING_FOCUSES = [
       document.getElementById('focus-details')!.addEventListener('click', () => {
         document.querySelector((document.getElementById('focus-details') as HTMLButtonElement).dataset.target || '#original-chart')
           ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      document.getElementById('focus-evidence')!.addEventListener('toggle', (event) => {
+        if ((event.currentTarget as HTMLDetailsElement).open) {
+          trackEvent('reading_evidence_open', { reading_focus: selectedReadingFocus, language: document.documentElement.lang });
+        }
       });
       paint(selectedReadingFocus);
     }
@@ -1363,8 +1406,17 @@ const READING_FOCUSES = [
     .focus-metrics > span { display: grid; min-width: 7.2rem; gap: .2rem; padding: .55rem .7rem; border: 1px solid color-mix(in srgb, var(--focus-accent) 17%, var(--line)); border-radius: .75rem; background: rgb(255 255 255 / .66); }
     .focus-metrics small { color: var(--ink-soft); font-size: .56rem; font-weight: 720; }
     .focus-metrics strong { color: var(--focus-accent); font-size: .76rem; overflow-wrap: anywhere; }
-    #focus-details { display: inline-flex; align-items: center; gap: .45rem; margin-top: 1rem; padding: 0; border: 0; color: var(--focus-accent); background: transparent; font: inherit; font-size: .72rem; font-weight: 800; text-decoration: none; cursor: pointer; }
-    #focus-details span { display: grid; inline-size: 1.4rem; aspect-ratio: 1; place-items: center; border-radius: 50%; color: white; background: var(--focus-accent); }
+    .focus-evidence { margin-top: 1rem; border: 1px solid color-mix(in srgb, var(--focus-accent) 18%, var(--line)); border-radius: .9rem; background: rgb(255 255 255 / .58); }
+    .focus-evidence summary { display: flex; min-height: 2.65rem; align-items: center; justify-content: space-between; gap: .75rem; padding: .65rem .8rem; color: var(--focus-accent); font-size: .7rem; font-weight: 800; cursor: pointer; list-style: none; }
+    .focus-evidence summary::-webkit-details-marker { display: none; }
+    .focus-evidence summary::after { content: '+'; display: grid; inline-size: 1.4rem; aspect-ratio: 1; flex: 0 0 auto; place-items: center; border-radius: 50%; color: white; background: var(--focus-accent); font-size: .9rem; transition: transform var(--dur-fast); }
+    .focus-evidence[open] summary::after { transform: rotate(45deg); }
+    .focus-evidence__body { padding: 0 .8rem .8rem; border-top: 1px solid color-mix(in srgb, var(--focus-accent) 12%, var(--line)); }
+    .focus-evidence__body > p { margin: .75rem 0; color: var(--ink-soft); font-size: .72rem; line-height: 1.65; }
+    .focus-evidence__sources { display: flex; flex-wrap: wrap; gap: .35rem; }
+    .focus-evidence__sources span { padding: .3rem .5rem; border: 1px solid color-mix(in srgb, var(--focus-accent) 16%, var(--line)); border-radius: 999px; color: var(--focus-accent); background: color-mix(in srgb, var(--focus-accent) 5%, white); font-size: .58rem; font-weight: 740; }
+    #focus-details { display: inline-flex; align-items: center; gap: .45rem; margin-top: .75rem; padding: 0; border: 0; color: var(--focus-accent); background: transparent; font: inherit; font-size: .68rem; font-weight: 800; cursor: pointer; }
+    #focus-details i { display: grid; inline-size: 1.35rem; aspect-ratio: 1; place-items: center; border-radius: 50%; color: white; background: var(--focus-accent); font-size: .7rem; font-style: normal; }
     #reading-focus, #original-chart, #element-balance, #ten-gods-analysis, #hidden-stems-analysis, #strength-analysis, #relations-analysis, #shinsal-analysis, #luck-analysis, #seun-analysis { scroll-margin-top: 9rem; }
 
     .chart-matrix-panel {

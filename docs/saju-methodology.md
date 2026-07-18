@@ -122,6 +122,21 @@ The current-cycle strip is a shortcut into the complete luck tables below it:
 
 The sticky result navigator uses buttons and `scrollIntoView` rather than fragment anchors. This deliberately preserves the URL fragment that holds the chart state locally and keeps birth parameters out of analytics and server requests.
 
+Each themed summary also exposes an expandable evidence panel. It names the detailed chart layers used by that theme, repeats the applicable calculation disclosure, and provides a button to the supporting section. The panel does not run a second interpretation engine or create an undisclosed score; it makes the existing evidence trail easier to inspect.
+
+## Gunghap comparison
+
+Gunghap compares two complete locally calculated charts without producing a single compatibility percentage or verdict. The result currently exposes:
+
+- year-branch relations as the traditional outer or zodiac-level comparison;
+- day-branch relations as the spouse-palace comparison;
+- the two Day Stems as combination, clash, same element/polarity, generation, or control;
+- each Day Stem classified as a Ten God relative to the other person's Day Master;
+- elements absent from one visible chart and present at least twice in the other; and
+- the simplified strength verdict for each Day Master.
+
+The comparative Five Elements graphic is a paired display of the two existing visible-element counts. Each bar is normalized within that person's visible chart, while the adjacent values retain the raw counts. It is descriptive evidence, not a compatibility score. The redesigned pair signature repeats the actual Day Masters and Day-Stem relationship so the visual headline remains traceable to the calculation.
+
 ## Verification sources
 
 - Korea Astronomy and Space Science Institute calendar/astronomy service: https://astro.kasi.re.kr

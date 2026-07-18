@@ -125,12 +125,29 @@ const personFields = [
   </form>
 
   <section id="gunghap-result" hidden>
-    <div class="result-head">
-      <h2>{t(lang, 'gunghap.resultTitle')}</h2>
-      <a class="btn-secondary" href={withBase(`/${lang}/compatibility/`)}>{t(lang, 'gunghap.reset')}</a>
-    </div>
-    <p class="soft result-note">{t(lang, 'gunghap.resultNote')}</p>
-    <div id="person-charts" class="person-charts"></div>
+    <header class="card gunghap-result-hero">
+      <div class="result-head">
+        <div>
+          <p class="result-overline">{t(lang, 'gunghap.formTitle')}</p>
+          <h2>{t(lang, 'gunghap.resultTitle')}</h2>
+          <p class="result-note">{t(lang, 'gunghap.resultNote')}</p>
+        </div>
+        <a class="btn-secondary" href={withBase(`/${lang}/compatibility/`)}>{t(lang, 'gunghap.reset')}</a>
+      </div>
+      <div id="pair-signature" class="pair-signature"></div>
+    </header>
+    <nav class="gunghap-jumpbar" aria-label={t(lang, 'gunghap.resultTitle')}>
+      <span aria-hidden="true">≡</span>
+      <div>
+        <button type="button" data-gunghap-target="pair-charts">{t(lang, 'gunghap.formTitle')}</button>
+        <button type="button" data-gunghap-target="gsection-inner">{t(lang, 'gunghap.inner')}</button>
+        <button type="button" data-gunghap-target="gsection-tengods">{t(lang, 'gunghap.tengods')}</button>
+        <button type="button" data-gunghap-target="gsection-elements">{t(lang, 'gunghap.elements')}</button>
+      </div>
+    </nav>
+    <section id="pair-charts" class="pair-charts-section" aria-label={t(lang, 'gunghap.formTitle')}>
+      <div id="person-charts" class="person-charts"></div>
+    </section>
     <div id="gunghap-sections" class="gunghap-sections"></div>
     <section class="card book-band">
       <div>
@@ -255,18 +272,30 @@ const personFields = [
       const q = new URLSearchParams({ ...(a as PersonParams), ...(b as PersonParams) });
       trackEvent('gunghap_submit', { language: document.documentElement.lang });
       location.replace(`${location.pathname}#${q}`);
-      renderFromParams(q);
+      renderFromParams(q, true);
     });
 
-    function miniChart(r: SajuResult, label: string): string {
+    function miniChart(r: SajuResult, label: string, person: 'a' | 'b'): string {
       const symbol = r.gender === 'female' ? '♀' : r.gender === 'male' ? '♂' : '';
-      const roles = [[r.hour, S['pillarHour']], [r.day, S['pillarDay']], [r.month, S['pillarMonth']], [r.year, S['pillarYear']]] as const;
-      return `<div class="card mini-chart">
-        <h3>${label} ${symbol} · <span lang="ko">${r.dayMaster.hanja}(${r.dayMaster.ko})</span></h3>
-        <div class="mini-pillars">${roles.map(([p, roleLabel]) => p
-          ? `<div class="mini-pillar"><small>${roleLabel}</small><strong class="element-text--${p.stemElement}" lang="ko">${p.hanja}</strong><span>${p.stemKo}${p.branchKo}</span></div>`
-          : `<div class="mini-pillar"><small>${roleLabel}</small><span>—</span></div>`).join('')}
-        </div></div>`;
+      const roles = [
+        [r.hour, S['pillarHour'], 'hour'], [r.day, S['pillarDay'], 'day'],
+        [r.month, S['pillarMonth'], 'month'], [r.year, S['pillarYear'], 'year'],
+      ] as const;
+      return `<article class="card mini-chart mini-chart--${person}">
+        <header class="mini-chart__head">
+          <span class="mini-chart__person">${person === 'a' ? '甲' : '乙'}</span>
+          <div><small>${label} ${symbol}</small><h3 lang="ko">${r.dayMaster.hanja} <span>${r.dayMaster.ko}</span></h3></div>
+          <span class="mini-chart__element element-bg-soft--${r.dayMaster.element} element-text--${r.dayMaster.element}">${S[`el.${r.dayMaster.element}`]}</span>
+        </header>
+        <div class="mini-pillars">${roles.map(([p, roleLabel, role]) => p
+          ? `<div class="mini-pillar ${role === 'day' ? 'mini-pillar--day' : ''}">
+              <small>${roleLabel}</small>
+              <strong lang="ko"><span class="element-text--${p.stemElement}">${p.stemHanja}</span><span class="element-text--${p.branchElement}">${p.branchHanja}</span></strong>
+              <span>${p.stemKo}${p.branchKo}</span>
+            </div>`
+          : `<div class="mini-pillar"><small>${roleLabel}</small><strong>—</strong><span></span></div>`).join('')}
+        </div>
+      </article>`;
     }
 
     const relBadge = (rel: PairRelation) => {
@@ -275,18 +304,62 @@ const personFields = [
     };
     const relBlock = (rels: PairRelation[]) =>
       rels.length ? `<div class="rel-badges">${rels.map(relBadge).join('')}</div>` : `<p class="soft">${S['relNone']}</p>`;
-    const section = (title: string, body: string, note: string) =>
-      `<section class="card gsection"><h3>${title}</h3>${body}<p class="soft context-note">${note}</p></section>`;
+    const section = (key: string, index: string, mark: string, title: string, body: string, note: string, wide = false) =>
+      `<section id="gsection-${key}" class="card gsection gsection--${key}${wide ? ' gsection--wide' : ''}">
+        <header class="gsection__head">
+          <span class="gsection__mark" aria-hidden="true">${mark}</span>
+          <div><small>${index}</small><h3>${title}</h3></div>
+        </header>
+        <div class="gsection__body">${body}</div>
+        <footer class="gsection__note"><span aria-hidden="true">i</span><p>${note}</p></footer>
+      </section>`;
     const elLabel = (el: string) => S[`el.${el}`] ?? el;
     const tgLabel = (god: string) => S[`tg.${god}`] ?? god;
 
-    function render(g: GunghapResult) {
-      document.getElementById('person-charts')!.innerHTML =
-        miniChart(g.a, S['personA']) + miniChart(g.b, S['personB']);
+    function elementComparison(g: GunghapResult) {
+      const elements = ['wood', 'fire', 'earth', 'metal', 'water'] as const;
+      const totalA = Object.values(g.a.elementCounts).reduce((sum, count) => sum + count, 0) || 1;
+      const totalB = Object.values(g.b.elementCounts).reduce((sum, count) => sum + count, 0) || 1;
+      return `<div class="element-compare">
+        <div class="element-compare__legend"><span><i></i>${S['personA']}</span><span><i></i>${S['personB']}</span></div>
+        ${elements.map((element) => {
+          const countA = g.a.elementCounts[element];
+          const countB = g.b.elementCounts[element];
+          return `<div class="element-compare__row" role="img" aria-label="${elLabel(element)} · ${S['personA']} ${countA} · ${S['personB']} ${countB}">
+            <strong><i class="element-bg--${element}"></i>${elLabel(element)}</strong>
+            <div class="element-compare__tracks">
+              <span><i style="--compare-width:${Math.round(countA / totalA * 100)}%"></i></span>
+              <span><i style="--compare-width:${Math.round(countB / totalB * 100)}%"></i></span>
+            </div>
+            <small>${countA} · ${countB}</small>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }
 
+    function render(g: GunghapResult) {
       const stemLine = g.stems.type === 'combination'
         ? fmt(S['stem.combination'], { el: elLabel(g.stems.transformElement!) })
         : S[`stem.${g.stems.type}`];
+
+      document.getElementById('pair-signature')!.innerHTML = `
+        <div class="signature-person signature-person--a">
+          <small>${S['personA']}</small>
+          <strong class="element-text--${g.a.dayMaster.element}" lang="ko">${g.a.dayMaster.hanja}</strong>
+          <span>${elLabel(g.a.dayMaster.element)}</span>
+        </div>
+        <div class="signature-bridge">
+          <div aria-hidden="true"><i></i><b>合</b><i></i></div>
+          <p>${stemLine}</p>
+        </div>
+        <div class="signature-person signature-person--b">
+          <small>${S['personB']}</small>
+          <strong class="element-text--${g.b.dayMaster.element}" lang="ko">${g.b.dayMaster.hanja}</strong>
+          <span>${elLabel(g.b.dayMaster.element)}</span>
+        </div>`;
+
+      document.getElementById('person-charts')!.innerHTML =
+        miniChart(g.a, S['personA'], 'a') + miniChart(g.b, S['personB'], 'b');
 
       const fills = [
         g.bFillsForA.length ? fmt(S['fillsForA'], { els: g.bFillsForA.map(elLabel).join(', ') }) : '',
@@ -294,26 +367,29 @@ const personFields = [
       ].filter(Boolean);
 
       document.getElementById('gunghap-sections')!.innerHTML = [
-        section(S['outer'], relBlock(g.yearRelations), S['outerNote']),
-        section(S['inner'], relBlock(g.dayRelations), S['innerNote']),
-        section(S['stems'], `<p class="glead">${stemLine}</p>`, S['stemsNote']),
-        section(S['tengods'],
-          `<p class="glead">${fmt(S['tenGodOfB'], { god: tgLabel(g.tenGodOfBForA) })}</p>
-           <p class="glead">${fmt(S['tenGodOfA'], { god: tgLabel(g.tenGodOfAForB) })}</p>`,
+        section('outer', '01', '年', S['outer'], relBlock(g.yearRelations), S['outerNote']),
+        section('inner', '02', '日', S['inner'], relBlock(g.dayRelations), S['innerNote']),
+        section('stems', '03', '干', S['stems'], `<p class="glead glead--feature">${stemLine}</p>`, S['stemsNote']),
+        section('tengods', '04', '神', S['tengods'],
+          `<div class="pair-insight-list"><p>${fmt(S['tenGodOfB'], { god: tgLabel(g.tenGodOfBForA) })}</p>
+           <p>${fmt(S['tenGodOfA'], { god: tgLabel(g.tenGodOfAForB) })}</p></div>`,
           S['tengodsNote']),
-        section(S['elements'],
-          fills.length ? fills.map((line) => `<p class="glead">${line}</p>`).join('') : `<p class="soft">${S['fillsNone']}</p>`,
-          S['elementsNote']),
-        section(S['strength'],
-          `<p class="glead">${S['myStrength']}: <strong>${S[`strengthV.${g.strengthA}`]}</strong> ·
-            ${S['theirStrength']}: <strong>${S[`strengthV.${g.strengthB}`]}</strong></p>`,
-          S['strengthNote']),
+        section('elements', '05', '行', S['elements'],
+          `<div class="fill-summary">${fills.length ? fills.map((line) => `<p>${line}</p>`).join('') : `<p>${S['fillsNone']}</p>`}</div>${elementComparison(g)}`,
+          S['elementsNote'], true),
+        section('strength', '06', '氣', S['strength'],
+          `<div class="strength-compare">
+            <article><small>${S['myStrength']}</small><strong>${S[`strengthV.${g.strengthA}`]}</strong></article>
+            <span aria-hidden="true">↔</span>
+            <article><small>${S['theirStrength']}</small><strong>${S[`strengthV.${g.strengthB}`]}</strong></article>
+          </div>`,
+          S['strengthNote'], true),
       ].join('');
     }
 
     // Result rendering must run after every helper above is initialized.
     // State lives in the URL fragment, so it is not sent to the host.
-    function renderFromParams(q: URLSearchParams) {
+    function renderFromParams(q: URLSearchParams, scrollToResult = false) {
       const required = ['y', 'm', 'd', 'h', 'i', 'u', 'z', 'g'];
       if (![...required.map((key) => `a${key}`), ...required.map((key) => `b${key}`)].every((key) => q.has(key))) return;
       if (!['f', 'm'].includes(q.get('ag') ?? '') || !['f', 'm'].includes(q.get('bg') ?? '')) return;
@@ -328,7 +404,13 @@ const personFields = [
         const g: GunghapResult = computeGunghap(input('a'), input('b'));
         render(g);
         form.hidden = true;
-        document.getElementById('gunghap-result')!.hidden = false;
+        const result = document.getElementById('gunghap-result')!;
+        result.hidden = false;
+        document.querySelector<HTMLButtonElement>('[data-gunghap-target="pair-charts"]')?.setAttribute('aria-current', 'location');
+        if (scrollToResult) requestAnimationFrame(() => result.scrollIntoView({
+          behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+          block: 'start',
+        }));
         trackEvent('gunghap_view', { language: document.documentElement.lang });
       } catch (err) {
         // Malformed fragment or legacy query state: fall back to the empty form.
@@ -343,6 +425,23 @@ const personFields = [
       migrated.hash = q.toString();
       location.replace(migrated);
     }
+    document.querySelectorAll<HTMLButtonElement>('[data-gunghap-target]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const target = document.getElementById(button.dataset.gunghapTarget || '');
+        target?.scrollIntoView({
+          behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+          block: 'start',
+        });
+        document.querySelectorAll<HTMLButtonElement>('[data-gunghap-target]').forEach((item) => {
+          if (item === button) item.setAttribute('aria-current', 'location');
+          else item.removeAttribute('aria-current');
+        });
+        trackEvent('gunghap_section_navigate', {
+          section_name: button.dataset.gunghapTarget,
+          language: document.documentElement.lang,
+        });
+      });
+    });
     renderFromParams(q);
   </script>
 
@@ -411,39 +510,146 @@ const personFields = [
     .gform .btn-primary:hover .button-arrow { transform: translateX(3px); }
 
     /* ── results ── */
-    .result-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
-    .result-head h2 { margin: 0; }
-    .result-note { max-width: var(--container-text); }
-    .person-charts { display: grid; gap: var(--space-4); grid-template-columns: 1fr 1fr; margin-block: var(--space-6); }
-    @media (max-width: 720px) { .person-charts { grid-template-columns: 1fr; } }
-    .mini-chart { padding: var(--space-4); }
-    .mini-chart h3 { margin: 0 0 var(--space-3); font-size: var(--text-base); }
-    .mini-pillars { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2); }
-    .mini-pillar { display: grid; justify-items: center; gap: 2px; padding: var(--space-2); background: var(--paper-sunken); border-radius: var(--radius-sm); }
-    .mini-pillar small { color: var(--ink-soft); font-size: var(--text-xs); }
-    .mini-pillar strong { font-family: var(--font-display); font-size: var(--text-lg); }
-    .mini-pillar span { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-soft); }
-    .gunghap-sections { display: grid; gap: var(--space-4); grid-template-columns: 1fr 1fr; }
-    @media (max-width: 860px) { .gunghap-sections { grid-template-columns: 1fr; } }
-    .gsection { padding: var(--space-6); }
-    .gsection h3 { margin-top: 0; }
-    .rel-badges { display: flex; gap: var(--space-2); flex-wrap: wrap; }
-    .rel-badge { border-radius: 999px; padding: var(--space-1) var(--space-3); font-size: var(--text-sm); font-weight: 600; border: 1px solid var(--line); }
-    .rel-badge--smooth { color: var(--indigo); border-color: color-mix(in srgb, var(--indigo) 40%, var(--line)); background: color-mix(in srgb, var(--indigo) 7%, transparent); }
-    .rel-badge--tense { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 45%, var(--line)); background: color-mix(in srgb, var(--gold) 8%, transparent); }
-    .glead { margin: var(--space-1) 0; }
-    .context-note { font-size: var(--text-sm); margin-bottom: 0; }
+    #gunghap-result { scroll-margin-top: 5.5rem; }
+    #gunghap-result[hidden] { display: none; }
+    .gunghap-result-hero { position: relative; isolation: isolate; overflow: hidden; padding: clamp(1.5rem, 4vw, 3rem); color: white; border: 0; background: radial-gradient(circle at 88% 8%, rgb(255 255 255 / .16), transparent 13rem), linear-gradient(128deg, #173b31, #245442 55%, #396e5a); box-shadow: 0 28px 70px rgb(24 52 42 / .22); }
+    .gunghap-result-hero::after { content: '合'; position: absolute; z-index: -1; inset: auto -1rem -4rem auto; color: rgb(255 255 255 / .06); font-family: var(--font-display); font-size: clamp(10rem, 24vw, 18rem); line-height: 1; transform: rotate(-7deg); }
+    .result-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-5); }
+    .result-head > div { max-width: 48rem; }
+    .result-head h2 { margin: 0; color: white; font-size: clamp(1.7rem, 4vw, 2.8rem); }
+    .result-overline { margin: 0 0 .45rem; color: #efad7a; font-family: var(--font-mono); font-size: .68rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .result-note { max-width: 45rem; margin: .7rem 0 0; color: rgb(255 255 255 / .72); font-size: .82rem; line-height: 1.7; }
+    .result-head .btn-secondary { flex: 0 0 auto; border-color: rgb(255 255 255 / .28); color: white; background: rgb(255 255 255 / .1); backdrop-filter: blur(8px); }
+    .result-head .btn-secondary:hover { background: rgb(255 255 255 / .18); }
+
+    .pair-signature { display: grid; grid-template-columns: minmax(7rem, .7fr) minmax(12rem, 1.6fr) minmax(7rem, .7fr); align-items: center; gap: clamp(.75rem, 3vw, 1.5rem); margin-top: clamp(1.5rem, 4vw, 2.5rem); }
+    .signature-person { display: grid; min-height: 8.5rem; place-items: center; align-content: center; gap: .25rem; border: 1px solid rgb(255 255 255 / .22); border-radius: 1.2rem; background: rgb(255 255 255 / .9); box-shadow: inset 0 0 0 .35rem rgb(255 255 255 / .35), 0 14px 30px rgb(11 35 27 / .18); }
+    .signature-person small { color: var(--ink-soft); font-size: .66rem; font-weight: 760; }
+    .signature-person strong { font-family: var(--font-display); font-size: clamp(2.8rem, 6vw, 4.2rem); line-height: 1; }
+    .signature-person span { color: var(--ink-soft); font-size: .65rem; font-weight: 730; }
+    .signature-bridge { min-width: 0; text-align: center; }
+    .signature-bridge > div { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: .75rem; }
+    .signature-bridge i { display: block; block-size: 1px; background: linear-gradient(90deg, transparent, rgb(255 255 255 / .48)); }
+    .signature-bridge i:last-child { background: linear-gradient(90deg, rgb(255 255 255 / .48), transparent); }
+    .signature-bridge b { display: grid; inline-size: 3.2rem; aspect-ratio: 1; place-items: center; border: 1px solid rgb(255 255 255 / .32); border-radius: 50%; color: white; background: rgb(255 255 255 / .08); font-family: var(--font-display); font-size: 1.45rem; box-shadow: 0 0 0 .45rem rgb(255 255 255 / .04); }
+    .signature-bridge p { max-width: 30rem; margin: .75rem auto 0; color: rgb(255 255 255 / .76); font-size: .72rem; line-height: 1.55; }
+
+    .gunghap-jumpbar { position: sticky; z-index: 14; top: 4.5rem; display: flex; align-items: center; gap: .55rem; margin-block: 1rem 0; padding: .5rem; border: 1px solid color-mix(in srgb, var(--line) 82%, transparent); border-radius: 999px; background: color-mix(in srgb, var(--paper-raised) 90%, transparent); box-shadow: 0 12px 30px rgb(31 43 37 / .08); backdrop-filter: blur(18px) saturate(125%); }
+    .gunghap-jumpbar > span { display: grid; inline-size: 2rem; aspect-ratio: 1; flex: 0 0 auto; place-items: center; border-radius: 50%; color: white; background: var(--indigo); font-size: .8rem; }
+    .gunghap-jumpbar > div { display: flex; min-width: 0; gap: .25rem; overflow-x: auto; scrollbar-width: none; }
+    .gunghap-jumpbar > div::-webkit-scrollbar { display: none; }
+    .gunghap-jumpbar button { flex: 0 0 auto; min-height: 2rem; padding: .38rem .65rem; border: 0; border-radius: 999px; color: var(--ink-soft); background: transparent; font: inherit; font-size: .64rem; font-weight: 740; cursor: pointer; }
+    .gunghap-jumpbar button:hover { color: var(--ink); background: var(--paper-sunken); }
+    .gunghap-jumpbar button[aria-current="location"] { color: white; background: var(--indigo); }
+
+    .pair-charts-section, .gsection { scroll-margin-top: 9rem; }
+    .person-charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); margin-block: clamp(1.5rem, 4vw, 2.5rem); }
+    .mini-chart { --person-accent: var(--indigo); min-width: 0; overflow: hidden; padding: clamp(1rem, 2.5vw, 1.5rem); border-color: color-mix(in srgb, var(--person-accent) 20%, var(--line)); background: linear-gradient(150deg, color-mix(in srgb, var(--person-accent) 7%, white), rgb(255 255 255 / .86)); box-shadow: 0 15px 40px rgb(35 53 44 / .08); }
+    .mini-chart--b { --person-accent: #9f594a; }
+    .mini-chart__head { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .7rem; margin-bottom: 1rem; }
+    .mini-chart__person { display: grid; inline-size: 2.3rem; aspect-ratio: 1; place-items: center; border-radius: .75rem; color: white; background: var(--person-accent); font-family: var(--font-display); font-size: 1rem; box-shadow: 0 7px 16px color-mix(in srgb, var(--person-accent) 25%, transparent); }
+    .mini-chart__head small { display: block; color: var(--ink-soft); font-size: .62rem; font-weight: 720; }
+    .mini-chart__head h3 { margin: .12rem 0 0; font-family: var(--font-display); font-size: 1.3rem; }
+    .mini-chart__head h3 span { color: var(--ink-soft); font-family: var(--font-body); font-size: .68rem; font-weight: 650; }
+    .mini-chart__element { padding: .35rem .55rem; border-radius: 999px; font-size: .62rem; font-weight: 760; }
+    .mini-pillars { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .55rem; }
+    .mini-pillar { position: relative; display: grid; min-width: 0; min-height: 8rem; justify-items: center; align-content: center; gap: .3rem; overflow: hidden; padding: .65rem .45rem; border: 1px solid var(--line); border-radius: .9rem; background: rgb(255 255 255 / .72); }
+    .mini-pillar--day { border-color: color-mix(in srgb, var(--person-accent) 48%, var(--line)); background: white; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--person-accent) 8%, transparent), 0 8px 18px color-mix(in srgb, var(--person-accent) 10%, transparent); }
+    .mini-pillar--day::before { content: ''; position: absolute; inset: 0 0 auto; block-size: .28rem; background: var(--person-accent); }
+    .mini-pillar small { color: var(--ink-soft); font-size: .58rem; font-weight: 720; }
+    .mini-pillar strong { display: grid; grid-template-rows: repeat(2, 1fr); font-family: var(--font-display); font-size: 1.65rem; line-height: .92; }
+    .mini-pillar > span { overflow: hidden; max-width: 100%; color: var(--ink-soft); font-family: var(--font-mono); font-size: .56rem; text-overflow: ellipsis; white-space: nowrap; }
+
+    .gunghap-sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+    .gsection { --section-accent: var(--indigo); position: relative; display: grid; min-width: 0; align-content: start; overflow: hidden; padding: clamp(1.15rem, 3vw, 1.75rem); border-color: color-mix(in srgb, var(--section-accent) 18%, var(--line)); background: linear-gradient(145deg, color-mix(in srgb, var(--section-accent) 5%, white), rgb(255 255 255 / .88)); box-shadow: 0 15px 42px rgb(35 53 44 / .07); }
+    .gsection::after { content: ''; position: absolute; inline-size: 8rem; aspect-ratio: 1; inset: -5rem -4rem auto auto; border: 1px solid color-mix(in srgb, var(--section-accent) 14%, transparent); border-radius: 50%; box-shadow: 0 0 0 1.8rem color-mix(in srgb, var(--section-accent) 2.5%, transparent); pointer-events: none; }
+    .gsection--inner { --section-accent: #9b4d59; }
+    .gsection--stems { --section-accent: #546b95; }
+    .gsection--tengods { --section-accent: #74598a; }
+    .gsection--elements { --section-accent: #a06d29; }
+    .gsection--strength { --section-accent: #42747a; }
+    .gsection--wide { grid-column: 1 / -1; }
+    .gsection__head { position: relative; z-index: 1; display: flex; align-items: center; gap: .7rem; margin-bottom: 1rem; }
+    .gsection__mark { display: grid; inline-size: 2.7rem; aspect-ratio: 1; flex: 0 0 auto; place-items: center; border-radius: .85rem; color: var(--section-accent); background: color-mix(in srgb, var(--section-accent) 10%, white); font-family: var(--font-display); font-size: 1.15rem; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--section-accent) 14%, transparent); }
+    .gsection__head small { color: var(--section-accent); font-family: var(--font-mono); font-size: .58rem; font-weight: 800; letter-spacing: .08em; }
+    .gsection__head h3 { margin: .1rem 0 0; font-size: clamp(1.05rem, 2vw, 1.3rem); }
+    .gsection__body { position: relative; z-index: 1; min-height: 3.25rem; }
+    .gsection__note { position: relative; z-index: 1; display: grid; grid-template-columns: auto 1fr; align-items: flex-start; gap: .55rem; margin-top: 1.1rem; padding-top: .9rem; border-top: 1px solid color-mix(in srgb, var(--section-accent) 12%, var(--line)); }
+    .gsection__note > span { display: grid; inline-size: 1.2rem; aspect-ratio: 1; place-items: center; border-radius: 50%; color: white; background: var(--section-accent); font-family: var(--font-mono); font-size: .58rem; font-weight: 800; }
+    .gsection__note p { margin: 0; color: var(--ink-soft); font-size: .68rem; line-height: 1.6; }
+    .rel-badges { display: flex; flex-wrap: wrap; gap: .45rem; }
+    .rel-badge { display: inline-flex; align-items: center; min-height: 2.25rem; border: 1px solid var(--line); border-radius: .7rem; padding: .45rem .65rem; font-size: .7rem; font-weight: 720; }
+    .rel-badge--smooth { color: var(--indigo); border-color: color-mix(in srgb, var(--indigo) 34%, var(--line)); background: color-mix(in srgb, var(--jade-pale) 58%, white); }
+    .rel-badge--tense { color: #985043; border-color: color-mix(in srgb, #b85a48 32%, var(--line)); background: color-mix(in srgb, #ffebe5 72%, white); }
+    .glead { margin: 0; color: var(--ink-soft); font-size: .8rem; line-height: 1.65; }
+    .glead--feature { padding: .8rem .9rem; border-inline-start: 3px solid var(--section-accent); border-radius: 0 .7rem .7rem 0; color: var(--ink); background: color-mix(in srgb, var(--section-accent) 6%, white); font-weight: 700; }
+    .pair-insight-list { display: grid; gap: .55rem; }
+    .pair-insight-list p, .fill-summary p { margin: 0; padding: .65rem .75rem; border: 1px solid color-mix(in srgb, var(--section-accent) 14%, var(--line)); border-radius: .7rem; color: var(--ink); background: rgb(255 255 255 / .7); font-size: .72rem; line-height: 1.55; }
+    .fill-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; margin-bottom: 1rem; }
+    .fill-summary p:only-child { grid-column: 1 / -1; }
     .soft { color: var(--ink-soft); }
-    .book-band { margin-block: var(--space-8); padding: var(--space-6); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
-    .book-band h2 { margin: 0 0 var(--space-1); font-size: var(--text-xl); }
-    .book-band p { margin: 0; color: var(--ink-soft); max-width: 34rem; }
+
+    .element-compare { display: grid; gap: .65rem; padding: clamp(.9rem, 2.5vw, 1.25rem); border: 1px solid color-mix(in srgb, var(--section-accent) 16%, var(--line)); border-radius: var(--radius); background: rgb(255 255 255 / .62); }
+    .element-compare__legend { display: flex; justify-content: flex-end; gap: 1rem; }
+    .element-compare__legend span { display: inline-flex; align-items: center; gap: .35rem; color: var(--ink-soft); font-size: .6rem; font-weight: 720; }
+    .element-compare__legend i { inline-size: .65rem; aspect-ratio: 1; border-radius: 50%; background: var(--indigo); }
+    .element-compare__legend span:last-child i { background: #b35d4d; }
+    .element-compare__row { display: grid; grid-template-columns: minmax(4.5rem, 7rem) 1fr 2.4rem; align-items: center; gap: .75rem; }
+    .element-compare__row > strong { display: inline-flex; align-items: center; gap: .45rem; font-size: .7rem; }
+    .element-compare__row > strong i { inline-size: .55rem; aspect-ratio: 1; flex: 0 0 auto; border-radius: 50%; }
+    .element-compare__tracks { display: grid; gap: .2rem; }
+    .element-compare__tracks > span { display: block; overflow: hidden; block-size: .38rem; border-radius: 99px; background: var(--paper-sunken); }
+    .element-compare__tracks i { display: block; inline-size: var(--compare-width); block-size: 100%; border-radius: inherit; background: var(--indigo); }
+    .element-compare__tracks span:last-child i { background: #b35d4d; }
+    .element-compare__row > small { color: var(--ink-soft); font-family: var(--font-mono); font-size: .58rem; text-align: end; }
+    .strength-compare { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: clamp(.7rem, 3vw, 1.25rem); }
+    .strength-compare article { display: grid; justify-items: center; gap: .3rem; padding: 1rem; border: 1px solid color-mix(in srgb, var(--section-accent) 16%, var(--line)); border-radius: var(--radius); background: rgb(255 255 255 / .68); text-align: center; }
+    .strength-compare small { color: var(--ink-soft); font-size: .64rem; font-weight: 720; }
+    .strength-compare strong { color: var(--section-accent); font-family: var(--font-display); font-size: clamp(1.15rem, 3vw, 1.55rem); }
+    .strength-compare > span { display: grid; inline-size: 2rem; aspect-ratio: 1; place-items: center; border-radius: 50%; color: white; background: var(--section-accent); }
+
+    .book-band { position: relative; overflow: hidden; margin-block: var(--space-8); padding: clamp(1.25rem, 4vw, 2rem); display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); border-color: color-mix(in srgb, var(--indigo) 18%, var(--line)); background: linear-gradient(135deg, var(--jade-pale), var(--paper-raised)); }
+    .book-band h2 { margin: 0 0 var(--space-2); font-size: var(--text-xl); }
+    .book-band p { margin: 0; color: var(--ink-soft); max-width: 38rem; }
     .culture { margin-block: var(--space-8); padding: var(--space-8); max-width: 55rem; border-inline-start: 5px solid var(--gold); }
     .culture h2 { margin-top: 0; font-size: var(--text-xl); }
     .culture p { margin: 0; color: var(--ink-soft); }
     .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    @media (max-width: 860px) {
+      .gunghap-sections { grid-template-columns: 1fr; }
+      .gsection--wide { grid-column: auto; }
+      .pair-signature { grid-template-columns: minmax(6.5rem, .8fr) minmax(9rem, 1.2fr) minmax(6.5rem, .8fr); }
+    }
+    @media (max-width: 720px) {
+      .person-charts { grid-template-columns: 1fr; }
+      .mini-chart { max-width: 38rem; width: 100%; margin-inline: auto; }
+      .fill-summary { grid-template-columns: 1fr; }
+      .fill-summary p { grid-column: auto; }
+    }
+    @media (max-width: 620px) {
+      .gunghap-result-hero { padding: 1.35rem; }
+      .result-head { align-items: stretch; flex-direction: column; }
+      .result-head .btn-secondary { align-self: flex-start; }
+      .pair-signature { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .signature-person--a { order: 1; }
+      .signature-person--b { order: 2; }
+      .signature-bridge { order: 3; grid-column: 1 / -1; }
+      .signature-person { min-height: 7.25rem; }
+      .signature-bridge b { inline-size: 2.7rem; }
+      .gunghap-jumpbar { top: 4rem; margin-inline: -.35rem; border-radius: 1rem; }
+      .gunghap-jumpbar > span { display: none; }
+      .mini-pillars { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(5.4rem, 1fr); overflow-x: auto; padding-bottom: .35rem; scroll-snap-type: x proximity; scrollbar-width: thin; }
+      .mini-pillar { min-height: 7.5rem; scroll-snap-align: start; }
+      .gsection { padding: 1.15rem; }
+      .element-compare__row { grid-template-columns: 4.2rem 1fr 2rem; gap: .45rem; }
+      .strength-compare { grid-template-columns: 1fr; }
+      .strength-compare > span { margin-inline: auto; transform: rotate(90deg); }
+      .book-band { align-items: stretch; flex-direction: column; }
+      .book-band .btn-primary { justify-content: center; }
+    }
     @media (max-width: 560px) { .gform { padding: 1rem; } .input-step { padding: .9rem; } }
     @media (prefers-reduced-motion: reduce) {
-      .input-step, .input-step::before, .field-icon, .input-step__check, .choice-tile > span, .switch-control i, .switch-control i::after, .button-arrow { transition: none; }
+      .input-step, .input-step::before, .field-icon, .input-step__check, .choice-tile > span, .switch-control i, .switch-control i::after, .button-arrow, .gunghap-jumpbar button { transition: none; }
     }
   </style>
 </Base>
