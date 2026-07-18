@@ -43,6 +43,20 @@ const READING_FOCUSES = [
     </header>
     <p id="boundary-note" class="note" hidden></p>
 
+    <nav class="reading-jumpbar" aria-label={t(lang, 'reading.chartAtGlance')}>
+      <span class="reading-jumpbar__label" aria-hidden="true">目次</span>
+      <div class="reading-jumpbar__items">
+        <button type="button" data-scroll-target="reading-focus">{t(lang, 'reading.chartAtGlance')}</button>
+        <button type="button" data-scroll-target="original-chart">{t(lang, 'reading.originalChart')}</button>
+        <button type="button" data-scroll-target="element-balance">{t(lang, 'reading.elements')}</button>
+        <button type="button" data-scroll-target="ten-gods-analysis">{t(lang, 'reading.tenGods')}</button>
+        <button type="button" data-scroll-target="strength-analysis">{t(lang, 'reading.strength')}</button>
+        <button type="button" data-scroll-target="relations-analysis">{t(lang, 'reading.allRelations')}</button>
+        <button type="button" data-scroll-target="shinsal-analysis">{t(lang, 'reading.shinsal')}</button>
+        <button type="button" data-scroll-target="luck-analysis">{t(lang, 'reading.daeun')}</button>
+      </div>
+    </nav>
+
     <section id="reading-focus" class="reading-focus" aria-labelledby="reading-focus-title">
       <div class="reading-focus__heading">
         <p class="panel-overline">{t(lang, 'fortune.eyebrow')}</p>
@@ -154,11 +168,12 @@ const READING_FOCUSES = [
         <h2><button class="gloss" data-gloss="sipseong" type="button">{t(lang, 'reading.tenGods')}</button></h2>
         <span class="panel-index" aria-hidden="true">04</span>
       </div>
+      <div id="ten-god-distribution" class="ten-god-distribution" role="list"></div>
       <div class="table-scroll"><table id="tengods" class="tengods"></table></div>
-      <p class="soft context-note">{t(lang, 'reading.tenGodsContext')}</p>
+      <p class="soft context-note">{t(lang, 'reading.tenGodsContext')} {t(lang, 'reading.hiddenStemsContext')}</p>
     </section>
 
-    <section class="card panel hidden-stems-panel">
+    <section id="hidden-stems-analysis" class="card panel hidden-stems-panel">
       <div class="panel-heading">
         <h2>{t(lang, 'reading.hiddenStems')}</h2>
         <span class="panel-index" aria-hidden="true">05</span>
@@ -247,13 +262,23 @@ const READING_FOCUSES = [
         </div>
         <span class="panel-index" aria-hidden="true">12</span>
       </div>
+      <div class="current-timing">
+        <div class="current-timing__heading">
+          <span aria-hidden="true">今</span>
+          <div>
+            <p class="panel-overline">CURRENT CYCLES</p>
+            <h3>{t(lang, 'fortune.timing.title')}</h3>
+          </div>
+        </div>
+        <div id="current-timing-cards" class="current-timing__cards"></div>
+      </div>
       <p id="daeun-meta" class="luck-meta"></p>
       <div id="daeun-list" class="luck-strip"></div>
       <div id="daeun-detail" class="luck-detail"></div>
       <p class="soft context-note">{t(lang, 'reading.daeunContext')}</p>
     </section>
 
-    <section class="card panel luck-panel seun-panel">
+    <section id="seun-analysis" class="card panel luck-panel seun-panel">
       <div class="panel-heading">
         <div>
           <p class="panel-overline">YEARLY CYCLES</p>
@@ -321,6 +346,7 @@ const READING_FOCUSES = [
       hiddenStemsForBranch,
       ipchunUtcMs,
       nayinForPillar,
+      sunApparentLongitude,
       twelveShinsalForBranch,
       twelveStageForStemBranch,
       voidBranchesForPillar,
@@ -456,6 +482,24 @@ const READING_FOCUSES = [
       years: Math.floor(totalMonths / 12), months: totalMonths % 12,
     });
 
+    function currentTiming(r: SajuResult) {
+      const now = new Date();
+      const civilYear = now.getFullYear();
+      const currentSajuYear = now.getTime() < ipchunUtcMs(civilYear) ? civilYear - 1 : civilYear;
+      let ageMonths = (civilYear - values.year) * 12 + (now.getMonth() + 1 - values.month);
+      if (now.getDate() < values.day) ageMonths--;
+      let activeDaeunIndex = -1;
+      r.daeun?.cycles.forEach((cycle, index) => {
+        if (cycle.startAgeMonths <= ageMonths) activeDaeunIndex = index;
+      });
+      const activeDaeun = activeDaeunIndex >= 0 ? r.daeun?.cycles[activeDaeunIndex] : undefined;
+      const annual = computeAnnualLuck(r, currentSajuYear, 1)[0];
+      const julianDay = now.getTime() / 86400000 + 2440587.5;
+      const solarMonthIndex = Math.floor((((sunApparentLongitude(julianDay) - 315) % 360) + 360) % 360 / 30);
+      const month = monthlyLuck(annual.pillar.stem, r.day.stem, currentSajuYear)[solarMonthIndex];
+      return { now, currentSajuYear, ageMonths, activeDaeunIndex, activeDaeun, annual, month };
+    }
+
     function hiddenStemMarkup(branch: number, r: SajuResult) {
       return hiddenStemsForBranch(branch, r.day.stem).map((hidden) =>
         `<span class="hidden-chip">
@@ -553,13 +597,7 @@ const READING_FOCUSES = [
       const travelCount = r.shinsal.filter((item) => item.name === 'travelHorse').length;
       const strength = strengthAnalysis(r);
       const structure = gyeokguk(r);
-      const today = new Date();
-      const civilYear = today.getFullYear();
-      const currentSajuYear = today.getTime() < ipchunUtcMs(civilYear) ? civilYear - 1 : civilYear;
-      let ageMonths = (civilYear - values.year) * 12 + (today.getMonth() + 1 - values.month);
-      if (today.getDate() < values.day) ageMonths--;
-      const activeDaeun = r.daeun?.cycles.filter((cycle) => cycle.startAgeMonths <= ageMonths).at(-1);
-      const annual = computeAnnualLuck(r, currentSajuYear, 1)[0];
+      const { currentSajuYear, activeDaeun, annual } = currentTiming(r);
       const metric = (label: string, value: string | number) => `<span><small>${label}</small><strong>${value}</strong></span>`;
       const configs: Record<ReadingFocus, { mark: string; summary: string; metrics: string; target: string }> = {
         basic: {
@@ -648,6 +686,85 @@ const READING_FOCUSES = [
           ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
       paint(selectedReadingFocus);
+    }
+
+    function renderTenGodDistribution(r: SajuResult) {
+      const visibleGods = [r.hour, r.month, r.year]
+        .filter((pillar): pillar is Pillar => Boolean(pillar))
+        .map((pillar) => pillar.tenGod)
+        .filter((god): god is NonNullable<typeof god> => Boolean(god));
+      const hiddenGods = Object.values(r.hiddenStems).flat().map((stem) => stem.tenGod);
+      const allGods = [...visibleGods, ...hiddenGods];
+      const families = [
+        ['비견', '겁재'],
+        ['식신', '상관'],
+        ['편재', '정재'],
+        ['편관', '정관'],
+        ['편인', '정인'],
+      ] as const;
+      const total = allGods.length || 1;
+      document.getElementById('ten-god-distribution')!.innerHTML = families.map((names, index) => {
+        const count = allGods.filter((god) => names.includes(god as typeof names[number])).length;
+        const percent = Math.round(count / total * 100);
+        const label = names.map(tenGodLabel).join(' · ');
+        return `<article class="ten-god-family ten-god-family--${index + 1}" role="listitem" aria-label="${label}: ${count} / ${total}">
+          <div><span>${label}</span><strong>${count}<small> / ${total}</small></strong></div>
+          <span class="ten-god-family__track" aria-hidden="true"><i style="--family-width:${percent}%"></i></span>
+        </article>`;
+      }).join('');
+    }
+
+    function renderCurrentTiming(r: SajuResult) {
+      const timing = currentTiming(r);
+      const monthLabel = new Intl.DateTimeFormat(document.documentElement.lang, { month: 'long' })
+        .format(new Date(Date.UTC(timing.month.civilYear, timing.month.civilMonth - 1, 15)));
+      const card = (label: string, pillar: MiniPillar | LuckCycle['pillar'] | null, meta: string) => pillar
+        ? `<article class="current-timing-card">
+            <small>${label}</small>
+            <strong class="element-text--${pillar.stemElement}" lang="ko">${pillar.hanja}</strong>
+            <span>${meta}</span>
+          </article>`
+        : `<article class="current-timing-card current-timing-card--empty">
+            <small>${label}</small><strong>—</strong><span>${S['genderRequired']}</span>
+          </article>`;
+      document.getElementById('current-timing-cards')!.innerHTML = [
+        card(S['focus.metric.currentDaeun'], timing.activeDaeun?.pillar ?? null,
+          timing.activeDaeun ? fmt(S['startYear'], { year: timing.activeDaeun.startYear }) : S['genderRequired']),
+        card(S['seun'], timing.annual.pillar, fmt(S['ipchunYear'], { year: timing.currentSajuYear })),
+        card(fmt(S['wolunTitle'], { year: timing.currentSajuYear }), timing.month.pillar, monthLabel),
+      ].join('');
+    }
+
+    function setupSectionNavigation() {
+      const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-scroll-target]')];
+      const targets = buttons
+        .map((button) => document.getElementById(button.dataset.scrollTarget || ''))
+        .filter((target): target is HTMLElement => Boolean(target));
+      const activate = (id: string) => buttons.forEach((button) => {
+        if (button.dataset.scrollTarget === id) button.setAttribute('aria-current', 'location');
+        else button.removeAttribute('aria-current');
+      });
+      buttons.forEach((button) => button.addEventListener('click', () => {
+        const target = document.getElementById(button.dataset.scrollTarget || '');
+        target?.scrollIntoView({
+          behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+          block: 'start',
+        });
+        if (target) activate(target.id);
+        trackEvent('reading_section_navigate', {
+          section_name: button.dataset.scrollTarget,
+          language: document.documentElement.lang,
+        });
+      }));
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+          if (visible) activate((visible.target as HTMLElement).id);
+        }, { rootMargin: '-22% 0px -62% 0px', threshold: [0, 0.15, 0.45] });
+        targets.forEach((target) => observer.observe(target));
+      }
     }
 
     function renderExtras(r: SajuResult) {
@@ -842,6 +959,7 @@ const READING_FOCUSES = [
     }
 
     function renderLuck(r: SajuResult, timeUnknown: boolean) {
+      const timing = currentTiming(r);
       const daeunList = document.getElementById('daeun-list')!;
       const daeunDetail = document.getElementById('daeun-detail')!;
       const daeunMeta = document.getElementById('daeun-meta')!;
@@ -856,23 +974,15 @@ const READING_FOCUSES = [
           direction: S[r.daeun.direction],
           age: ageLabel(r.daeun.startAgeMonths),
         }) + (timeUnknown ? ` ${S['daeunApproximate']}` : '');
-        const now = new Date();
-        let currentAgeMonths = (now.getFullYear() - values.year) * 12 + now.getMonth() - (values.month - 1);
-        if (now.getDate() < values.day) currentAgeMonths--;
-        let activeDaeun = 0;
-        r.daeun.cycles.forEach((cycle, index) => { if (cycle.startAgeMonths <= currentAgeMonths) activeDaeun = index; });
         setupLuckStrip(
           daeunList, daeunDetail, r.daeun.cycles,
           r.daeun.cycles.map((cycle) => ageLabel(cycle.startAgeMonths)),
           r.daeun.cycles.map((cycle) => fmt(S['startYear'], { year: cycle.startYear })),
-          activeDaeun, 'daeun', r,
+          Math.max(0, timing.activeDaeunIndex), 'daeun', r,
         );
       }
 
-      const now = new Date();
-      const civilYear = now.getFullYear();
-      const currentSajuYear = now.getTime() < ipchunUtcMs(civilYear) ? civilYear - 1 : civilYear;
-      const annual: AnnualLuck[] = computeAnnualLuck(r, currentSajuYear - 1, 12);
+      const annual: AnnualLuck[] = computeAnnualLuck(r, timing.currentSajuYear - 1, 12);
       setupLuckStrip(
         document.getElementById('seun-list')!, document.getElementById('seun-detail')!, annual,
         annual.map((cycle) => fmt(S['ipchunYear'], { year: cycle.year })),
@@ -903,6 +1013,7 @@ const READING_FOCUSES = [
       ].join('');
       renderChartFacts(r);
       renderReadingFocus(r);
+      renderCurrentTiming(r);
 
       // Day master
       document.getElementById('dm-char')!.textContent = r.dayMaster.hanja;
@@ -957,6 +1068,7 @@ const READING_FOCUSES = [
           ? `<tr><th scope="row">${label}</th><td data-label="${S['heavenlyStem']}" lang="ko"><span class="stem-badge element-text--${p.stemElement}">${p.stemHanja}</span> ${p.stemKo}</td><td data-label="${S['tenGods']}"><span class="god-badge">${tenGodLabel(p.tenGod)}</span></td></tr>`
           : `<tr><th scope="row">${label}</th><td colspan="2">—</td></tr>`
         ).join('') + `</tbody>`;
+      renderTenGodDistribution(r);
 
       renderHiddenStems(r);
       renderExtras(r);
@@ -1106,6 +1218,7 @@ const READING_FOCUSES = [
         render(res, timeUnknown);
         document.getElementById('loading-state')!.hidden = true;
         document.getElementById('result')!.hidden = false;
+        setupSectionNavigation();
         trackEvent('chart_view', {
           language: document.documentElement.lang,
           pillar_status: timeUnknown ? 'three_pillars' : 'four_pillars',
@@ -1198,6 +1311,29 @@ const READING_FOCUSES = [
     .element-ribbon i:nth-child(4) { background: #aeb3b1; }
     .element-ribbon i:nth-child(5) { background: var(--el-water); }
 
+    .reading-jumpbar {
+      position: sticky;
+      z-index: 14;
+      top: 4.5rem;
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      margin-block: 1rem 0;
+      padding: .55rem;
+      border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--paper-raised) 88%, transparent);
+      box-shadow: 0 14px 35px rgb(31 43 37 / .08);
+      backdrop-filter: blur(18px) saturate(125%);
+    }
+    .reading-jumpbar__label { display: grid; inline-size: 2rem; aspect-ratio: 1; flex: 0 0 auto; place-items: center; border-radius: 50%; color: white; background: var(--indigo); font-family: var(--font-display); font-size: .72rem; }
+    .reading-jumpbar__items { display: flex; min-width: 0; gap: .25rem; overflow-x: auto; scrollbar-width: none; }
+    .reading-jumpbar__items::-webkit-scrollbar { display: none; }
+    .reading-jumpbar button { flex: 0 0 auto; min-height: 2rem; padding: .38rem .65rem; border: 0; border-radius: 999px; color: var(--ink-soft); background: transparent; font: inherit; font-size: .65rem; font-weight: 740; cursor: pointer; transition: color var(--dur-fast), background var(--dur-fast), transform var(--dur-fast); }
+    .reading-jumpbar button:hover { color: var(--ink); background: var(--paper-sunken); transform: translateY(-1px); }
+    .reading-jumpbar button[aria-current="location"] { color: white; background: var(--indigo); box-shadow: 0 5px 14px rgb(36 84 66 / .16); }
+    .reading-jumpbar button:focus-visible { outline: 3px solid color-mix(in srgb, var(--indigo) 40%, white); outline-offset: 1px; }
+
     .reading-focus { --focus-accent: var(--indigo); position: relative; margin-block: clamp(2rem, 5vw, 4rem); }
     .reading-focus__heading { margin-bottom: 1rem; }
     .reading-focus__heading h2 { margin: 0; font-size: clamp(1.45rem, 3vw, 2rem); }
@@ -1230,7 +1366,7 @@ const READING_FOCUSES = [
     .focus-metrics strong { color: var(--focus-accent); font-size: .76rem; overflow-wrap: anywhere; }
     #focus-details { display: inline-flex; align-items: center; gap: .45rem; margin-top: 1rem; padding: 0; border: 0; color: var(--focus-accent); background: transparent; font: inherit; font-size: .72rem; font-weight: 800; text-decoration: none; cursor: pointer; }
     #focus-details span { display: grid; inline-size: 1.4rem; aspect-ratio: 1; place-items: center; border-radius: 50%; color: white; background: var(--focus-accent); }
-    #original-chart, #element-balance, #ten-gods-analysis, #strength-analysis, #relations-analysis, #shinsal-analysis, #luck-analysis { scroll-margin-top: 6rem; }
+    #reading-focus, #original-chart, #element-balance, #ten-gods-analysis, #hidden-stems-analysis, #strength-analysis, #relations-analysis, #shinsal-analysis, #luck-analysis, #seun-analysis { scroll-margin-top: 9rem; }
 
     .chart-matrix-panel {
       position: relative;
@@ -1499,6 +1635,18 @@ const READING_FOCUSES = [
     .pattern-summary p + p { margin-top: var(--space-2); }
 
     .table-scroll { overflow-x: auto; }
+    .ten-god-distribution { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .65rem; margin-bottom: var(--space-5); }
+    .ten-god-family { --family-accent: var(--indigo); min-width: 0; padding: .8rem; border: 1px solid color-mix(in srgb, var(--family-accent) 18%, var(--line)); border-radius: var(--radius-sm); background: linear-gradient(145deg, color-mix(in srgb, var(--family-accent) 8%, white), rgb(255 255 255 / .72)); }
+    .ten-god-family--2 { --family-accent: #a05a42; }
+    .ten-god-family--3 { --family-accent: #9b712d; }
+    .ten-god-family--4 { --family-accent: #506a91; }
+    .ten-god-family--5 { --family-accent: #6e5684; }
+    .ten-god-family > div { display: flex; min-height: 2.2rem; align-items: flex-start; justify-content: space-between; gap: .45rem; }
+    .ten-god-family span { min-width: 0; color: var(--ink-soft); font-size: .64rem; font-weight: 720; line-height: 1.45; }
+    .ten-god-family strong { flex: 0 0 auto; color: var(--family-accent); font-family: var(--font-mono); font-size: 1.05rem; }
+    .ten-god-family strong small { color: var(--ink-soft); font-size: .55rem; font-weight: 650; }
+    .ten-god-family .ten-god-family__track { display: block; overflow: hidden; block-size: .34rem; margin-top: .6rem; border-radius: 99px; background: color-mix(in srgb, var(--family-accent) 10%, var(--paper-sunken)); }
+    .ten-god-family__track i { display: block; inline-size: var(--family-width); block-size: 100%; border-radius: inherit; background: var(--family-accent); }
     .tengods { width: 100%; border-collapse: separate; border-spacing: 0; }
     .tengods th, .tengods td { padding: var(--space-4); border-bottom: 1px solid var(--line); text-align: start; }
     .tengods thead th { color: var(--ink-soft); background: color-mix(in srgb, var(--paper-sunken) 62%, white); font-size: var(--text-xs); font-weight: 750; }
@@ -1552,7 +1700,18 @@ const READING_FOCUSES = [
     .luck-panel { position: relative; overflow: hidden; }
     .daeun-panel { background: linear-gradient(150deg, var(--paper-raised) 55%, color-mix(in srgb, var(--peach-pale) 35%, white)); }
     .seun-panel { background: linear-gradient(150deg, var(--paper-raised) 55%, color-mix(in srgb, var(--jade-pale) 46%, white)); }
-    .luck-meta { display: inline-flex; margin: -.5rem 0 var(--space-5); padding: .48rem .75rem; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-soft); background: rgb(255 255 255 / .62); font-size: var(--text-xs); font-weight: 720; }
+    .current-timing { display: grid; grid-template-columns: minmax(10rem, .55fr) minmax(0, 1.45fr); align-items: center; gap: clamp(1rem, 3vw, 2rem); margin: -.3rem 0 var(--space-5); padding: clamp(1rem, 2.5vw, 1.4rem); border: 1px solid color-mix(in srgb, var(--indigo) 18%, var(--line)); border-radius: var(--radius); background: rgb(255 255 255 / .68); box-shadow: inset 0 1px 0 rgb(255 255 255 / .8); }
+    .current-timing__heading { display: flex; align-items: center; gap: .75rem; }
+    .current-timing__heading > span { display: grid; inline-size: 2.7rem; aspect-ratio: 1; flex: 0 0 auto; place-items: center; border-radius: .85rem; color: white; background: var(--indigo); font-family: var(--font-display); font-size: 1.25rem; box-shadow: 0 8px 18px rgb(36 84 66 / .18); }
+    .current-timing__heading p { margin: 0 0 .15rem; }
+    .current-timing__heading h3 { margin: 0; font-size: clamp(1rem, 2vw, 1.25rem); }
+    .current-timing__cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .55rem; }
+    .current-timing-card { display: grid; min-width: 0; grid-template-columns: 1fr auto; align-items: center; gap: .2rem .5rem; padding: .65rem .75rem; border: 1px solid var(--line); border-radius: .8rem; background: rgb(255 255 255 / .78); }
+    .current-timing-card small { overflow: hidden; color: var(--ink-soft); font-size: .58rem; font-weight: 730; text-overflow: ellipsis; white-space: nowrap; }
+    .current-timing-card strong { grid-row: 1 / 3; grid-column: 2; font-family: var(--font-display); font-size: 1.65rem; line-height: 1; }
+    .current-timing-card span { overflow: hidden; color: var(--ink-soft); font-family: var(--font-mono); font-size: .58rem; text-overflow: ellipsis; white-space: nowrap; }
+    .current-timing-card--empty { opacity: .72; }
+    .luck-meta { display: inline-flex; margin: 0 0 var(--space-5); padding: .48rem .75rem; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-soft); background: rgb(255 255 255 / .62); font-size: var(--text-xs); font-weight: 720; }
     .luck-strip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(7.5rem, 1fr); gap: .65rem; overflow-x: auto; padding: .25rem .15rem .85rem; scroll-snap-type: x proximity; scrollbar-width: thin; }
     .luck-strip--annual { grid-auto-columns: minmax(7rem, 1fr); }
     .luck-card { position: relative; display: grid; min-height: 8.75rem; align-content: center; justify-items: center; gap: .35rem; scroll-snap-align: start; border: 1px solid var(--line); border-radius: var(--radius); padding: .8rem; color: var(--ink); background: rgb(255 255 255 / .68); cursor: pointer; transition: transform var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast); }
@@ -1619,11 +1778,15 @@ const READING_FOCUSES = [
       .element-dashboard { grid-template-columns: 1fr; }
       .radar-wrap { max-inline-size: 30rem; inline-size: 100%; margin-inline: auto; }
       .hidden-stems-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .ten-god-distribution { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .analysis-grid { grid-template-columns: 1fr; }
+      .current-timing { grid-template-columns: 1fr; }
       .luck-detail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .role-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (max-width: 620px) {
+      .reading-jumpbar { top: 4rem; margin-inline: -.35rem; border-radius: 1rem; }
+      .reading-jumpbar__label { display: none; }
       .result-hero { padding: 2rem 1.35rem 2.4rem; }
       .result-kicker { font-size: .66rem; }
       .birth-summary { align-items: flex-start; border-radius: var(--radius-sm); font-size: .7rem; line-height: 1.5; }
@@ -1650,6 +1813,7 @@ const READING_FOCUSES = [
       .ebar-label { gap: .35rem; }
       .ebar-n { grid-template-columns: 1fr; gap: 0; }
       .table-scroll { overflow: visible; }
+      .ten-god-distribution { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .tengods, .tengods tbody { display: block; }
       .tengods thead { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
       .tengods tbody { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
@@ -1667,6 +1831,7 @@ const READING_FOCUSES = [
       .relation-item { grid-template-columns: auto auto; }
       .relation-item small { grid-column: 1 / -1; text-align: start; }
       .luck-strip { margin-inline: -1.25rem; padding-inline: 1.25rem; }
+      .current-timing__cards { grid-template-columns: 1fr; }
       .luck-detail { grid-template-columns: 1fr; }
       .role-grid { grid-template-columns: 1fr; }
       .reading-guide { grid-template-columns: 1fr; }
@@ -1677,6 +1842,7 @@ const READING_FOCUSES = [
       .focus-metrics { grid-template-columns: 1fr; }
       .pillar-glyph { font-size: 2.85rem; }
       .tengods tbody { grid-template-columns: 1fr; }
+      .ten-god-distribution { grid-template-columns: 1fr; }
     }
   </style>
 </Base>

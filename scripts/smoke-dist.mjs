@@ -39,6 +39,8 @@ for (const locale of locales) {
   assert(html.includes('id="element-radar"'), `${locale}: missing Five Elements chart`);
   assert(html.includes('id="reading-focus"') && (html.match(/data-reading-focus=/g) || []).length === 9,
     `${locale}: reading page must contain nine switchable themed summaries`);
+  assert(html.includes('class="reading-jumpbar"') && (html.match(/data-scroll-target=/g) || []).length === 8,
+    `${locale}: reading page must contain the eight-section quick navigator`);
   assert(html.includes('id="focus-metrics"') && html.includes('id="focus-details"'),
     `${locale}: themed summary metrics or evidence link is missing`);
   assert(html.includes('class="card chart-matrix-panel"') && html.includes('id="chart-facts"'),
@@ -46,6 +48,8 @@ for (const locale of locales) {
   assert((html.match(/data-layer-toggle=/g) || []).length === 4,
     `${locale}: original-chart matrix must expose four detail-layer controls`);
   assert(html.includes('id="hidden-stems"'), `${locale}: missing hidden-stem panel`);
+  assert(html.includes('id="ten-god-distribution"') && html.includes('id="current-timing-cards"'),
+    `${locale}: missing Ten-God family distribution or current-cycle snapshot`);
   assert(html.includes('id="branch-relations"') && html.includes('id="stem-relations"') && html.includes('id="harmony-groups"') && html.includes('id="shinsal-list"'),
     `${locale}: missing branch, stem, harmony, or Shinsal panel`);
   assert(html.includes('id="daeun-list"') && html.includes('id="seun-list"'), `${locale}: missing Daeun or annual-luck panel`);
@@ -92,6 +96,9 @@ assert(readingBundle.source.includes('chart_layer_toggle') && readingBundle.sour
 assert(readingBundle.source.includes('reading_focus_select') && readingBundle.source.includes('focus-metrics') &&
   readingBundle.source.includes('annualPillar'),
   'Reading bundle is missing themed summary switching, metrics, or annual-cycle support');
+assert(readingBundle.source.includes('reading_section_navigate') && readingBundle.source.includes('ten-god-family') &&
+  readingBundle.source.includes('current-timing-card'),
+  'Reading bundle is missing section navigation, Ten-God family summaries, or current solar-month timing');
 assert(readingBundle.source.includes('location.hash') && readingBundle.source.includes('location.replace'),
   'Reading bundle does not support private fragment state and query-free migration');
 
@@ -109,4 +116,4 @@ assert(analyticsBundle.source.includes('location.origin') && analyticsBundle.sou
   'Analytics page locations are not built from the query-free origin and path');
 assert(!analyticsBundle.source.includes('location.search'), 'Analytics bundle must not read or send URL query parameters');
 
-console.log(`Smoke-tested ${locales.length} home, reading, and Gunghap pages; nine localized reading themes; private fragment state; rich chart layers; consent defaults; and query-free GA4 wiring.`);
+console.log(`Smoke-tested ${locales.length} home, reading, and Gunghap pages; nine localized reading themes; result navigation; Ten-God and current-cycle summaries; private fragment state; rich chart layers; consent defaults; and query-free GA4 wiring.`);

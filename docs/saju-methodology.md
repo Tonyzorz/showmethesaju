@@ -110,6 +110,18 @@ The nine home-page cards are different views of the same locally calculated char
 
 Every theme links back to the supporting detailed chart section. Visitors can switch themes on the result page without recalculating or re-entering birth data.
 
+## Result-page summaries and current-cycle snapshot
+
+The result page groups the ten individual Ten Gods into five familiar relationship families for faster scanning: Companion (比肩/劫財), Output (食神/傷官), Wealth (偏財/正財), Authority (偏官/正官), and Resource (偏印/正印). The displayed values are unweighted occurrence counts across the visible year, month, and hour stems plus every displayed hidden stem. The Day Master is excluded because it is the reference point rather than a Ten-God relationship. These counts are descriptive; they are not scores or strength weights.
+
+The current-cycle strip is a shortcut into the complete luck tables below it:
+
+- Current Daeun is the latest cycle whose calculated start age has been reached. Gender is required because Daeun direction reverses by year-stem polarity and gender.
+- Current Seun uses the sexagenary year beginning at Ipchun.
+- Current Wolun uses the Sun's apparent longitude to select the active 30-degree solar-term month from In-wol through Chuk-wol. Its civil-month label remains an approximate orientation label because each month begins at a solar term rather than on the first day of the civil month.
+
+The sticky result navigator uses buttons and `scrollIntoView` rather than fragment anchors. This deliberately preserves the URL fragment that holds the chart state locally and keeps birth parameters out of analytics and server requests.
+
 ## Verification sources
 
 - Korea Astronomy and Space Science Institute calendar/astronomy service: https://astro.kasi.re.kr
