@@ -20,6 +20,10 @@ for (const locale of locales) {
     `${locale}: canonical URL does not use the custom domain`);
   assert(homeHtml.includes('href="/_astro/') && !homeHtml.includes('/showmethesaju/_astro/'),
     `${locale}: production assets are not rooted at the custom domain`);
+  assert(homeHtml.includes('pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1837000267504503') &&
+    homeHtml.includes('crossorigin="anonymous"'), `${locale}: AdSense publisher script is missing`);
+  assert(!/<(?:script|link)[^>]+(?:src|href)="http:\/\//i.test(homeHtml),
+    `${locale}: insecure active-content reference would break HTTPS`);
   assert(homeHtml.includes('id="profile-list"') && homeHtml.includes('id="save-profile"') && homeHtml.includes('id="onboarding-dialog"'),
     `${locale}: local profiles or guided onboarding are missing`);
   assert(homeHtml.includes(`/${locale}/#birth-form`), `${locale}: reading navigation must lead to the birth form`);
@@ -105,6 +109,9 @@ for (const locale of locales) {
   assert(methodologyHtml.includes('class="methodology-grid"') && methodologyHtml.includes('verification-note'),
     `${locale}: localized calculation methodology page is missing`);
 }
+
+assert(read('ads.txt').trim() === 'google.com, pub-1837000267504503, DIRECT, f08c47fec0942fa0',
+  'ads.txt is missing or does not match the AdSense publisher record');
 
 const jsDirectory = path.join(dist, '_astro');
 const bundles = fs.readdirSync(jsDirectory)
