@@ -63,8 +63,8 @@ npm run check     # engine + locale + build + production smoke gate
 - Done: self-hosted fonts (scripts/fetch-fonts.mjs), favicon/OG/robots, GA4 consent
   analytics, share cards v2 (square+story+Web Share), engine test harness
   (`npm run test:engine`, 6 anchors green).
-- TEMP: deployed to github.io preview (base '/showmethesaju', CNAME removed).
-  Cutover = drop `base` in astro.config.mjs + restore public/CNAME (showmethesaju.com).
+- Custom-domain cutover complete: `showmethesaju.com` is canonical and Astro builds at `/`.
+  GitHub Pages uses a custom Actions workflow, so the repository Pages setting owns the domain and no CNAME file is required.
 - Open owner checks: KASI verification (launch gate), About biography/photo, final Smart Store/Kakao deep links, and native-speaker editorial review of all locales.
 - Note: article pages hreflang only en+ko (Base `altLocales`), so the "12 hreflang tags"
   smoke test applies to non-article pages.

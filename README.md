@@ -2,7 +2,7 @@
 
 A privacy-first, multilingual Korean Saju (Four Pillars) calculator and learning experience. It turns birth information into an interactive Manseryeok-style chart with themed, traceable summaries—without sending birth data to a server.
 
-**Live site:** https://tonyzorz.github.io/showmethesaju/ko/
+**Live site:** https://showmethesaju.com/ko/
 
 ## What it does
 
@@ -18,7 +18,7 @@ This is a traditional interpretation and education tool. It does not provide med
 
 ## Judge testing path
 
-1. Open the [Korean home page](https://tonyzorz.github.io/showmethesaju/ko/).
+1. Open the [Korean home page](https://showmethesaju.com/ko/).
 2. Try the reference input: `1987-11-22`, `14:30`, female, Seoul, solar calendar.
 3. Select any of the nine fortune cards, calculate the chart, and switch themes without re-entering the birth data.
 4. On the result page, inspect the Four Pillars, Hidden Stems, Ten Gods, Twelve Life Stages, Shinsal, Daeun, Seun, monthly luck, element balance, and relation panels.
@@ -30,8 +30,8 @@ This is a traditional interpretation and education tool. It does not provide med
 
 For a sub-three-minute judge walkthrough, use these prepared local-calculation links. The birth state is in the URL fragment, so GitHub Pages never receives it:
 
-- [Open the reference Saju directly](https://tonyzorz.github.io/showmethesaju/ko/reading/#y=1987&m=11&d=22&h=14&mi=30&tu=0&tz=540&lon=126.98&ts=0&g=f&focus=basic)
-- [Open the reference Gunghap directly](https://tonyzorz.github.io/showmethesaju/ko/compatibility/#ay=1987&am=11&ad=22&ah=14&ai=30&au=0&az=540&ag=f&by=1990&bm=6&bd=15&bh=14&bi=30&bu=0&bz=540&bg=m)
+- [Open the reference Saju directly](https://showmethesaju.com/ko/reading/#y=1987&m=11&d=22&h=14&mi=30&tu=0&tz=540&lon=126.98&ts=0&g=f&focus=basic)
+- [Open the reference Gunghap directly](https://showmethesaju.com/ko/compatibility/#ay=1987&am=11&ad=22&ah=14&ai=30&au=0&az=540&ag=f&by=1990&bm=6&bd=15&bh=14&bi=30&bu=0&bz=540&bg=m)
 
 Suggested sequence: switch Beginner → Expert, open the evidence drawer, move through Daeun → Seun → Wolun, then open the compatibility summary and select a cell in the 4×4 matrix. Saved profiles and comparison history can be demonstrated afterward; both use browser-local storage only.
 
@@ -44,7 +44,7 @@ npm install
 npm run dev
 ```
 
-Then open `http://localhost:4321/showmethesaju/ko/`.
+Then open `http://localhost:4321/ko/`.
 
 Run the complete local verification gate before submitting a change:
 

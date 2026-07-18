@@ -56,4 +56,4 @@ These settings live in Google Analytics and cannot be configured by repository c
 
 ## Custom domain later
 
-No code change is required. Page locations use the visitor's current origin, so they automatically switch from `tonyzorz.github.io` to the custom domain. Update the Web data stream URL in GA4, make the custom domain canonical in Astro, and redirect the GitHub Pages hostname to avoid splitting reports between two hostnames.
+Page locations use the visitor's current origin, and Astro now emits `showmethesaju.com` as the canonical domain. Keep the GA4 Web data stream URL set to `https://showmethesaju.com`; GitHub Pages redirects the legacy project URL to the custom domain so reports are not split between hostnames.

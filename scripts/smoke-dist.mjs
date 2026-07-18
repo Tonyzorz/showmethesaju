@@ -16,6 +16,10 @@ function read(relativePath) {
 for (const locale of locales) {
   const homeHtml = read(path.join(locale, 'index.html'));
   assert(homeHtml.includes('id="birth-form"'), `${locale}: missing birth form`);
+  assert(homeHtml.includes(`rel="canonical" href="https://showmethesaju.com/${locale}/"`),
+    `${locale}: canonical URL does not use the custom domain`);
+  assert(homeHtml.includes('href="/_astro/') && !homeHtml.includes('/showmethesaju/_astro/'),
+    `${locale}: production assets are not rooted at the custom domain`);
   assert(homeHtml.includes('id="profile-list"') && homeHtml.includes('id="save-profile"') && homeHtml.includes('id="onboarding-dialog"'),
     `${locale}: local profiles or guided onboarding are missing`);
   assert(homeHtml.includes(`/${locale}/#birth-form`), `${locale}: reading navigation must lead to the birth form`);
