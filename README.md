@@ -10,6 +10,7 @@ A privacy-first, multilingual Korean Saju (Four Pillars) calculator and learning
 - Supports gender-dependent Daeun direction, ten-year Daeun cycles, annual Seun, monthly luck, Hidden Stems, Ten Gods, Twelve Life Stages, Five Elements, Yin–Yang, Nayin, Gongmang, branch/stem relations, and supplementary Shinsal.
 - Offers nine clickable views of the same calculated chart: Core Saju, Health & Balance, Wealth Flow, Personality & Strengths, Career & Achievement, Love & Relationships, Noble Help & Opportunities, Movement & Change, and Daeun & Annual Timing.
 - Includes a two-person Gunghap view, learning pages, a glossary, and methodology disclosures.
+- Adds beginner/expert result modes, a connected Daeun–Seun–Wolun navigator, local-only saved profiles and comparison history, and shareable chart/compatibility cards.
 - Supports Korean, English, Japanese, Simplified Chinese, Traditional Chinese, Spanish, French, German, Portuguese, Vietnamese, and Thai with locale-key and placeholder validation.
 - Uses optional, consent-gated Google Analytics with a strict personal-data boundary.
 
@@ -24,6 +25,15 @@ This is a traditional interpretation and education tool. It does not provide med
 5. Open Gunghap and add a second example, such as `1990-06-15`, `14:30`, male, Seoul.
 6. Switch languages from the header and confirm that navigation and calculation remain available.
 7. Open the privacy settings to accept or reject analytics; calculation works in either state.
+
+## Hackathon demo mode (README)
+
+For a sub-three-minute judge walkthrough, use these prepared local-calculation links. The birth state is in the URL fragment, so GitHub Pages never receives it:
+
+- [Open the reference Saju directly](https://tonyzorz.github.io/showmethesaju/ko/reading/#y=1987&m=11&d=22&h=14&mi=30&tu=0&tz=540&lon=126.98&ts=0&g=f&focus=basic)
+- [Open the reference Gunghap directly](https://tonyzorz.github.io/showmethesaju/ko/compatibility/#ay=1987&am=11&ad=22&ah=14&ai=30&au=0&az=540&ag=f&by=1990&bm=6&bd=15&bh=14&bi=30&bu=0&bz=540&bg=m)
+
+Suggested sequence: switch Beginner → Expert, open the evidence drawer, move through Daeun → Seun → Wolun, then open the compatibility summary and select a cell in the 4×4 matrix. Saved profiles and comparison history can be demonstrated afterward; both use browser-local storage only.
 
 ## Local setup
 
@@ -56,6 +66,7 @@ npm run smoke
 - Astro 4 generates the static site; TypeScript modules perform the calculations in the browser.
 - `korean-lunar-calendar` converts lunar inputs. The Saju engine applies the documented solar-term and traditional-rule conventions.
 - New reading and Gunghap state is stored in the URL fragment (`#...`). Fragments are not included in HTTP requests to GitHub Pages. Older query-string links are migrated to the fragment format in the browser.
+- Optional saved profiles, display preference, onboarding completion, and recent comparisons use browser-local storage. They are never sent to the application or analytics.
 - GA4 (`G-RMFH4E7NGS`) is not loaded until analytics consent is granted. The analytics wrapper sends query-free, hash-free page locations and rejects sensitive event parameters.
 - No birth date, time, gender, city, longitude, calculated pillar, or compatibility input is sent to an application backend.
 
@@ -74,6 +85,8 @@ The collaboration included:
 - creating judge instructions, the demo narrative, and accuracy/methodology disclosures.
 
 Traditional-rule choices are documented in [docs/saju-methodology.md](docs/saju-methodology.md). AI-assisted changes are treated like any other engineering contribution: they must pass the automated gate and remain subject to human review, especially where Saju schools use different conventions.
+
+The same core disclosures are available to visitors on the localized `/[language]/methodology/` page.
 
 ## Verification status and known limits
 

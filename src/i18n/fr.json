@@ -517,6 +517,10 @@
     "crossNone": "Aucune relation de branche supplémentaire n’apparaît entre les paires de piliers des deux thèmes.",
     "spousePalaceDetail": "Troncs cachés du palais conjugal",
     "spousePalaceNote": "Les troncs cachés et les Dix Dieux de chaque branche du jour sont placés côte à côte. Ils décrivent la structure interne du palais conjugal, pas un verdict isolé.",
+    "matrixInstruction": "Sélectionnez une cellule pour examiner la relation entre ces deux branches. Les cellules neutres restent visibles afin de préserver le contexte.",
+    "hiddenStemLine": "{phase} dans {branch} : {god}, avec l’élément {element}. C’est une couche structurelle, pas un verdict.",
+    "timingComparison": "Comparaison de la période actuelle",
+    "timingNote": "Le Daeun et le Seun actuels sont présentés côte à côte comme contexte temporel. Ils ne déterminent pas à eux seuls la réussite d’une relation.",
     "relNone": "Ni combinaison ni choc particulier — une structure neutre (courante, et très bien ainsi).",
     "rel.trine": "Groupe trine (samhap)",
     "rel.sameBranch": "Même branche",
@@ -548,5 +552,18 @@
     "culture.title": "Pourquoi les Coréens consultent le gunghap",
     "culture.body": "Pendant des siècles, les familles coréennes ont comparé deux cartes avant d’accorder un mariage : d’abord les animaux de l’année (accord externe), puis les piliers du jour (interne). La coutume est bien vivante : beaucoup de couples consultent encore le gunghap avant le mariage. Au mieux, ce n’est pas de la divination mais une conversation structurée sur le tempérament et le moment.",
     "errBothRequired": "Saisissez les deux dates de naissance."
+  },
+  "experience": {
+    "profileTitle": "Profils enregistrés", "profileEmpty": "Aucun profil enregistré", "profileName": "Nom du profil", "profileSave": "Enregistrer localement", "profileLocal": "Stocké uniquement dans ce navigateur, sans téléversement.", "profileDelete": "Supprimer",
+    "historyTitle": "Comparaisons récentes", "historyEmpty": "Aucune comparaison récente", "historyClear": "Effacer l’historique", "modeLabel": "Niveau d’affichage", "beginner": "Débutant", "expert": "Expert",
+    "summaryTitle": "Compatibilité en bref", "summaryCommunication": "Communication des maîtres du jour", "summaryEmotional": "Lien du palais conjugal", "summaryFriction": "Marqueurs de tension", "summarySupport": "Soutien des éléments", "summaryTiming": "Période actuelle", "viewEvidence": "Voir les indices",
+    "healthDisclaimer": "Cette vue santé décrit uniquement des thèmes traditionnels d’équilibre des éléments. Elle ne constitue ni un avis ni un diagnostic médical et ne remplace pas un professionnel.", "onboardingNext": "Suivant", "onboardingSkip": "Passer le guide", "skipToContent": "Aller au contenu", "menu": "Menu"
+  },
+  "methodology": {
+    "title": "Comment ce Saju est calculé", "lead": "Découvrez les limites calendaires, conventions temporelles, couches interprétatives, règles de confidentialité et limites de vérification de chaque résultat.",
+    "boundariesTitle": "Termes solaires et changement de jour", "boundariesBody": "Les piliers d’année et de mois suivent les termes solaires. Par défaut, le jour change à 23 h selon la convention du début de l’heure du Rat ; un avertissement apparaît si une limite peut modifier le thème.",
+    "limitationsTitle": "Calcul et interprétation", "limitationsBody": "Selon les règles annoncées, piliers, éléments et relations tabulaires sont déterministes. Force, éléments utiles, structures, Shinsal et thèmes narratifs peuvent varier selon les écoles.",
+    "localTitle": "Confidentialité par conception", "localBody": "Le calcul s’effectue dans le navigateur. Fragments d’URL, profils et comparaisons récentes restent locaux sauf partage volontaire.",
+    "verificationTitle": "Vérifié avec des limites explicites", "verificationBody": "Des tests automatisés couvrent les repères calendaires et invariants. Les vérifications externes en attente restent documentées ; aucun certificat indépendant n’est revendiqué."
   }
 }

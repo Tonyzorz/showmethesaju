@@ -517,6 +517,10 @@
     "crossNone": "Não aparecem relações adicionais entre os pares de pilares dos dois mapas.",
     "spousePalaceDetail": "Troncos ocultos do palácio conjugal",
     "spousePalaceNote": "Coloca lado a lado os troncos ocultos e os Dez Deuses do ramo do dia de cada pessoa. Isso descreve a estrutura interna do palácio conjugal, não um veredito isolado.",
+    "matrixInstruction": "Selecione uma célula para examinar a relação entre esses dois ramos. Células neutras continuam visíveis para manter o contexto.",
+    "hiddenStemLine": "{phase} em {branch}: {god}, com o elemento {element}. É uma camada estrutural, não um veredito.",
+    "timingComparison": "Comparação do momento atual",
+    "timingNote": "Daeun e Seun atuais aparecem lado a lado como contexto temporal. Eles não determinam sozinhos o sucesso ou fracasso de uma relação.",
     "relNone": "Sem combinação nem choque especial — uma estrutura neutra (comum e perfeitamente boa).",
     "rel.trine": "Grupo trino (samhap)",
     "rel.sameBranch": "Mesmo ramo",
@@ -548,5 +552,18 @@
     "culture.title": "Por que os coreanos consultam o gunghap",
     "culture.body": "Por séculos, as famílias coreanas compararam dois mapas antes de acertar um casamento — primeiro os animais do ano (afinidade externa), depois os pilares do dia (interna). O costume segue vivo: muitos casais ainda consultam o gunghap antes do casamento. No seu melhor, não é adivinhação, e sim uma conversa estruturada sobre temperamento e timing.",
     "errBothRequired": "Informe as duas datas de nascimento."
+  },
+  "experience": {
+    "profileTitle": "Perfis salvos", "profileEmpty": "Ainda não há perfis salvos", "profileName": "Nome do perfil", "profileSave": "Salvar localmente", "profileLocal": "Fica apenas neste navegador; nada é enviado.", "profileDelete": "Excluir",
+    "historyTitle": "Comparações recentes", "historyEmpty": "Não há comparações recentes", "historyClear": "Limpar histórico", "modeLabel": "Nível de exibição", "beginner": "Iniciante", "expert": "Especialista",
+    "summaryTitle": "Compatibilidade em resumo", "summaryCommunication": "Comunicação dos mestres do dia", "summaryEmotional": "Ligação do palácio conjugal", "summaryFriction": "Marcadores de tensão", "summarySupport": "Apoio dos elementos", "summaryTiming": "Momento atual", "viewEvidence": "Ver evidências",
+    "healthDisclaimer": "Esta visão de saúde descreve apenas temas tradicionais de equilíbrio dos elementos. Não é orientação nem diagnóstico médico e não substitui atendimento profissional.", "onboardingNext": "Próximo", "onboardingSkip": "Pular guia", "skipToContent": "Ir para o conteúdo", "menu": "Menu"
+  },
+  "methodology": {
+    "title": "Como este Saju é calculado", "lead": "Veja limites do calendário, convenções de tempo, camadas interpretativas, regras de privacidade e limites de verificação por trás de cada resultado.",
+    "boundariesTitle": "Termos solares e mudança do dia", "boundariesBody": "Os pilares de ano e mês seguem termos solares. Por padrão, o dia muda às 23h pela convenção do início da hora do Rato; possíveis casos de fronteira são sinalizados.",
+    "limitationsTitle": "Cálculo versus interpretação", "limitationsBody": "Pelas regras declaradas, pilares, elementos e relações de tabela são determinísticos. Força, elementos úteis, estruturas, Shinsal e temas narrativos podem variar conforme a escola.",
+    "localTitle": "Privacidade por arquitetura", "localBody": "O cálculo roda no navegador. Fragmentos de URL, perfis e comparações recentes ficam locais, salvo compartilhamento intencional.",
+    "verificationTitle": "Verificado com limites claros", "verificationBody": "Testes automáticos cobrem referências do calendário e invariantes. Verificações externas pendentes continuam documentadas; não alegamos certificação independente."
   }
 }

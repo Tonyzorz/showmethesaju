@@ -35,6 +35,20 @@ const READING_FOCUSES = [
     <form id="birth-form" class="card birth-form" data-lang={lang}
       data-err-future={t(lang, 'form.errFuture')} data-err-lunar={t(lang, 'form.errLunarRange')}
       data-err-solar-city={t(lang, 'form.errSolarCity')} data-focus-cta={t(lang, 'fortune.cta')}>
+      <div class="form-tools">
+        <button id="open-onboarding" type="button"><span aria-hidden="true">?</span>{t(lang, 'explainer.title')}</button>
+        <details class="profile-manager">
+          <summary>{t(lang, 'experience.profileTitle')}</summary>
+          <div class="profile-manager__body">
+            <div id="profile-list" class="profile-list" data-empty={t(lang, 'experience.profileEmpty')} data-delete={t(lang, 'experience.profileDelete')}></div>
+            <div class="profile-save-row">
+              <label for="profile-name">{t(lang, 'experience.profileName')}</label>
+              <div><input id="profile-name" class="field" type="text" maxlength="40" autocomplete="off" /><button id="save-profile" class="btn-secondary" type="button">{t(lang, 'experience.profileSave')}</button></div>
+            </div>
+            <p>{t(lang, 'experience.profileLocal')}</p>
+          </div>
+        </details>
+      </div>
       <div class="form-progress" aria-hidden="true">
         <span data-progress-step="date">01</span>
         <i></i>
@@ -163,6 +177,30 @@ const READING_FOCUSES = [
     </section>
   </section>
 
+  <dialog id="onboarding-dialog" class="onboarding-dialog" aria-labelledby="onboarding-title">
+    <form method="dialog">
+      <header>
+        <span aria-hidden="true">命</span>
+        <div><small>01 — 03</small><h2 id="onboarding-title">{t(lang, 'explainer.title')}</h2></div>
+        <button class="onboarding-close" value="cancel" aria-label={t(lang, 'experience.onboardingSkip')}>×</button>
+      </header>
+      <div class="onboarding-steps" aria-live="polite">
+        {[1, 2, 3].map((i) => (
+          <article data-onboarding-step={i} hidden={i !== 1}>
+            <span>{String(i).padStart(2, '0')}</span>
+            <h3>{t(lang, `explainer.step${i}.title`)}</h3>
+            <p>{t(lang, `explainer.step${i}.body`)}</p>
+          </article>
+        ))}
+      </div>
+      <div class="onboarding-progress" aria-hidden="true"><i></i><i></i><i></i></div>
+      <footer>
+        <button id="onboarding-skip" class="btn-secondary" value="cancel">{t(lang, 'experience.onboardingSkip')}</button>
+        <button id="onboarding-next" class="btn-primary" type="button" data-next={t(lang, 'experience.onboardingNext')} data-start={t(lang, 'hero.cta')}>{t(lang, 'experience.onboardingNext')}</button>
+      </footer>
+    </form>
+  </dialog>
+
   <section class="explainer">
     <h2>{t(lang, 'explainer.title')}</h2>
     <div class="steps">
@@ -186,6 +224,10 @@ const READING_FOCUSES = [
     import { tzOffsetMinutes } from '../../lib/cities';
     import { withBase } from '../../lib/paths';
     import { trackEvent } from '../../lib/analytics';
+    import {
+      ONBOARDING_STORAGE_KEY, deleteProfile, loadProfiles, saveProfile,
+      type BirthProfileData,
+    } from '../../lib/local-data';
 
     const form = document.getElementById('birth-form') as HTMLFormElement;
     const dateInput = form.elements.namedItem('date') as HTMLInputElement;
@@ -203,6 +245,9 @@ const READING_FOCUSES = [
     const focusInputs = Array.from(document.querySelectorAll<HTMLInputElement>('input[name="focus"][form="birth-form"]'));
     const submitLabel = form.querySelector('#submit-label') as HTMLElement;
     const focusCta = form.dataset.focusCta!;
+    const profileList = document.getElementById('profile-list')!;
+    const profileName = document.getElementById('profile-name') as HTMLInputElement;
+    const onboarding = document.getElementById('onboarding-dialog') as HTMLDialogElement;
 
     // Keep the static site current without requiring a rebuild each day.
     const today = new Date();
@@ -214,6 +259,7 @@ const READING_FOCUSES = [
       errEl.hidden = true;
       form.classList.remove('has-error');
       steps.forEach((step) => step.classList.remove('has-error'));
+      form.querySelectorAll<HTMLElement>('[aria-invalid="true"]').forEach((field) => field.removeAttribute('aria-invalid'));
     }
 
     function showError(message: string, stepName: string) {
@@ -221,6 +267,7 @@ const READING_FOCUSES = [
       errEl.hidden = false;
       form.classList.add('has-error');
       stepByName(stepName)?.classList.add('has-error');
+      stepByName(stepName)?.querySelector<HTMLElement>('input, select')?.setAttribute('aria-invalid', 'true');
     }
 
     function formatDate(value: string) {
@@ -291,6 +338,121 @@ const READING_FOCUSES = [
 
     setActiveStep(stepByName('date') || null);
     updateFormState();
+
+    let formStarted = false;
+    form.addEventListener('input', () => {
+      if (formStarted) return;
+      formStarted = true;
+      trackEvent('chart_form_start', { language: form.dataset.lang });
+    }, { once: true });
+
+    function currentProfileData(): BirthProfileData | null {
+      const gender = genderInputs.find((input) => input.checked)?.value;
+      if (!dateInput.value || (gender !== 'f' && gender !== 'm')) return null;
+      return {
+        date: dateInput.value,
+        time: timeInput.value || '12:00',
+        timeUnknown: timeUnknownInput.checked,
+        calendar: (form.elements.namedItem('cal') as RadioNodeList).value === 'lunar' ? 'lunar' : 'solar',
+        leap: (form.elements.namedItem('leap') as HTMLInputElement).checked,
+        gender,
+        city: cityInput.value,
+        trueSolar: (form.elements.namedItem('trueSolar') as HTMLInputElement).checked,
+      };
+    }
+
+    function loadProfileData(data: BirthProfileData) {
+      dateInput.value = data.date;
+      timeInput.value = data.time;
+      timeUnknownInput.checked = data.timeUnknown;
+      form.querySelector<HTMLInputElement>(`input[name="cal"][value="${data.calendar}"]`)!.checked = true;
+      (form.elements.namedItem('leap') as HTMLInputElement).checked = data.leap;
+      form.querySelector<HTMLInputElement>(`input[name="gender"][value="${data.gender}"]`)!.checked = true;
+      cityInput.value = data.city;
+      (form.elements.namedItem('trueSolar') as HTMLInputElement).checked = data.trueSolar;
+      steps.forEach((step) => step.classList.add('is-touched'));
+      lunarOnly.hidden = data.calendar !== 'lunar';
+      clearError();
+      updateFormState();
+    }
+
+    function renderProfiles() {
+      const profiles = loadProfiles();
+      profileList.replaceChildren();
+      if (!profiles.length) {
+        const empty = document.createElement('p');
+        empty.className = 'profile-empty';
+        empty.textContent = profileList.dataset.empty || '';
+        profileList.append(empty);
+        return;
+      }
+      for (const profile of profiles) {
+        const row = document.createElement('div');
+        const load = document.createElement('button');
+        load.type = 'button'; load.className = 'profile-load';
+        const name = document.createElement('strong'); name.textContent = profile.name;
+        const meta = document.createElement('small'); meta.textContent = formatDate(profile.data.date);
+        load.append(name, meta);
+        load.addEventListener('click', () => {
+          loadProfileData(profile.data);
+          trackEvent('profile_load', { storage_type: 'local', language: form.dataset.lang });
+        });
+        const remove = document.createElement('button');
+        remove.type = 'button'; remove.className = 'profile-delete'; remove.textContent = '×';
+        remove.setAttribute('aria-label', `${profile.name} · ${profileList.dataset.delete || ''}`);
+        remove.addEventListener('click', () => {
+          deleteProfile(profile.id); renderProfiles();
+          trackEvent('profile_delete', { storage_type: 'local', language: form.dataset.lang });
+        });
+        row.append(load, remove); profileList.append(row);
+      }
+    }
+
+    document.getElementById('save-profile')!.addEventListener('click', () => {
+      const data = currentProfileData();
+      if (!data) {
+        form.reportValidity();
+        return;
+      }
+      const name = profileName.value.trim() || formatDate(data.date);
+      saveProfile(name, data); profileName.value = ''; renderProfiles();
+      trackEvent('profile_save', { storage_type: 'local', language: form.dataset.lang });
+    });
+    renderProfiles();
+
+    let onboardingStep = 1;
+    const onboardingPanels = Array.from(onboarding.querySelectorAll<HTMLElement>('[data-onboarding-step]'));
+    const onboardingDots = Array.from(onboarding.querySelectorAll<HTMLElement>('.onboarding-progress i'));
+    const onboardingNext = document.getElementById('onboarding-next') as HTMLButtonElement;
+    function renderOnboardingStep() {
+      onboardingPanels.forEach((panel, index) => { panel.hidden = index !== onboardingStep - 1; });
+      onboardingDots.forEach((dot, index) => dot.classList.toggle('is-active', index < onboardingStep));
+      onboardingNext.textContent = onboardingStep === 3 ? onboardingNext.dataset.start! : onboardingNext.dataset.next!;
+    }
+    function openOnboarding(track = true) {
+      onboardingStep = 1; renderOnboardingStep();
+      if (!onboarding.open) onboarding.showModal();
+      if (track) trackEvent('onboarding_start', { language: form.dataset.lang });
+    }
+    document.getElementById('open-onboarding')!.addEventListener('click', () => openOnboarding());
+    onboardingNext.addEventListener('click', () => {
+      if (onboardingStep < 3) {
+        onboardingStep += 1; renderOnboardingStep();
+        trackEvent('onboarding_step', { step_number: onboardingStep, language: form.dataset.lang });
+      } else {
+        try { localStorage.setItem(ONBOARDING_STORAGE_KEY, 'complete'); } catch { /* optional local preference */ }
+        onboarding.close(); form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        trackEvent('onboarding_complete', { language: form.dataset.lang });
+      }
+    });
+    onboarding.addEventListener('close', () => {
+      try { localStorage.setItem(ONBOARDING_STORAGE_KEY, 'seen'); } catch { /* optional local preference */ }
+    });
+    document.getElementById('onboarding-skip')!.addEventListener('click', () =>
+      trackEvent('onboarding_skip', { step_number: onboardingStep, language: form.dataset.lang }));
+    try {
+      if (!localStorage.getItem(ONBOARDING_STORAGE_KEY)) requestAnimationFrame(() => openOnboarding(false));
+    } catch { /* storage or dialogs may be unavailable; the form still works */ }
 
     function updateReadingFocus(track = false) {
       const selected = focusInputs.find((input) => input.checked) ?? focusInputs[0];
@@ -424,6 +586,48 @@ const READING_FOCUSES = [
     .fortune-card--timing { grid-column: span 7; }
     .birth-form { position: relative; padding: clamp(1.1rem, 3vw, 1.6rem); display: grid; gap: var(--space-3); box-shadow: var(--shadow-float); }
     .birth-form::before { content: ''; position: absolute; inset: 0 0 auto; height: .35rem; background: linear-gradient(90deg, var(--el-wood), var(--el-fire), var(--el-earth), var(--el-metal), var(--el-water)); }
+    .form-tools { display: flex; align-items: flex-start; justify-content: space-between; gap: .55rem; margin-top: .2rem; }
+    .form-tools > button, .profile-manager > summary { display: inline-flex; min-height: 2.15rem; align-items: center; gap: .4rem; border: 1px solid var(--line); border-radius: 999px; padding: .4rem .7rem; color: var(--ink-soft); background: rgb(255 255 255 / .66); font: inherit; font-size: .64rem; font-weight: 760; cursor: pointer; list-style: none; }
+    .form-tools > button:hover, .profile-manager > summary:hover { color: var(--indigo); border-color: color-mix(in srgb, var(--indigo) 35%, var(--line)); background: white; }
+    .form-tools > button span { display: grid; inline-size: 1.15rem; aspect-ratio: 1; place-items: center; border-radius: 50%; color: white; background: var(--indigo); font-family: var(--font-mono); font-size: .58rem; }
+    .profile-manager { position: relative; }
+    .profile-manager > summary::-webkit-details-marker { display: none; }
+    .profile-manager[open] > summary { color: white; border-color: var(--indigo); background: var(--indigo); }
+    .profile-manager__body { position: absolute; z-index: 18; inset: calc(100% + .5rem) 0 auto auto; display: grid; gap: .7rem; width: min(22rem, calc(100vw - 2rem)); padding: .8rem; border: 1px solid var(--line); border-radius: var(--radius); background: rgb(255 255 255 / .97); box-shadow: 0 22px 55px rgb(30 46 38 / .2); backdrop-filter: blur(14px); }
+    .profile-list { display: grid; gap: .4rem; max-height: 12rem; overflow-y: auto; }
+    .profile-list > div { display: grid; grid-template-columns: 1fr auto; gap: .35rem; }
+    .profile-load { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: .7rem; border: 1px solid var(--line); border-radius: .7rem; padding: .55rem .65rem; color: var(--ink); background: var(--paper-raised); font: inherit; cursor: pointer; text-align: start; }
+    .profile-load:hover { border-color: color-mix(in srgb, var(--indigo) 38%, var(--line)); background: var(--jade-pale); }
+    .profile-load strong { overflow: hidden; font-size: .7rem; text-overflow: ellipsis; white-space: nowrap; }
+    .profile-load small { flex: 0 0 auto; color: var(--ink-soft); font-size: .58rem; }
+    .profile-delete { inline-size: 2.25rem; border: 1px solid var(--line); border-radius: .65rem; color: var(--ink-soft); background: white; font: inherit; cursor: pointer; }
+    .profile-delete:hover { color: var(--vermilion); border-color: color-mix(in srgb, var(--vermilion) 38%, var(--line)); }
+    .profile-empty { margin: 0; padding: .7rem; color: var(--ink-soft); background: var(--paper-sunken); border-radius: .7rem; font-size: .66rem; text-align: center; }
+    .profile-save-row { display: grid; gap: .35rem; }
+    .profile-save-row > label { color: var(--ink-soft); font-size: .6rem; font-weight: 750; }
+    .profile-save-row > div { display: grid; grid-template-columns: 1fr auto; gap: .4rem; }
+    .profile-save-row .field { min-width: 0; min-height: 2.4rem; padding: .5rem .65rem; font-size: .7rem; }
+    .profile-save-row .btn-secondary { min-height: 2.4rem; padding: .5rem .7rem; }
+    .profile-manager__body > p { margin: 0; color: var(--ink-soft); font-size: .58rem; line-height: 1.5; }
+
+    .onboarding-dialog { width: min(36rem, calc(100vw - 2rem)); max-width: none; overflow: hidden; border: 1px solid rgb(255 255 255 / .28); border-radius: 1.5rem; padding: 0; color: white; background: linear-gradient(135deg, #163c31, #2b624d); box-shadow: 0 35px 90px rgb(14 31 24 / .4); }
+    :global(.onboarding-dialog::backdrop) { background: rgb(19 27 23 / .58); backdrop-filter: blur(6px); }
+    .onboarding-dialog form { display: grid; gap: 1rem; padding: clamp(1.2rem, 4vw, 2rem); }
+    .onboarding-dialog header { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .7rem; }
+    .onboarding-dialog header > span { display: grid; inline-size: 2.6rem; aspect-ratio: 1; place-items: center; border-radius: .8rem; color: #245442; background: #fff; font-family: var(--font-display); font-size: 1.2rem; }
+    .onboarding-dialog header small { color: #efad7a; font-family: var(--font-mono); font-size: .58rem; font-weight: 800; }
+    .onboarding-dialog h2 { margin: .1rem 0 0; color: white; font-size: var(--text-xl); }
+    .onboarding-close { inline-size: 2rem; aspect-ratio: 1; border: 1px solid rgb(255 255 255 / .25); border-radius: 50%; color: white; background: rgb(255 255 255 / .08); font: inherit; font-size: 1rem; cursor: pointer; }
+    .onboarding-steps article { min-height: 11rem; padding: 1.2rem; border: 1px solid rgb(255 255 255 / .17); border-radius: 1rem; background: rgb(255 255 255 / .075); }
+    .onboarding-steps article[hidden] { display: none; }
+    .onboarding-steps article > span { color: #efad7a; font-family: var(--font-mono); font-size: .62rem; font-weight: 800; }
+    .onboarding-steps h3 { margin: .7rem 0 .45rem; color: white; font-size: 1.25rem; }
+    .onboarding-steps p { margin: 0; color: rgb(255 255 255 / .72); line-height: 1.7; }
+    .onboarding-progress { display: flex; gap: .35rem; }
+    .onboarding-progress i { flex: 1; block-size: .25rem; border-radius: 99px; background: rgb(255 255 255 / .15); }
+    .onboarding-progress i.is-active { background: #efad7a; }
+    .onboarding-dialog footer { display: flex; justify-content: flex-end; gap: .55rem; }
+    .onboarding-dialog footer button { min-width: 7rem; }
     .form-progress { display: flex; align-items: center; justify-content: center; gap: .45rem; margin: .35rem auto .15rem; color: var(--ink-soft); font-family: var(--font-mono); font-size: .65rem; font-weight: 800; letter-spacing: .08em; }
     .form-progress span { display: grid; inline-size: 1.75rem; block-size: 1.75rem; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: var(--paper-raised); transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast), transform var(--dur-fast); }
     .form-progress i { inline-size: clamp(1.5rem, 5vw, 3.5rem); block-size: 1px; background: linear-gradient(90deg, var(--line), #d8ddd9); }
@@ -504,6 +708,8 @@ const READING_FOCUSES = [
       .fortune-card, .fortune-card--basic, .fortune-card--health, .fortune-card--wealth, .fortune-card--movement, .fortune-card--timing { grid-column: span 1; }
     }
     @media (max-width: 560px) {
+      .profile-manager__body { position: fixed; inset: auto 1rem 1rem; width: auto; max-height: 70vh; overflow-y: auto; }
+      .onboarding-dialog footer { display: grid; grid-template-columns: 1fr 1fr; }
       .hero { margin-block-end: var(--space-20); }
       .hero-symbols span { inline-size: 1.85rem; block-size: 1.85rem; }
       .birth-form { padding: 1rem; }

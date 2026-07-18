@@ -517,6 +517,10 @@
     "crossNone": "兩張命盤的各柱交叉比較後，沒有出現額外的地支關係。",
     "spousePalaceDetail": "夫妻宮藏干",
     "spousePalaceNote": "並列顯示雙方日支中的藏干及其十神。它描述夫妻宮內部結構，不能單獨作為吉凶結論。",
+    "matrixInstruction": "選擇任一格即可查看對應兩柱的地支關係。中性格也會保留，以呈現完整背景。",
+    "hiddenStemLine": "{branch}中的{phase}：{god}，五行為{element}。這是一個結構層次，不能單獨下結論。",
+    "timingComparison": "目前運勢對照",
+    "timingNote": "並列顯示雙方目前大運和歲運，作為時間背景；不能據此單獨判斷關係成敗。",
     "relNone": "沒有特別的合與沖——平實的結構(很常見,也很好)。",
     "rel.trine": "三合",
     "rel.sameBranch": "同支",
@@ -548,5 +552,18 @@
     "culture.title": "韓國人為何看合婚",
     "culture.body": "數百年來,談婚論嫁時兩家先比較雙方命式:先看屬相(外合),再看日柱(內合)。這一習俗至今鮮活,婚前合婚仍是四柱諮詢的基本項目。用得好時,它不是算命,而是一場關於性情與時機的結構化對話。",
     "errBothRequired": "請輸入兩個人的出生日期。"
+  },
+  "experience": {
+    "profileTitle": "已儲存檔案", "profileEmpty": "尚無已儲存檔案", "profileName": "檔案名稱", "profileSave": "儲存到本機", "profileLocal": "僅儲存在此瀏覽器，不會上傳。", "profileDelete": "刪除",
+    "historyTitle": "最近合婚", "historyEmpty": "暫無最近合婚紀錄", "historyClear": "清除紀錄", "modeLabel": "顯示層級", "beginner": "入門", "expert": "專業",
+    "summaryTitle": "合婚概覽", "summaryCommunication": "日主溝通關係", "summaryEmotional": "夫妻宮連結", "summaryFriction": "緊張關係標記", "summarySupport": "五行補充", "summaryTiming": "目前運勢", "viewEvidence": "查看依據",
+    "healthDisclaimer": "健康頁面只說明傳統五行平衡主題，不構成醫療建議或診斷，也不能取代專業診療。", "onboardingNext": "下一步", "onboardingSkip": "略過引導", "skipToContent": "跳到正文", "menu": "選單"
+  },
+  "methodology": {
+    "title": "四柱計算方法", "lead": "公開每項結果所採用的節氣邊界、時間慣例、解釋層、隱私規則與驗證限制。",
+    "boundariesTitle": "節氣與換日邊界", "boundariesBody": "年柱和月柱依節氣邊界計算。預設依早子時規則在23點換日；若邊界時刻可能影響命盤，頁面會明確提示。",
+    "limitationsTitle": "計算事實與解釋的區別", "limitationsBody": "在所述規則下，四柱、五行及表格關係可確定計算。旺衰、喜用候選、格局、神煞及文字主題可能隨流派而異，屬於解釋層。",
+    "localTitle": "以架構保護隱私", "localBody": "所有計算都在瀏覽器中完成。網址片段、儲存檔案和最近合婚除非由你主動分享，否則只留在本機。",
+    "verificationTitle": "同時公開驗證範圍與限制", "verificationBody": "自動測試涵蓋曆法基準和規則不變量。尚待外部資料確認的項目會繼續記錄，本工具不宣稱已獲獨立認證。"
   }
 }

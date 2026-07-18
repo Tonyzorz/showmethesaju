@@ -16,6 +16,8 @@ function read(relativePath) {
 for (const locale of locales) {
   const homeHtml = read(path.join(locale, 'index.html'));
   assert(homeHtml.includes('id="birth-form"'), `${locale}: missing birth form`);
+  assert(homeHtml.includes('id="profile-list"') && homeHtml.includes('id="save-profile"') && homeHtml.includes('id="onboarding-dialog"'),
+    `${locale}: local profiles or guided onboarding are missing`);
   assert(homeHtml.includes(`/${locale}/#birth-form`), `${locale}: reading navigation must lead to the birth form`);
   assert((homeHtml.match(/class="fortune-card fortune-card--/g) || []).length === 9,
     `${locale}: homepage must contain nine themed reading cards`);
@@ -48,6 +50,9 @@ for (const locale of locales) {
     `${locale}: themed summary metrics or evidence link is missing`);
   assert(html.includes('id="focus-evidence"') && html.includes('id="focus-evidence-copy"') && html.includes('id="focus-evidence-sources"'),
     `${locale}: themed summary evidence drawer is missing`);
+  assert((html.match(/data-reading-mode=/g) || []).length === 3 && html.includes('id="focus-structure"') &&
+    html.includes('id="focus-timing"') && html.includes('id="health-disclaimer"'),
+    `${locale}: beginner/expert modes or expanded focus guidance are missing`);
   assert(html.includes('class="card chart-matrix-panel"') && html.includes('id="chart-facts"'),
     `${locale}: missing detailed original-chart matrix or fact grid`);
   assert((html.match(/data-layer-toggle=/g) || []).length === 4,
@@ -58,6 +63,8 @@ for (const locale of locales) {
   assert(html.includes('id="branch-relations"') && html.includes('id="stem-relations"') && html.includes('id="harmony-groups"') && html.includes('id="shinsal-list"'),
     `${locale}: missing branch, stem, harmony, or Shinsal panel`);
   assert(html.includes('id="daeun-list"') && html.includes('id="seun-list"'), `${locale}: missing Daeun or annual-luck panel`);
+  assert((html.match(/data-timing-target=/g) || []).length === 3 && html.includes('id="timing-path-wolun"'),
+    `${locale}: connected Daeun-Seun-Wolun navigator is missing`);
   assert(html.includes('id="analytics-consent"'), `${locale}: missing consent controls`);
   assert(html.includes("window.gtag('consent', 'default'"), `${locale}: consent default is not in the document head`);
   assert(!html.includes('<script async src="https://www.googletagmanager.com/gtag/js'), `${locale}: GA must not load before consent`);
@@ -68,7 +75,7 @@ for (const locale of locales) {
   assert(compatibilityHtml.includes('id="gunghap-result"') && compatibilityHtml.includes('id="gunghap-sections"'),
     `${locale}: Gunghap result shell is missing`);
   assert(compatibilityHtml.includes('id="pair-signature"') && compatibilityHtml.includes('id="pair-charts"') &&
-    (compatibilityHtml.match(/data-gunghap-target=/g) || []).length === 6,
+    (compatibilityHtml.match(/data-gunghap-target=/g) || []).length === 8,
     `${locale}: Gunghap pair signature, chart comparison, or result navigator is missing`);
   const compatibilityCss = [...compatibilityHtml.matchAll(/href="[^"]*\/_astro\/([^"]+\.css)"/g)]
     .map((match) => read(path.join('_astro', match[1])))
@@ -81,17 +88,25 @@ for (const locale of locales) {
     compatibilityCss.includes('.element-bg-soft--earth{') && compatibilityCss.includes('.cross-pillar-grid{') &&
     compatibilityCss.includes('.spouse-palace-grid{'),
     `${locale}: Gunghap card overrides or shared Five-Element utilities are missing`);
+  assert(compatibilityHtml.includes('id="compat-summary-grid"') && compatibilityHtml.includes('id="comparison-history"') &&
+    compatibilityHtml.includes('id="share-compatibility-png"'),
+    `${locale}: compatibility summary, local history, or sharing controls are missing`);
   assert(!compatibilityCss.includes('.mini-chart[data-astro-cid-') &&
     !compatibilityCss.includes('.signature-person[data-astro-cid-'),
     `${locale}: Gunghap dynamic-result CSS was incorrectly Astro-scoped`);
   assert(!compatibilityHtml.includes('REPLACE_ME') && !compatibilityHtml.includes('formspree.io/f/'),
     `${locale}: broken placeholder form endpoint remains in Gunghap`);
+
+  const methodologyHtml = read(path.join(locale, 'methodology', 'index.html'));
+  assert(methodologyHtml.includes('class="methodology-grid"') && methodologyHtml.includes('verification-note'),
+    `${locale}: localized calculation methodology page is missing`);
 }
 
 const jsDirectory = path.join(dist, '_astro');
 const bundles = fs.readdirSync(jsDirectory)
   .filter((name) => name.endsWith('.js'))
   .map((name) => ({ name, source: fs.readFileSync(path.join(jsDirectory, name), 'utf8') }));
+const allBundleSource = bundles.map(({ source }) => source).join('\n');
 
 const readingBundle = bundles.find(({ source }) => source.includes('Unable to render Saju chart'));
 assert(readingBundle, 'Could not identify the built reading bundle');
@@ -107,6 +122,8 @@ assert(homeBundle.source.includes('Intl.DateTimeFormat') && homeBundle.source.in
 assert(homeBundle.source.includes('gender'), 'Birth-form bundle does not carry gender into the chart query');
 assert(homeBundle.source.includes('reading_focus_select') && homeBundle.source.includes('reading_focus'),
   'Birth-form bundle does not carry or measure the selected reading focus');
+assert(homeBundle.source.includes('profile_save') && homeBundle.source.includes('onboarding_complete') && allBundleSource.includes('birth-profiles.v1'),
+  'Birth-form bundle is missing local profiles or onboarding behavior');
 assert(homeBundle.source.includes('`#${') || homeBundle.source.includes('`#${D}`') || homeBundle.source.includes('`#${q}`'),
   'Birth-form bundle does not keep chart state in the URL fragment');
 
@@ -120,6 +137,9 @@ assert(readingBundle.source.includes('reading_focus_select') && readingBundle.so
   'Reading bundle is missing themed summary switching, metrics, or annual-cycle support');
 assert(readingBundle.source.includes('reading_evidence_open') && readingBundle.source.includes('focus-evidence-sources'),
   'Reading bundle is missing expandable evidence behavior');
+assert(readingBundle.source.includes('reading_mode_select') && readingBundle.source.includes('timing_tier_navigate') &&
+  readingBundle.source.includes('health-disclaimer'),
+  'Reading bundle is missing display modes, connected timing navigation, or health safeguards');
 assert(readingBundle.source.includes('reading_section_navigate') && readingBundle.source.includes('ten-god-family') &&
   readingBundle.source.includes('current-timing-card'),
   'Reading bundle is missing section navigation, Ten-God family summaries, or current solar-month timing');
@@ -132,7 +152,9 @@ assert(gunghapBundle.source.includes('location.hash') && gunghapBundle.source.in
   'Gunghap bundle does not keep two-person birth state in the private URL fragment');
 assert(gunghapBundle.source.includes('gunghap_section_navigate') && gunghapBundle.source.includes('element-compare') &&
   gunghapBundle.source.includes('signature-person') && gunghapBundle.source.includes('gsection--wide') &&
-  gunghapBundle.source.includes('crossPillarRelations') && gunghapBundle.source.includes('spouse-hidden-chip'),
+  gunghapBundle.source.includes('crossPillarRelations') && gunghapBundle.source.includes('spouse-hidden-chip') &&
+  gunghapBundle.source.includes('compat-matrix__cell') && gunghapBundle.source.includes('comparison_history_open') &&
+  gunghapBundle.source.includes('share-compatibility-png'),
   'Gunghap bundle is missing result navigation, pair signature, or comparative result visualizations');
 
 const analyticsBundle = bundles.find(({ source }) => source.includes('google-analytics-script'));

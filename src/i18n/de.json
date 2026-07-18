@@ -517,6 +517,10 @@
     "crossNone": "Zwischen den Säulenpaaren beider Horoskope erscheinen keine zusätzlichen Astbeziehungen.",
     "spousePalaceDetail": "Verborgene Stämme im Partnerpalast",
     "spousePalaceNote": "Die verborgenen Stämme und Zehn Götter beider Tagesäste stehen nebeneinander. Sie beschreiben die innere Struktur des Partnerpalasts, nicht allein Gut oder Schlecht.",
+    "matrixInstruction": "Wähle eine Zelle, um die Beziehung dieser beiden Zweige zu prüfen. Neutrale Zellen bleiben für den Gesamtkontext sichtbar.",
+    "hiddenStemLine": "{phase} in {branch}: {god} mit dem Element {element}. Dies ist eine Strukturebene, kein Urteil.",
+    "timingComparison": "Vergleich der aktuellen Zeitqualität",
+    "timingNote": "Aktuelles Daeun und Seun stehen als zeitlicher Kontext nebeneinander. Sie entscheiden nicht allein über Erfolg oder Scheitern einer Beziehung.",
     "relNone": "Keine besondere Verbindung, kein Zusammenstoß — eine neutrale Struktur (häufig und völlig in Ordnung).",
     "rel.trine": "Trigon-Gruppe (samhap)",
     "rel.sameBranch": "Gleicher Zweig",
@@ -548,5 +552,18 @@
     "culture.title": "Warum Koreaner das Gunghap prüfen",
     "culture.body": "Jahrhundertelang verglichen koreanische Familien zwei Karten, bevor eine Ehe beschlossen wurde — erst die Jahrestiere (äußere Passung), dann die Tagessäulen (innere). Der Brauch lebt: Viele Paare prüfen das Gunghap noch vor der Hochzeit. Im besten Fall ist es keine Wahrsagerei, sondern ein strukturiertes Gespräch über Temperament und Timing.",
     "errBothRequired": "Bitte beide Geburtsdaten eingeben."
+  },
+  "experience": {
+    "profileTitle": "Gespeicherte Profile", "profileEmpty": "Noch keine Profile gespeichert", "profileName": "Profilname", "profileSave": "Lokal speichern", "profileLocal": "Nur in diesem Browser gespeichert; nichts wird hochgeladen.", "profileDelete": "Löschen",
+    "historyTitle": "Letzte Vergleiche", "historyEmpty": "Keine letzten Vergleiche", "historyClear": "Verlauf löschen", "modeLabel": "Anzeigeebene", "beginner": "Einsteiger", "expert": "Experte",
+    "summaryTitle": "Kompatibilität im Überblick", "summaryCommunication": "Kommunikation der Tagesmeister", "summaryEmotional": "Verbindung der Partnerpaläste", "summaryFriction": "Spannungsmarker", "summarySupport": "Element-Unterstützung", "summaryTiming": "Aktuelle Zeit", "viewEvidence": "Belege ansehen",
+    "healthDisclaimer": "Diese Gesundheitsansicht beschreibt nur traditionelle Themen der Elementbalance. Sie ist weder medizinischer Rat noch Diagnose und ersetzt keine fachliche Behandlung.", "onboardingNext": "Weiter", "onboardingSkip": "Einführung überspringen", "skipToContent": "Zum Inhalt springen", "menu": "Menü"
+  },
+  "methodology": {
+    "title": "So wird dieses Saju berechnet", "lead": "Sieh Kalendergrenzen, Zeitkonventionen, Deutungsebenen, Datenschutzregeln und Prüfgrenzen hinter jedem Ergebnis ein.",
+    "boundariesTitle": "Solartermine und Tagesgrenzen", "boundariesBody": "Jahres- und Monatssäule folgen Solarterminen. Standardmäßig wechselt der Tag nach der frühen-Rattenstunde-Konvention um 23 Uhr; mögliche Grenzfälle werden angezeigt.",
+    "limitationsTitle": "Berechnung und Deutung", "limitationsBody": "Nach der genannten Konvention sind Säulen, Elemente und Tabellenbeziehungen deterministisch. Stärke, hilfreiche Elemente, Strukturen, Shinsal und Erzählthemen können je nach Schule variieren.",
+    "localTitle": "Datenschutz durch Architektur", "localBody": "Die Berechnung läuft im Browser. URL-Fragmente, Profile und letzte Vergleiche bleiben lokal, sofern du sie nicht bewusst teilst.",
+    "verificationTitle": "Geprüft, mit klaren Grenzen", "verificationBody": "Automatisierte Tests decken Kalenderanker und Regelinvarianten ab. Ausstehende externe Prüfungen bleiben dokumentiert; eine unabhängige Zertifizierung wird nicht behauptet."
   }
 }

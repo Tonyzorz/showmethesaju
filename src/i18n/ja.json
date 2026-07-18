@@ -517,6 +517,10 @@
     "crossNone": "二つの命式の柱を交差比較しても、追加の地支関係はありません。",
     "spousePalaceDetail": "配偶者宮の蔵干",
     "spousePalaceNote": "それぞれの日支に含まれる蔵干と通変星を並べます。配偶者宮内部の構造であり、単独で吉凶を決める項目ではありません。",
+    "matrixInstruction": "セルを選ぶと、その二つの柱の地支関係を詳しく確認できます。全体像のため、中立のセルも表示します。",
+    "hiddenStemLine": "{branch}にある{phase}：{god}で、五行は{element}です。これは構造の一層であり、単独の判定ではありません。",
+    "timingComparison": "現在の運気比較",
+    "timingNote": "二人の現在の大運と歳運を時間的な背景として並べます。これだけで関係の成否を決めるものではありません。",
     "relNone": "特別な合も冲もありません — 穏やかな構造です(よくあることで、問題ありません)。",
     "rel.trine": "三合グループ",
     "rel.sameBranch": "同じ地支",
@@ -548,5 +552,18 @@
     "culture.title": "韓国人はなぜ宮合を見るのか",
     "culture.body": "何百年もの間、縁談が持ち上がると両家はまずふたりの命式を比べました。先に干支(外の相性)、次に日柱(内の相性)。この習慣は今も生きていて、結婚前の宮合は四柱相談の定番です。良い形で使えば占いではなく、気質とタイミングについての構造化された対話です。",
     "errBothRequired": "ふたりの生年月日を入力してください。"
+  },
+  "experience": {
+    "profileTitle": "保存したプロフィール", "profileEmpty": "保存したプロフィールはありません", "profileName": "プロフィール名", "profileSave": "端末に保存", "profileLocal": "このブラウザだけに保存され、アップロードされません。", "profileDelete": "削除",
+    "historyTitle": "最近の相性比較", "historyEmpty": "最近の比較はありません", "historyClear": "履歴を消去", "modeLabel": "表示レベル", "beginner": "初心者", "expert": "専門",
+    "summaryTitle": "相性の概要", "summaryCommunication": "日干のコミュニケーション", "summaryEmotional": "配偶者宮のつながり", "summaryFriction": "緊張の指標", "summarySupport": "五行の補完", "summaryTiming": "現在の運気", "viewEvidence": "根拠を見る",
+    "healthDisclaimer": "健康表示は伝統的な五行バランスのテーマのみを説明します。医療助言や診断ではなく、専門的な診療の代わりにはなりません。", "onboardingNext": "次へ", "onboardingSkip": "案内をスキップ", "skipToContent": "本文へ移動", "menu": "メニュー"
+  },
+  "methodology": {
+    "title": "この四柱推命の計算方法", "lead": "各結果に用いる節気境界、時間の慣例、解釈層、プライバシー規則、検証の限界を公開します。",
+    "boundariesTitle": "節気と日の境界", "boundariesBody": "年柱と月柱は節気の境界に従います。日は早子時の慣例により原則23時に切り替わり、境界時刻が命式に影響する場合は画面で示します。",
+    "limitationsTitle": "計算事実と解釈の区別", "limitationsBody": "明示した方式では柱、五行、表の関係は決定的に算出されます。強弱、用神候補、格局、神殺、文章によるテーマは流派で異なり得る解釈層です。",
+    "localTitle": "設計によるプライバシー", "localBody": "計算はブラウザ内で実行されます。URLフラグメント、保存プロフィール、最近の比較は、利用者が共有しない限り端末内に残ります。",
+    "verificationTitle": "検証範囲と限界を明示", "verificationBody": "暦の基準例とルール不変条件を自動テストしています。外部基準で未確認の項目は文書に残し、独立認証済みとは表示しません。"
   }
 }

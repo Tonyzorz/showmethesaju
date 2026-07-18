@@ -517,6 +517,10 @@
     "crossNone": "Không có quan hệ địa chi bổ sung nào khi đối chiếu chéo các trụ của hai lá số.",
     "spousePalaceDetail": "Tàng can tại cung phối ngẫu",
     "spousePalaceNote": "Đặt tàng can và Thập thần trong chi ngày của mỗi người cạnh nhau. Đây là cấu trúc bên trong cung phối ngẫu, không phải kết luận cát hung độc lập.",
+    "matrixInstruction": "Chọn một ô để xem quan hệ địa chi giữa hai trụ đó. Các ô trung tính vẫn được giữ để bảo toàn bối cảnh.",
+    "hiddenStemLine": "{phase} trong {branch}: {god}, mang hành {element}. Đây là một lớp cấu trúc, không phải kết luận riêng lẻ.",
+    "timingComparison": "So sánh vận hiện tại",
+    "timingNote": "Đại vận và lưu niên hiện tại của hai người được đặt cạnh nhau như bối cảnh thời gian, không tự quyết định thành bại của quan hệ.",
     "relNone": "Không có hợp hay xung đặc biệt — cấu trúc bình ổn (rất thường gặp và hoàn toàn ổn).",
     "rel.trine": "Nhóm tam hợp",
     "rel.sameBranch": "Cùng chi",
@@ -548,5 +552,18 @@
     "culture.title": "Vì sao người Hàn xem cung hợp",
     "culture.body": "Hàng trăm năm qua, khi bàn chuyện cưới hỏi, hai nhà so hai lá số trước: con giáp trước (hợp ngoài), rồi trụ ngày (hợp trong). Tập tục ấy vẫn sống: nhiều cặp đôi vẫn xem cung hợp trước đám cưới. Ở dạng đẹp nhất, đó không phải bói toán mà là cuộc trò chuyện có cấu trúc về khí chất và thời điểm.",
     "errBothRequired": "Vui lòng nhập ngày sinh của cả hai người."
+  },
+  "experience": {
+    "profileTitle": "Hồ sơ đã lưu", "profileEmpty": "Chưa có hồ sơ đã lưu", "profileName": "Tên hồ sơ", "profileSave": "Lưu trên thiết bị", "profileLocal": "Chỉ lưu trong trình duyệt này, không tải lên.", "profileDelete": "Xóa",
+    "historyTitle": "So sánh gần đây", "historyEmpty": "Chưa có so sánh gần đây", "historyClear": "Xóa lịch sử", "modeLabel": "Mức hiển thị", "beginner": "Cơ bản", "expert": "Chuyên sâu",
+    "summaryTitle": "Tổng quan hợp mệnh", "summaryCommunication": "Giao tiếp giữa Nhật chủ", "summaryEmotional": "Liên kết cung phối ngẫu", "summaryFriction": "Dấu hiệu căng thẳng", "summarySupport": "Bổ trợ ngũ hành", "summaryTiming": "Vận hiện tại", "viewEvidence": "Xem căn cứ",
+    "healthDisclaimer": "Mục sức khỏe chỉ mô tả chủ đề cân bằng ngũ hành theo truyền thống. Đây không phải tư vấn hay chẩn đoán y khoa và không thay thế chăm sóc chuyên môn.", "onboardingNext": "Tiếp", "onboardingSkip": "Bỏ qua hướng dẫn", "skipToContent": "Đến nội dung", "menu": "Trình đơn"
+  },
+  "methodology": {
+    "title": "Cách tính lá số này", "lead": "Xem ranh giới lịch, quy ước thời gian, lớp diễn giải, quy tắc riêng tư và giới hạn kiểm chứng phía sau mỗi kết quả.",
+    "boundariesTitle": "Tiết khí và ranh giới ngày", "boundariesBody": "Trụ năm và tháng theo tiết khí. Mặc định ngày đổi lúc 23 giờ theo quy ước đầu giờ Tý; các trường hợp sát ranh giới có thể đổi lá số sẽ được thông báo.",
+    "limitationsTitle": "Phân biệt tính toán và diễn giải", "limitationsBody": "Theo quy ước đã nêu, trụ, ngũ hành và quan hệ bảng được tính xác định. Vượng suy, hành hữu ích, cách cục, thần sát và chủ đề diễn giải có thể khác theo trường phái.",
+    "localTitle": "Riêng tư từ kiến trúc", "localBody": "Phép tính chạy trong trình duyệt. Mảnh URL, hồ sơ và so sánh gần đây ở lại thiết bị trừ khi bạn chủ động chia sẻ.",
+    "verificationTitle": "Kiểm chứng cùng giới hạn rõ ràng", "verificationBody": "Kiểm thử tự động bao phủ mốc lịch và bất biến quy tắc. Các đối chiếu bên ngoài còn chờ vẫn được ghi lại; công cụ không tự nhận chứng nhận độc lập."
   }
 }

@@ -86,13 +86,14 @@ const commerce = [
     <link rel="stylesheet" href={withBase('/fonts/fonts.css')} />
   </head>
   <body>
+    <a class="skip-link" href="#main-content">{t(lang, 'experience.skipToContent')}</a>
     <header class="site-header">
       <div class="header-inner">
         <a class="logo" href={withBase(`/${lang}/`)} data-analytics-event="navigation_click" data-analytics-destination="home" data-analytics-area="header">
           <span class="seal seal--logo" aria-hidden="true">쇼미</span>
           <span class="logo-text">{t(lang, 'meta.siteName')}</span>
         </a>
-        <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">☰</button>
+        <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label={t(lang, 'experience.menu')}>☰</button>
         <nav id="site-nav" class="site-nav">
           {nav.map((n) => <a href={n.href} data-analytics-event="navigation_click" data-analytics-destination={n.analyticsKey} data-analytics-area="header">{n.label}</a>)}
           <div class="nav-commerce">
@@ -117,7 +118,7 @@ const commerce = [
       </div>
     </header>
 
-    <main class="site-main"><slot /></main>
+    <main id="main-content" class="site-main" tabindex="-1"><slot /></main>
 
     <footer class="site-footer">
       <div class="footer-inner">
@@ -125,6 +126,7 @@ const commerce = [
           <a href="https://smartstore.naver.com/" rel="noopener" target="_blank" data-analytics-event="shop_click" data-analytics-destination="naver_store" data-analytics-area="footer">{t(lang, 'footer.shop')}</a>
           <a href="https://pf.kakao.com/" rel="noopener" target="_blank" data-analytics-event="booking_click" data-analytics-destination="kakao_booking" data-analytics-area="footer">{t(lang, 'footer.booking')}</a>
           <a href={withBase(`/${lang}/privacy/`)} data-analytics-event="navigation_click" data-analytics-destination="privacy" data-analytics-area="footer">{t(lang, 'footer.privacy')}</a>
+          <a href={withBase(`/${lang}/methodology/`)} data-analytics-event="navigation_click" data-analytics-destination="methodology" data-analytics-area="footer">{t(lang, 'methodology.title')}</a>
           <button id="analytics-settings" class="footer-settings" type="button">{t(lang, 'analytics.settings')}</button>
         </div>
         <p class="footer-rights">{t(lang, 'footer.rights', { year })}</p>
@@ -170,6 +172,8 @@ const commerce = [
         box-shadow: 0 10px 30px rgb(31 43 37 / 0.04);
         backdrop-filter: blur(18px) saturate(130%);
       }
+      .skip-link { position: fixed; z-index: 100; inset: .7rem auto auto .7rem; padding: .65rem .85rem; border-radius: .65rem; color: white; background: var(--indigo); font-size: .75rem; font-weight: 800; text-decoration: none; transform: translateY(-160%); transition: transform var(--dur-fast); }
+      .skip-link:focus { transform: translateY(0); }
       .header-inner, .footer-inner { max-width: var(--container); margin: 0 auto; padding: var(--space-3) var(--space-5); }
       .header-inner { display: flex; align-items: center; gap: clamp(.75rem, 1.6vw, 1.5rem); min-height: 4.5rem; }
       .logo { display: flex; align-items: center; gap: .7rem; text-decoration: none; color: var(--ink); flex: 0 0 auto; }

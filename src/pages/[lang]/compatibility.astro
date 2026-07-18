@@ -14,10 +14,13 @@ const pick = (prefix: string) =>
   Object.fromEntries(Object.entries(R).filter(([k]) => k.startsWith(prefix)));
 const strings = {
   ...ns(lang, 'gunghap'),
+  ...ns(lang, 'experience'),
   ...pick('el.'), ...pick('strengthV.'), ...pick('tg.'), ...pick('qi.'),
   pillarYear: R['pillarYear'], pillarMonth: R['pillarMonth'],
   pillarDay: R['pillarDay'], pillarHour: R['pillarHour'],
   hiddenStems: R['hiddenStems'], hiddenStemsContext: R['hiddenStemsContext'],
+  daeun: R['daeun'], seun: R['seun'], forward: R['forward'], reverse: R['reverse'],
+  share: R['share'], sharePng: R['sharePng'], shared: R['shared'],
   errFuture: t(lang, 'form.errFuture'),
   errLunarRange: t(lang, 'form.errLunarRange'),
 };
@@ -37,6 +40,11 @@ const personFields = [
     <p class="trust-line">{t(lang, 'gunghap.formNote')}</p>
   </section>
 
+  <section id="comparison-history" class="card comparison-history" hidden>
+    <header><div><small>{t(lang, 'experience.profileLocal')}</small><h2>{t(lang, 'experience.historyTitle')}</h2></div><button id="clear-comparison-history" type="button">{t(lang, 'experience.historyClear')}</button></header>
+    <div id="comparison-history-list" data-empty={t(lang, 'experience.historyEmpty')}></div>
+  </section>
+
   <form id="gunghap-form" class="card gform" data-lang={lang}>
     <h2 class="gform-title">{t(lang, 'gunghap.formTitle')}</h2>
     <div class="gform-grid">
@@ -46,6 +54,10 @@ const personFields = [
             <span class="person-badge">{person.key === 'a' ? '甲' : '乙'}</span>
             <h3>{person.label}</h3>
           </header>
+          <label class="saved-person-profile">
+            <span>{t(lang, 'experience.profileTitle')}</span>
+            <select class="field" data-profile-for={person.key}><option value="">— {t(lang, 'experience.profileEmpty')} —</option></select>
+          </label>
 
           <div class="input-step" data-input-step={`${person.key}-date`}>
             <div class="input-step__heading">
@@ -136,16 +148,26 @@ const personFields = [
         <a class="btn-secondary" href={withBase(`/${lang}/compatibility/`)}>{t(lang, 'gunghap.reset')}</a>
       </div>
       <div id="pair-signature" class="pair-signature"></div>
+      <div class="result-actions">
+        <button id="share-compatibility" class="btn-secondary" type="button">{t(lang, 'reading.share')}</button>
+        <button id="share-compatibility-png" class="btn-secondary" type="button">{t(lang, 'reading.sharePng')}</button>
+      </div>
     </header>
+    <section id="compat-summary" class="compat-summary" aria-labelledby="compat-summary-title">
+      <div class="compat-summary__heading"><div><p>{t(lang, 'gunghap.formTitle')}</p><h2 id="compat-summary-title">{t(lang, 'experience.summaryTitle')}</h2></div><span>{t(lang, 'gunghap.resultNote')}</span></div>
+      <div id="compat-summary-grid" class="compat-summary-grid"></div>
+    </section>
     <nav class="gunghap-jumpbar" aria-label={t(lang, 'gunghap.resultTitle')}>
       <span aria-hidden="true">≡</span>
       <div>
+        <button type="button" data-gunghap-target="compat-summary">{t(lang, 'experience.summaryTitle')}</button>
         <button type="button" data-gunghap-target="pair-charts">{t(lang, 'gunghap.formTitle')}</button>
         <button type="button" data-gunghap-target="gsection-inner">{t(lang, 'gunghap.inner')}</button>
         <button type="button" data-gunghap-target="gsection-cross">{t(lang, 'gunghap.crossPillars')}</button>
         <button type="button" data-gunghap-target="gsection-spouse">{t(lang, 'gunghap.spousePalaceDetail')}</button>
         <button type="button" data-gunghap-target="gsection-tengods">{t(lang, 'gunghap.tengods')}</button>
         <button type="button" data-gunghap-target="gsection-elements">{t(lang, 'gunghap.elements')}</button>
+        <button type="button" data-gunghap-target="gsection-timing">{t(lang, 'gunghap.timingComparison')}</button>
       </div>
     </nav>
     <section id="pair-charts" class="pair-charts-section" aria-label={t(lang, 'gunghap.formTitle')}>
@@ -169,9 +191,13 @@ const personFields = [
   <script>
     import KoreanLunarCalendar from 'korean-lunar-calendar';
     import { tzOffsetMinutes } from '../../lib/cities';
-    import { computeGunghap, type GunghapResult, type PairRelation } from '../../lib/gunghap';
-    import type { PillarRole, SajuInput, SajuResult } from '../../lib/saju-engine';
+    import { branchPair, computeGunghap, type GunghapResult, type PairRelation } from '../../lib/gunghap';
+    import { computeAnnualLuck, ipchunUtcMs, type PillarRole, type SajuInput, type SajuResult } from '../../lib/saju-engine';
     import { trackEvent } from '../../lib/analytics';
+    import {
+      clearComparisonHistory, loadComparisonHistory, loadProfiles, rememberComparison,
+      type BirthProfileData,
+    } from '../../lib/local-data';
 
     const S: Record<string, string> = JSON.parse(document.getElementById('i18n-gunghap')!.textContent!);
     const fmt = (template: string, vars: Record<string, string | number>) =>
@@ -179,6 +205,8 @@ const personFields = [
     const form = document.getElementById('gunghap-form') as HTMLFormElement;
     const errEl = form.querySelector('.form-error') as HTMLElement;
     const steps = Array.from(form.querySelectorAll<HTMLElement>('[data-input-step]'));
+    const historyPanel = document.getElementById('comparison-history')!;
+    const historyList = document.getElementById('comparison-history-list')!;
 
     // Same interaction model as the main birth form: dynamic max date,
     // step completion marks, error highlighting on the offending step.
@@ -190,11 +218,13 @@ const personFields = [
     function clearError() {
       errEl.hidden = true;
       steps.forEach((step) => step.classList.remove('has-error'));
+      form.querySelectorAll('[aria-invalid="true"]').forEach((field) => field.removeAttribute('aria-invalid'));
     }
     function showError(message: string, stepName: string, focusEl?: HTMLElement | null) {
       errEl.textContent = message;
       errEl.hidden = false;
       stepByName(stepName)?.classList.add('has-error');
+      focusEl?.setAttribute('aria-invalid', 'true');
       focusEl?.focus();
     }
 
@@ -232,6 +262,65 @@ const personFields = [
       );
     });
     updateSteps();
+
+    let gunghapFormStarted = false;
+    form.addEventListener('input', () => {
+      if (gunghapFormStarted) return;
+      gunghapFormStarted = true;
+      trackEvent('gunghap_form_start', { language: document.documentElement.lang });
+    }, { once: true });
+
+    function applySavedProfile(key: 'a' | 'b', data: BirthProfileData) {
+      (form.elements.namedItem(`${key}-date`) as HTMLInputElement).value = data.date;
+      (form.elements.namedItem(`${key}-time`) as HTMLInputElement).value = data.time;
+      (form.elements.namedItem(`${key}-tu`) as HTMLInputElement).checked = data.timeUnknown;
+      form.querySelector<HTMLInputElement>(`input[name="${key}-cal"][value="${data.calendar}"]`)!.checked = true;
+      (form.elements.namedItem(`${key}-leap`) as HTMLInputElement).checked = data.leap;
+      form.querySelector<HTMLInputElement>(`input[name="${key}-gender"][value="${data.gender}"]`)!.checked = true;
+      (form.elements.namedItem(`${key}-city`) as HTMLSelectElement).value = data.city;
+      const personIndex = key === 'a' ? 0 : 1;
+      (form.querySelectorAll('.lunar-only')[personIndex] as HTMLElement).hidden = data.calendar !== 'lunar';
+      form.querySelectorAll<HTMLElement>(`[data-input-step^="${key}-"]`).forEach((step) => step.classList.add('is-touched'));
+      updateSteps(); clearError();
+    }
+
+    const profiles = loadProfiles();
+    form.querySelectorAll<HTMLSelectElement>('[data-profile-for]').forEach((select) => {
+      for (const profile of profiles) {
+        const option = document.createElement('option'); option.value = profile.id; option.textContent = profile.name;
+        select.append(option);
+      }
+      select.addEventListener('change', () => {
+        const profile = profiles.find((item) => item.id === select.value);
+        const key = select.dataset.profileFor as 'a' | 'b';
+        if (profile && (key === 'a' || key === 'b')) {
+          applySavedProfile(key, profile.data);
+          trackEvent('profile_load', { storage_type: 'local', selection_area: 'gunghap', language: document.documentElement.lang });
+        }
+      });
+    });
+
+    function renderComparisonHistory() {
+      const items = loadComparisonHistory();
+      historyPanel.hidden = !items.length;
+      historyList.replaceChildren();
+      if (!items.length) return;
+      const formatter = new Intl.DateTimeFormat(document.documentElement.lang, { dateStyle: 'medium' });
+      for (const item of items) {
+        const link = document.createElement('a');
+        link.href = `#${item.fragment}`;
+        const signature = document.createElement('strong'); signature.textContent = item.signature;
+        const date = document.createElement('small'); date.textContent = formatter.format(new Date(item.createdAt));
+        link.append(signature, date); historyList.append(link);
+        link.addEventListener('click', () =>
+          trackEvent('comparison_history_open', { storage_type: 'local', language: document.documentElement.lang }));
+      }
+    }
+    document.getElementById('clear-comparison-history')!.addEventListener('click', () => {
+      clearComparisonHistory(); renderComparisonHistory();
+      trackEvent('comparison_history_clear', { storage_type: 'local', language: document.documentElement.lang });
+    });
+    renderComparisonHistory();
 
     type PersonParams = Record<string, string>;
     function readPerson(f: FormData, key: string): PersonParams | { error: string; step: string } {
@@ -323,19 +412,23 @@ const personFields = [
     };
 
     function crossPillarComparison(g: GunghapResult) {
-      if (!g.crossPillarRelations.length) return `<p class="soft">${S['crossNone']}</p>`;
-      return `<div class="cross-pillar-grid">${g.crossPillarRelations.map((item) => {
-        const aPillar = g.a[item.aRole]!;
-        const bPillar = g.b[item.bRole]!;
-        return `<article class="cross-pillar-item">
-          <header>
-            <span><small>${S['personA']} · ${roleLabels[item.aRole]}</small><strong lang="ko">${aPillar.branchHanja}</strong></span>
-            <i aria-hidden="true">↔</i>
-            <span><small>${S['personB']} · ${roleLabels[item.bRole]}</small><strong lang="ko">${bPillar.branchHanja}</strong></span>
-          </header>
-          ${relBlock(item.relations)}
-        </article>`;
-      }).join('')}</div>`;
+      const roles: PillarRole[] = ['year', 'month', 'day', 'hour'];
+      const columns = roles.map((role) => `<div class="compat-matrix__axis"><small>${S['personB']}</small><strong>${roleLabels[role]}</strong></div>`).join('');
+      const rows = roles.map((aRole) => {
+        const aPillar = g.a[aRole];
+        const cells = roles.map((bRole) => {
+          const bPillar = g.b[bRole];
+          if (!aPillar || !bPillar) return `<span class="compat-matrix__empty" aria-hidden="true">—</span>`;
+          const relations = branchPair(aPillar.branch, bPillar.branch);
+          const state = relations.some((rel) => ['punishment', 'clash', 'break', 'harm', 'grudge', 'ghostGate'].includes(rel))
+            ? 'tense' : relations.length ? 'smooth' : 'neutral';
+          return `<button type="button" class="compat-matrix__cell compat-matrix__cell--${state}" data-matrix-a="${aRole}" data-matrix-b="${bRole}" aria-label="${S['personA']} ${roleLabels[aRole]} ${aPillar.branchHanja}, ${S['personB']} ${roleLabels[bRole]} ${bPillar.branchHanja}">
+            <span lang="ko">${aPillar.branchHanja}<i>↔</i>${bPillar.branchHanja}</span><small>${relations.length || '—'}</small>
+          </button>`;
+        }).join('');
+        return `<div class="compat-matrix__axis compat-matrix__axis--row"><small>${S['personA']}</small><strong>${roleLabels[aRole]}</strong></div>${cells}`;
+      }).join('');
+      return `<p class="matrix-instruction">${S['matrixInstruction']}</p><div class="compat-matrix" role="group" aria-label="${S['crossPillars']}"><span></span>${columns}${rows}</div><div id="matrix-detail" class="matrix-detail" aria-live="polite"></div>`;
     }
 
     function spousePalaceHiddenStems(g: GunghapResult) {
@@ -346,13 +439,28 @@ const personFields = [
             <strong lang="ko">${r.day.branchHanja}</strong>
             <small>${S['pillarDay']}</small>
           </header>
-          <div>${r.hiddenStems.day.map((stem) => `<div class="spouse-hidden-chip">
-            <small>${S[`qi.${stem.phase}`]}</small>
-            <strong class="element-text--${stem.element}" lang="ko">${stem.stemHanja}</strong>
-            <span>${tgLabel(stem.tenGod)}</span>
-          </div>`).join('')}</div>
+          <div>${r.hiddenStems.day.map((stem) => `<details class="spouse-hidden-chip">
+            <summary><small>${S[`qi.${stem.phase}`]}</small><strong class="element-text--${stem.element}" lang="ko">${stem.stemHanja}</strong><span>${tgLabel(stem.tenGod)}</span></summary>
+            <p>${fmt(S['hiddenStemLine'], { phase: S[`qi.${stem.phase}`], branch: r.day.branchHanja, god: tgLabel(stem.tenGod), element: elLabel(stem.element) })}</p>
+          </details>`).join('')}</div>
         </article>`;
       return `<div class="spouse-palace-grid">${card(g.a, S['personA'], 'a')}${card(g.b, S['personB'], 'b')}</div>`;
+    }
+
+    function setupCompatibilityMatrix(g: GunghapResult) {
+      const detail = document.getElementById('matrix-detail')!;
+      const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-matrix-a][data-matrix-b]'));
+      const select = (button: HTMLButtonElement, track = false) => {
+        const aRole = button.dataset.matrixA as PillarRole;
+        const bRole = button.dataset.matrixB as PillarRole;
+        const aPillar = g.a[aRole]!;
+        const bPillar = g.b[bRole]!;
+        buttons.forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+        detail.innerHTML = `<div><small>${S['personA']} · ${roleLabels[aRole]}</small><strong lang="ko">${aPillar.branchHanja}</strong></div><span aria-hidden="true">↔</span><div><small>${S['personB']} · ${roleLabels[bRole]}</small><strong lang="ko">${bPillar.branchHanja}</strong></div><aside>${relBlock(branchPair(aPillar.branch, bPillar.branch))}</aside>`;
+        if (track) trackEvent('gunghap_matrix_select', { relation_state: branchPair(aPillar.branch, bPillar.branch).length ? 'present' : 'neutral', language: document.documentElement.lang });
+      };
+      buttons.forEach((button) => button.addEventListener('click', () => select(button, true)));
+      if (buttons[0]) select(buttons[0]);
     }
 
     function elementComparison(g: GunghapResult) {
@@ -374,6 +482,72 @@ const personFields = [
           </div>`;
         }).join('')}
       </div>`;
+    }
+
+    function compatibilityTiming(r: SajuResult) {
+      const now = new Date();
+      let sajuYear = now.getUTCFullYear();
+      if (Date.now() < ipchunUtcMs(sajuYear)) sajuYear -= 1;
+      const activeDaeun = r.daeun?.cycles.find((cycle, index, cycles) =>
+        sajuYear >= cycle.startYear && (index === cycles.length - 1 || sajuYear < cycles[index + 1].startYear)) ?? null;
+      return { sajuYear, activeDaeun, annual: computeAnnualLuck(r, sajuYear, 1)[0] };
+    }
+
+    function timingComparison(g: GunghapResult) {
+      const a = compatibilityTiming(g.a);
+      const b = compatibilityTiming(g.b);
+      const card = (label: string, r: SajuResult, timing: ReturnType<typeof compatibilityTiming>, person: 'a' | 'b') =>
+        `<article class="compat-timing-card compat-timing-card--${person}">
+          <header><span>${label}</span><small>${timing.sajuYear}</small></header>
+          <div><small>${S['daeun']}</small><strong lang="ko">${timing.activeDaeun?.pillar.hanja ?? '—'}</strong><span>${r.daeun ? S[r.daeun.direction] : '—'}</span></div>
+          <div><small>${S['seun']}</small><strong lang="ko">${timing.annual.pillar.hanja}</strong><span>${tgLabel(timing.annual.pillar.tenGod ?? '')}</span></div>
+        </article>`;
+      return `<div class="compat-timing-grid">${card(S['personA'], g.a, a, 'a')}<div class="compat-timing-link"><span>歲</span>${relBlock(branchPair(a.annual.pillar.branch, b.annual.pillar.branch))}</div>${card(S['personB'], g.b, b, 'b')}</div>`;
+    }
+
+    function renderCompatibilitySummary(g: GunghapResult, stemLine: string) {
+      const tenseRelations = g.crossPillarRelations.flatMap((item) => item.relations)
+        .filter((relation) => ['punishment', 'clash', 'break', 'harm', 'grudge', 'ghostGate'].includes(relation));
+      const aTiming = compatibilityTiming(g.a);
+      const bTiming = compatibilityTiming(g.b);
+      const inner = g.dayRelations.length ? g.dayRelations.map((rel) => S[`rel.${rel}`] ?? rel).join(' · ') : S['relNone'];
+      const fills = [...g.bFillsForA, ...g.aFillsForB];
+      const cards = [
+        ['言', S['summaryCommunication'], stemLine, 'gsection-stems'],
+        ['心', S['summaryEmotional'], inner, 'gsection-inner'],
+        ['交', S['summaryFriction'], `${tenseRelations.length} · ${S['crossPillars']}`, 'gsection-cross'],
+        ['補', S['summarySupport'], fills.length ? fills.map(elLabel).join(' · ') : S['fillsNone'], 'gsection-elements'],
+        ['運', S['summaryTiming'], `${aTiming.activeDaeun?.pillar.hanja ?? '—'} ↔ ${bTiming.activeDaeun?.pillar.hanja ?? '—'} · ${aTiming.sajuYear}`, 'gsection-timing'],
+      ];
+      document.getElementById('compat-summary-grid')!.innerHTML = cards.map(([mark, title, body, target]) =>
+        `<a class="compat-summary-card" href="#${target}"><span aria-hidden="true">${mark}</span><div><small>${S['viewEvidence']}</small><h3>${title}</h3><p>${body}</p></div><i aria-hidden="true">↘</i></a>`
+      ).join('');
+    }
+
+    function setupCompatibilitySharing(g: GunghapResult) {
+      const share = document.getElementById('share-compatibility') as HTMLButtonElement;
+      const save = document.getElementById('share-compatibility-png') as HTMLButtonElement;
+      share.onclick = async () => {
+        try { await navigator.clipboard.writeText(location.href); share.textContent = S['shared']; }
+        catch { /* Clipboard permission can be denied; the URL remains visible. */ }
+        trackEvent('share', { method: 'link', content_type: 'gunghap', language: document.documentElement.lang });
+      };
+      save.onclick = () => {
+        const canvas = document.createElement('canvas'); canvas.width = 1200; canvas.height = 630;
+        const ctx = canvas.getContext('2d')!;
+        const gradient = ctx.createLinearGradient(0, 0, 1200, 630); gradient.addColorStop(0, '#173b31'); gradient.addColorStop(1, '#3d735e');
+        ctx.fillStyle = gradient; ctx.fillRect(0, 0, 1200, 630);
+        ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.beginPath(); ctx.arc(1050, 90, 260, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#efad7a'; ctx.font = '700 24px sans-serif'; ctx.fillText(S['resultTitle'], 90, 90);
+        ctx.fillStyle = '#fff'; ctx.font = '700 90px serif'; ctx.textAlign = 'center';
+        ctx.fillText(g.a.dayMaster.hanja, 350, 310); ctx.fillText('合', 600, 310); ctx.fillText(g.b.dayMaster.hanja, 850, 310);
+        ctx.font = '600 28px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,.78)';
+        ctx.fillText(`${elLabel(g.a.dayMaster.element)}  ↔  ${elLabel(g.b.dayMaster.element)}`, 600, 390);
+        ctx.font = '500 22px sans-serif'; ctx.fillText(S['resultNote'].slice(0, 88), 600, 475);
+        ctx.textAlign = 'start'; ctx.font = '700 20px sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText('SHOW ME THE SAJU', 90, 560);
+        const link = document.createElement('a'); link.download = 'our-gunghap.png'; link.href = canvas.toDataURL('image/png'); link.click();
+        trackEvent('share', { method: 'image', content_type: 'gunghap', language: document.documentElement.lang });
+      };
     }
 
     function render(g: GunghapResult) {
@@ -425,7 +599,11 @@ const personFields = [
             <article><small>${S['theirStrength']}</small><strong>${S[`strengthV.${g.strengthB}`]}</strong></article>
           </div>`,
           S['strengthNote'], true),
+        section('timing', '09', '運', S['timingComparison'], timingComparison(g), S['timingNote'], true),
       ].join('');
+      renderCompatibilitySummary(g, stemLine);
+      setupCompatibilityMatrix(g);
+      setupCompatibilitySharing(g);
     }
 
     // Result rendering must run after every helper above is initialized.
@@ -444,10 +622,12 @@ const personFields = [
       try {
         const g: GunghapResult = computeGunghap(input('a'), input('b'));
         render(g);
+        rememberComparison(q.toString(), `${g.a.dayMaster.hanja} · ${g.b.dayMaster.hanja}`);
+        renderComparisonHistory();
         form.hidden = true;
         const result = document.getElementById('gunghap-result')!;
         result.hidden = false;
-        document.querySelector<HTMLButtonElement>('[data-gunghap-target="pair-charts"]')?.setAttribute('aria-current', 'location');
+        document.querySelector<HTMLButtonElement>('[data-gunghap-target="compat-summary"]')?.setAttribute('aria-current', 'location');
         if (scrollToResult) requestAnimationFrame(() => result.scrollIntoView({
           behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
           block: 'start',
@@ -483,6 +663,10 @@ const personFields = [
         });
       });
     });
+    window.addEventListener('hashchange', () => {
+      const next = new URLSearchParams(location.hash.slice(1));
+      renderFromParams(next, true);
+    });
     renderFromParams(q);
   </script>
 
@@ -492,6 +676,17 @@ const personFields = [
     .feature-mark { position: absolute; inset: -2rem -1rem auto auto; color: var(--jade-pale, var(--paper-sunken)); font-family: var(--font-display); font-size: 12rem; line-height: 1; z-index: -1; }
     .trust-line { display: inline-flex; align-items: center; gap: .55rem; margin-top: var(--space-3); padding: .6rem .85rem; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-soft); background: rgb(255 255 255 / .55); font-size: var(--text-xs); font-weight: 650; }
     .trust-line::before { content: '✓'; display: grid; inline-size: 1.2rem; block-size: 1.2rem; place-items: center; border-radius: 50%; color: white; background: var(--indigo); font-size: .68rem; }
+    .comparison-history { margin-block-end: var(--space-5); padding: 1rem; background: linear-gradient(145deg, color-mix(in srgb, var(--jade-pale) 42%, white), rgb(255 255 255 / .82)); }
+    .comparison-history[hidden] { display: none; }
+    .comparison-history header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .7rem; }
+    .comparison-history header small { color: var(--ink-soft); font-size: .56rem; }
+    .comparison-history h2 { margin: .1rem 0 0; font-size: var(--text-base); }
+    .comparison-history header button { border: 0; color: var(--ink-soft); background: transparent; font: inherit; font-size: .62rem; font-weight: 750; cursor: pointer; }
+    #comparison-history-list { display: flex; gap: .45rem; overflow-x: auto; padding-bottom: .2rem; }
+    #comparison-history-list a { display: grid; min-width: 8rem; gap: .2rem; border: 1px solid var(--line); border-radius: .75rem; padding: .55rem .7rem; color: var(--ink); background: rgb(255 255 255 / .72); text-decoration: none; }
+    #comparison-history-list a:hover { border-color: color-mix(in srgb, var(--indigo) 38%, var(--line)); transform: translateY(-1px); }
+    #comparison-history-list strong { font-family: var(--font-display); font-size: .9rem; }
+    #comparison-history-list small { color: var(--ink-soft); font-size: .55rem; }
 
     /* ── form: same component language as the main birth form ── */
     .gform { position: relative; padding: clamp(1.1rem, 3vw, 1.6rem); display: grid; gap: var(--space-3); margin-block-end: var(--space-12); box-shadow: var(--shadow-float, var(--shadow-card)); overflow: hidden; }
@@ -504,6 +699,9 @@ const personFields = [
     .person-head { display: flex; align-items: center; gap: .6rem; }
     .person-head h3 { margin: 0; font-size: var(--text-base); }
     .person-badge { display: grid; inline-size: 2rem; block-size: 2rem; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--vermilion); background: rgb(255 255 255 / .68); font-family: var(--font-display); font-weight: 750; }
+    .saved-person-profile { display: grid; gap: .35rem; padding: .7rem; border: 1px dashed color-mix(in srgb, var(--indigo) 26%, var(--line)); border-radius: .8rem; background: color-mix(in srgb, var(--jade-pale) 32%, transparent); }
+    .saved-person-profile > span { color: var(--ink-soft); font-size: .6rem; font-weight: 760; }
+    .saved-person-profile .field { min-height: 2.45rem; padding: .5rem .65rem; font-size: .7rem; }
     .input-step { position: relative; display: grid; gap: .8rem; padding: 1rem; border: 1px solid color-mix(in srgb, var(--line) 88%, transparent); border-radius: var(--radius); background: color-mix(in srgb, var(--paper-raised) 72%, transparent); box-shadow: 0 5px 18px rgb(35 53 44 / .035); transition: transform var(--dur-fast) var(--ease-reveal), border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast); }
     .input-step::before { content: ''; position: absolute; inset: .8rem auto .8rem 0; inline-size: 3px; border-radius: 0 3px 3px 0; background: var(--line); transition: background var(--dur-fast), transform var(--dur-fast); transform: scaleY(.45); }
     .input-step:hover { border-color: #cbd2cd; background: rgb(255 255 255 / .8); }
@@ -574,6 +772,22 @@ const personFields = [
     .signature-bridge i:last-child { background: linear-gradient(90deg, rgb(255 255 255 / .48), transparent); }
     .signature-bridge b { display: grid; inline-size: 3.2rem; aspect-ratio: 1; place-items: center; border: 1px solid rgb(255 255 255 / .32); border-radius: 50%; color: white; background: rgb(255 255 255 / .08); font-family: var(--font-display); font-size: 1.45rem; box-shadow: 0 0 0 .45rem rgb(255 255 255 / .04); }
     .signature-bridge p { max-width: 30rem; margin: .75rem auto 0; color: rgb(255 255 255 / .76); font-size: .72rem; line-height: 1.55; }
+    .result-actions { display: flex; justify-content: center; gap: .55rem; margin-top: 1.25rem; }
+    .result-actions .btn-secondary { min-height: 2.4rem; border-color: rgb(255 255 255 / .28); color: white; background: rgb(255 255 255 / .09); }
+
+    .compat-summary { scroll-margin-top: 8rem; margin-block: clamp(1.5rem, 4vw, 2.5rem); }
+    .compat-summary__heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; margin-bottom: 1rem; }
+    .compat-summary__heading p { margin: 0; color: var(--vermilion); font-family: var(--font-mono); font-size: .6rem; font-weight: 800; letter-spacing: .07em; }
+    .compat-summary__heading h2 { margin: .18rem 0 0; font-size: var(--text-xl); }
+    .compat-summary__heading > span { max-width: 38rem; color: var(--ink-soft); font-size: .68rem; line-height: 1.55; text-align: end; }
+    .compat-summary-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .65rem; }
+    .compat-summary-card { position: relative; display: grid; min-width: 0; min-height: 10.5rem; align-content: start; gap: .75rem; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); padding: .9rem; color: var(--ink); background: linear-gradient(145deg, rgb(255 255 255 / .9), rgb(247 247 242 / .7)); text-decoration: none; box-shadow: 0 10px 28px rgb(35 53 44 / .05); transition: transform var(--dur-fast), border-color var(--dur-fast), box-shadow var(--dur-fast); }
+    .compat-summary-card:hover { border-color: color-mix(in srgb, var(--indigo) 36%, var(--line)); box-shadow: 0 16px 36px rgb(35 53 44 / .11); transform: translateY(-3px); }
+    .compat-summary-card > span { display: grid; inline-size: 2.45rem; aspect-ratio: 1; place-items: center; border-radius: .75rem; color: var(--vermilion); background: var(--peach-pale); font-family: var(--font-display); font-size: 1rem; }
+    .compat-summary-card small { color: var(--indigo); font-size: .54rem; font-weight: 780; }
+    .compat-summary-card h3 { margin: .16rem 0 .4rem; font-size: .78rem; }
+    .compat-summary-card p { display: -webkit-box; overflow: hidden; margin: 0; color: var(--ink-soft); font-size: .62rem; line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+    .compat-summary-card > i { position: absolute; inset: .75rem .75rem auto auto; color: var(--ink-soft); font-style: normal; font-size: .7rem; }
 
     .gunghap-jumpbar { position: sticky; z-index: 14; top: 4.5rem; display: flex; align-items: center; gap: .55rem; margin-block: 1rem 0; padding: .5rem; border: 1px solid color-mix(in srgb, var(--line) 82%, transparent); border-radius: 999px; background: color-mix(in srgb, var(--paper-raised) 90%, transparent); box-shadow: 0 12px 30px rgb(31 43 37 / .08); backdrop-filter: blur(18px) saturate(125%); }
     .gunghap-jumpbar > span { display: grid; inline-size: 2rem; aspect-ratio: 1; flex: 0 0 auto; place-items: center; border-radius: 50%; color: white; background: var(--indigo); font-size: .8rem; }
@@ -611,12 +825,14 @@ const personFields = [
     .gsection--tengods { --section-accent: #74598a; }
     .gsection--elements { --section-accent: #a06d29; }
     .gsection--strength { --section-accent: #42747a; }
+    .gsection--timing { --section-accent: #496183; }
     .gsection--wide { grid-column: 1 / -1; }
     .gsection__head { position: relative; z-index: 1; display: flex; align-items: center; gap: .7rem; margin-bottom: 1rem; }
     .gsection__mark { display: grid; inline-size: 2.7rem; aspect-ratio: 1; flex: 0 0 auto; place-items: center; border-radius: .85rem; color: var(--section-accent); background: color-mix(in srgb, var(--section-accent) 10%, white); font-family: var(--font-display); font-size: 1.15rem; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--section-accent) 14%, transparent); }
     .gsection__head small { color: var(--section-accent); font-family: var(--font-mono); font-size: .58rem; font-weight: 800; letter-spacing: .08em; }
     .gsection__head h3 { margin: .1rem 0 0; font-size: clamp(1.05rem, 2vw, 1.3rem); }
-    .gsection__body { position: relative; z-index: 1; min-height: 3.25rem; }
+    .gsection__body { position: relative; z-index: 1; min-width: 0; min-height: 3.25rem; }
+    .gsection--cross .gsection__body { overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: thin; }
     .gsection__note { position: relative; z-index: 1; display: grid; grid-template-columns: auto 1fr; align-items: flex-start; gap: .55rem; margin-top: 1.1rem; padding-top: .9rem; border-top: 1px solid color-mix(in srgb, var(--section-accent) 12%, var(--line)); }
     .gsection__note > span { display: grid; inline-size: 1.2rem; aspect-ratio: 1; place-items: center; border-radius: 50%; color: white; background: var(--section-accent); font-family: var(--font-mono); font-size: .58rem; font-weight: 800; }
     .gsection__note p { margin: 0; color: var(--ink-soft); font-size: .68rem; line-height: 1.6; }
@@ -631,6 +847,25 @@ const personFields = [
     .fill-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; margin-bottom: 1rem; }
     .fill-summary p:only-child { grid-column: 1 / -1; }
     .soft { color: var(--ink-soft); }
+
+    .matrix-instruction { margin: 0 0 .75rem; color: var(--ink-soft); font-size: .66rem; }
+    .compat-matrix { display: grid; grid-template-columns: minmax(4.5rem, .75fr) repeat(4, minmax(4.7rem, 1fr)); gap: .35rem; min-width: 31rem; }
+    .compat-matrix__axis { display: grid; min-height: 3.2rem; align-content: center; justify-items: center; border-radius: .65rem; color: var(--ink-soft); background: color-mix(in srgb, var(--section-accent) 6%, white); }
+    .compat-matrix__axis small { font-size: .5rem; }
+    .compat-matrix__axis strong { font-size: .64rem; }
+    .compat-matrix__cell { display: grid; min-height: 4rem; place-items: center; align-content: center; gap: .18rem; border: 1px solid var(--line); border-radius: .7rem; color: var(--ink); background: rgb(255 255 255 / .68); font: inherit; cursor: pointer; transition: transform var(--dur-fast), border-color var(--dur-fast), box-shadow var(--dur-fast); }
+    .compat-matrix__cell:hover, .compat-matrix__cell[aria-pressed="true"] { z-index: 1; border-color: var(--section-accent); box-shadow: 0 8px 18px color-mix(in srgb, var(--section-accent) 15%, transparent); transform: translateY(-2px); }
+    .compat-matrix__cell--smooth { background: color-mix(in srgb, var(--jade-pale) 58%, white); }
+    .compat-matrix__cell--tense { background: color-mix(in srgb, #ffebe5 70%, white); }
+    .compat-matrix__cell span { display: inline-flex; align-items: center; gap: .28rem; font-family: var(--font-display); font-size: .95rem; }
+    .compat-matrix__cell i { color: var(--ink-soft); font-family: var(--font-body); font-size: .5rem; font-style: normal; }
+    .compat-matrix__cell small { color: var(--ink-soft); font-family: var(--font-mono); font-size: .5rem; }
+    .compat-matrix__empty { display: grid; place-items: center; border-radius: .7rem; color: var(--ink-soft); background: var(--paper-sunken); }
+    .matrix-detail { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: .65rem; margin-top: .8rem; padding: .8rem; border: 1px solid color-mix(in srgb, var(--section-accent) 18%, var(--line)); border-radius: var(--radius); background: rgb(255 255 255 / .7); }
+    .matrix-detail > div { display: grid; justify-items: center; gap: .2rem; }
+    .matrix-detail > div small { color: var(--ink-soft); font-size: .55rem; }
+    .matrix-detail > div strong { font-family: var(--font-display); font-size: 1.5rem; }
+    .matrix-detail > aside { grid-column: 1 / -1; padding-top: .65rem; border-top: 1px solid var(--line); }
 
     .cross-pillar-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; }
     .cross-pillar-item { min-width: 0; padding: .8rem; border: 1px solid color-mix(in srgb, var(--section-accent) 15%, var(--line)); border-radius: .85rem; background: rgb(255 255 255 / .68); }
@@ -651,10 +886,26 @@ const personFields = [
     .spouse-palace > header strong { grid-row: 1 / 3; grid-column: 2; font-family: var(--font-display); font-size: 1.8rem; line-height: 1; }
     .spouse-palace > header small { color: var(--ink-soft); font-size: .57rem; }
     .spouse-palace > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .55rem; padding: .75rem; }
-    .spouse-hidden-chip { display: grid; min-width: 0; justify-items: center; gap: .25rem; padding: .65rem .4rem; border-radius: .75rem; background: color-mix(in srgb, var(--paper-sunken) 58%, white); text-align: center; }
+    .spouse-hidden-chip { min-width: 0; overflow: hidden; border-radius: .75rem; background: color-mix(in srgb, var(--paper-sunken) 58%, white); text-align: center; }
+    .spouse-hidden-chip summary { display: grid; min-height: 5.2rem; justify-items: center; align-content: center; gap: .25rem; padding: .65rem .4rem; cursor: pointer; list-style: none; }
+    .spouse-hidden-chip summary::-webkit-details-marker { display: none; }
+    .spouse-hidden-chip[open] { grid-column: span 2; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--person-accent) 20%, transparent); }
     .spouse-hidden-chip small { color: var(--ink-soft); font-size: .55rem; font-weight: 700; }
     .spouse-hidden-chip strong { font-family: var(--font-display); font-size: 1.45rem; line-height: 1; }
     .spouse-hidden-chip span { overflow: hidden; max-width: 100%; color: var(--ink-soft); font-size: .58rem; font-weight: 720; text-overflow: ellipsis; white-space: nowrap; }
+    .spouse-hidden-chip p { margin: 0; padding: .65rem; border-top: 1px solid var(--line); color: var(--ink-soft); background: rgb(255 255 255 / .7); font-size: .58rem; line-height: 1.55; text-align: start; }
+
+    .compat-timing-grid { display: grid; grid-template-columns: 1fr minmax(7rem, .45fr) 1fr; align-items: stretch; gap: .7rem; }
+    .compat-timing-card { --person-accent: var(--indigo); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; padding: .75rem; border: 1px solid color-mix(in srgb, var(--person-accent) 18%, var(--line)); border-radius: var(--radius); background: rgb(255 255 255 / .7); }
+    .compat-timing-card--b { --person-accent: #a55d4d; }
+    .compat-timing-card header { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; color: var(--person-accent); font-size: .65rem; font-weight: 800; }
+    .compat-timing-card header small { font-family: var(--font-mono); }
+    .compat-timing-card > div { display: grid; justify-items: center; gap: .25rem; padding: .75rem .4rem; border-radius: .75rem; background: var(--paper-sunken); }
+    .compat-timing-card div small, .compat-timing-card div span { color: var(--ink-soft); font-size: .55rem; }
+    .compat-timing-card div strong { font-family: var(--font-display); font-size: 1.55rem; }
+    .compat-timing-link { display: grid; align-content: center; justify-items: center; gap: .6rem; }
+    .compat-timing-link > span { display: grid; inline-size: 2.5rem; aspect-ratio: 1; place-items: center; border-radius: 50%; color: white; background: var(--section-accent); font-family: var(--font-display); }
+    .compat-timing-link .rel-badges { justify-content: center; }
 
     .element-compare { display: grid; gap: .65rem; padding: clamp(.9rem, 2.5vw, 1.25rem); border: 1px solid color-mix(in srgb, var(--section-accent) 16%, var(--line)); border-radius: var(--radius); background: rgb(255 255 255 / .62); }
     .element-compare__legend { display: flex; justify-content: flex-end; gap: 1rem; }
@@ -683,6 +934,8 @@ const personFields = [
     .culture p { margin: 0; color: var(--ink-soft); }
     .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
     @media (max-width: 860px) {
+      .compat-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .compat-summary-card:last-child { grid-column: 1 / -1; min-height: 8rem; }
       .gunghap-sections { grid-template-columns: 1fr; }
       .gsection--wide { grid-column: auto; }
       .pair-signature { grid-template-columns: minmax(6.5rem, .8fr) minmax(9rem, 1.2fr) minmax(6.5rem, .8fr); }
@@ -691,6 +944,8 @@ const personFields = [
       .person-charts { grid-template-columns: 1fr; }
       .mini-chart { max-width: 38rem; width: 100%; margin-inline: auto; }
       .cross-pillar-grid, .spouse-palace-grid { grid-template-columns: 1fr; }
+      .compat-timing-grid { grid-template-columns: 1fr; }
+      .compat-timing-link { grid-template-columns: auto 1fr; }
       .fill-summary { grid-template-columns: 1fr; }
       .fill-summary p { grid-column: auto; }
     }
@@ -709,6 +964,11 @@ const personFields = [
       .mini-pillars { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(5.4rem, 1fr); overflow-x: auto; padding-bottom: .35rem; scroll-snap-type: x proximity; scrollbar-width: thin; }
       .mini-pillar { min-height: 7.5rem; scroll-snap-align: start; }
       .gsection { padding: 1.15rem; }
+      .compat-summary__heading { align-items: flex-start; flex-direction: column; }
+      .compat-summary__heading > span { text-align: start; }
+      .compat-summary-grid { grid-template-columns: 1fr; }
+      .compat-summary-card:last-child { grid-column: auto; }
+      .result-actions { align-items: stretch; flex-direction: column; }
       .cross-pillar-item header { gap: .35rem; }
       .element-compare__row { grid-template-columns: 4.2rem 1fr 2rem; gap: .45rem; }
       .strength-compare { grid-template-columns: 1fr; }
