@@ -4,6 +4,7 @@ import path from 'node:path';
 const root = process.cwd();
 const dist = path.join(root, 'dist');
 const locales = ['ko', 'en', 'ja', 'zh-cn', 'zh-tw', 'es', 'fr', 'de', 'pt', 'vi', 'th'];
+const adsenseScript = 'pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1837000267504503';
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -20,7 +21,7 @@ for (const locale of locales) {
     `${locale}: canonical URL does not use the custom domain`);
   assert(homeHtml.includes('href="/_astro/') && !homeHtml.includes('/showmethesaju/_astro/'),
     `${locale}: production assets are not rooted at the custom domain`);
-  assert(homeHtml.includes('pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1837000267504503') &&
+  assert(homeHtml.includes(adsenseScript) &&
     homeHtml.includes('crossorigin="anonymous"'), `${locale}: AdSense publisher script is missing`);
   assert(!/<(?:script|link)[^>]+(?:src|href)="http:\/\//i.test(homeHtml),
     `${locale}: insecure active-content reference would break HTTPS`);
@@ -76,6 +77,7 @@ for (const locale of locales) {
   assert(html.includes('id="analytics-consent"'), `${locale}: missing consent controls`);
   assert(html.includes("window.gtag('consent', 'default'"), `${locale}: consent default is not in the document head`);
   assert(!html.includes('<script async src="https://www.googletagmanager.com/gtag/js'), `${locale}: GA must not load before consent`);
+  assert(!html.includes(adsenseScript), `${locale}: AdSense must not load on the noindex reading/results page`);
 
   const compatibilityHtml = read(path.join(locale, 'compatibility', 'index.html'));
   assert(compatibilityHtml.includes('id="gunghap-form"') && (compatibilityHtml.match(/data-person=/g) || []).length === 2,
@@ -104,11 +106,24 @@ for (const locale of locales) {
     `${locale}: Gunghap dynamic-result CSS was incorrectly Astro-scoped`);
   assert(!compatibilityHtml.includes('REPLACE_ME') && !compatibilityHtml.includes('formspree.io/f/'),
     `${locale}: broken placeholder form endpoint remains in Gunghap`);
+  assert(!compatibilityHtml.includes(adsenseScript), `${locale}: AdSense must not load on the interactive compatibility page`);
 
   const methodologyHtml = read(path.join(locale, 'methodology', 'index.html'));
   assert(methodologyHtml.includes('class="methodology-grid"') && methodologyHtml.includes('verification-note'),
     `${locale}: localized calculation methodology page is missing`);
+  assert(methodologyHtml.includes(adsenseScript), `${locale}: AdSense is missing from the methodology page`);
+
+  const learnHtml = read(path.join(locale, 'learn', 'index.html'));
+  assert(learnHtml.includes(adsenseScript), `${locale}: AdSense is missing from the learning hub`);
+  const glossaryHtml = read(path.join(locale, 'glossary', 'index.html'));
+  assert(glossaryHtml.includes(adsenseScript), `${locale}: AdSense is missing from the glossary`);
+  const privacyHtml = read(path.join(locale, 'privacy', 'index.html'));
+  assert(!privacyHtml.includes(adsenseScript), `${locale}: AdSense must not load on the privacy page`);
+  const aboutHtml = read(path.join(locale, 'about', 'index.html'));
+  assert(!aboutHtml.includes(adsenseScript), `${locale}: AdSense must not load on the thin About page`);
 }
+
+assert(!read(path.join('404.html')).includes(adsenseScript), 'AdSense must not load on the 404 page');
 
 assert(read('ads.txt').trim() === 'google.com, pub-1837000267504503, DIRECT, f08c47fec0942fa0',
   'ads.txt is missing or does not match the AdSense publisher record');

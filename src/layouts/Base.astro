@@ -24,6 +24,13 @@ const sub = path ? `${path}/` : '';
 const canonical = `${site}/${lang}/${sub}`;
 const htmlLang = LOCALES.find((l) => l.code === lang)?.htmlLang ?? lang;
 const year = new Date().getFullYear();
+const adsenseEligible = !noindex && (
+  path === '' ||
+  path === 'learn' ||
+  path.startsWith('learn/') ||
+  path === 'glossary' ||
+  path === 'methodology'
+);
 
 const nav = [
   { href: `${withBase(`/${lang}/`)}#birth-form`, label: t(lang, 'nav.reading'), analyticsKey: 'reading' },
@@ -81,7 +88,9 @@ const commerce = [
       });
       window.gtag('set', 'ads_data_redaction', true);
     </script>
-    <script is:inline async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1837000267504503" crossorigin="anonymous"></script>
+    {adsenseEligible && (
+      <script is:inline async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1837000267504503" crossorigin="anonymous"></script>
+    )}
     <!-- Self-hosted fonts (scripts/fetch-fonts.mjs): no third-party requests,
          keeps the "your data never leaves your device" claim honest. -->
     <link rel="stylesheet" href={withBase('/fonts/fonts.css')} />
