@@ -79,7 +79,7 @@ const commerce = [
       window.dataLayer = window.dataLayer || [];
       window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
       window.__sajuAnalyticsMeasurementId = measurementId;
-      window.gtag('set', 'send_page_view', false);
+      // Consent defaults must precede every other gtag call, including 'js'.
       window.gtag('consent', 'default', {
         analytics_storage: 'denied',
         ad_storage: 'denied',
@@ -88,6 +88,9 @@ const commerce = [
         wait_for_update: 500,
       });
       window.gtag('set', 'ads_data_redaction', true);
+      window.gtag('set', 'send_page_view', false);
+      // Bootstraps gtag.js. Without it the library loads but never dispatches.
+      window.gtag('js', new Date());
     </script>
     {adsenseEligible && (
       <script is:inline async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1837000267504503" crossorigin="anonymous"></script>

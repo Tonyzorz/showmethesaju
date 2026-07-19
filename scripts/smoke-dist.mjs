@@ -79,7 +79,12 @@ for (const locale of locales) {
     `${locale}: connected Daeun-Seun-Wolun navigator is missing`);
   assert(html.includes('id="analytics-consent"'), `${locale}: missing consent controls`);
   assert(html.includes("window.gtag('consent', 'default'"), `${locale}: consent default is not in the document head`);
-  assert(!html.includes('<script async src="https://www.googletagmanager.com/gtag/js'), `${locale}: GA must not load before consent`);
+  assert(html.includes(`id="google-analytics-script" async src="https://www.googletagmanager.com/gtag/js?id=G-RMFH4E7NGS"`),
+    `${locale}: detectable GA4 tag is missing or uses the wrong measurement ID`);
+  assert(html.includes("window.gtag('js', new Date())"),
+    `${locale}: gtag.js is never bootstrapped, so no hit will ever dispatch`);
+  assert(html.indexOf("window.gtag('consent', 'default'") < html.indexOf("window.gtag('js', new Date())"),
+    `${locale}: consent default must precede the 'js' bootstrap`);
   assert(!html.includes(adsenseScript), `${locale}: AdSense must not load on the noindex reading/results page`);
 
   const compatibilityHtml = read(path.join(locale, 'compatibility', 'index.html'));
@@ -199,7 +204,7 @@ assert(gunghapBundle.source.includes('gunghap_section_navigate') && gunghapBundl
   gunghapBundle.source.includes('share-compatibility-png'),
   'Gunghap bundle is missing result navigation, pair signature, or comparative result visualizations');
 
-const analyticsBundle = bundles.find(({ source }) => source.includes('google-analytics-script'));
+const analyticsBundle = bundles.find(({ source }) => source.includes('G-RMFH4E7NGS'));
 assert(analyticsBundle, 'Could not identify the built analytics bundle');
 assert(analyticsBundle.source.includes('G-RMFH4E7NGS'), 'GA4 measurement ID missing from analytics bundle');
 assert(analyticsBundle.source.includes('send_page_view:!1'),
